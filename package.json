@@ -1,6 +1,6 @@
 {
   "name": "seek",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Beginner coding learning platform with AI tutoring",
   "private": true,
   "workspaces": ["frontend", "backend"],
