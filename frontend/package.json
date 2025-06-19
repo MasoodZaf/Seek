@@ -2,19 +2,21 @@
   "name": "seek-frontend",
   "version": "1.0.0",
   "private": true,
+  
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
     "react-router-dom": "^6.20.1",
     "@monaco-editor/react": "^4.6.0",
+    "monaco-editor": "^0.44.0",
     "axios": "^1.6.2",
     "framer-motion": "^10.16.5",
     "lucide-react": "^0.294.0",
     "react-hot-toast": "^2.4.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "NODE_NO_WARNINGS=1 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test"
   },
