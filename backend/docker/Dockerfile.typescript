@@ -1,0 +1,22 @@
+FROM node:18-slim
+
+# Security: Create non-root user
+RUN groupadd -r coderunner && useradd -r -g coderunner coderunner
+
+# Install TypeScript globally
+RUN npm install -g typescript ts-node
+
+# Set up working directory
+WORKDIR /app
+RUN chown coderunner:coderunner /app
+
+# Switch to non-root user
+USER coderunner
+
+# Copy execution script
+COPY --chown=coderunner:coderunner execute.js /app/
+
+# Set resource limits
+ENV NODE_ENV=sandbox
+
+CMD ["node", "/app/execute.js"]

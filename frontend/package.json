@@ -2,27 +2,78 @@
   "name": "seek-frontend",
   "version": "1.0.0",
   "private": true,
-  
+  "description": "Modern, student-friendly frontend for Seek coding learning platform",
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "react-router-dom": "^6.20.1",
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
+    "@hookform/resolvers": "^3.3.2",
     "@monaco-editor/react": "^4.6.0",
-    "monaco-editor": "^0.44.0",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "@use-gesture/react": "^10.3.1",
     "axios": "^1.6.2",
+    "clsx": "^2.0.0",
+    "date-fns": "^3.0.6",
     "framer-motion": "^10.16.5",
+    "i18next": "^25.3.4",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^3.0.2",
+    "js-cookie": "^3.0.5",
     "lucide-react": "^0.294.0",
-    "react-hot-toast": "^2.4.1"
+    "monaco-editor": "^0.44.0",
+    "prism-react-renderer": "^2.3.1",
+    "react": "^18.2.0",
+    "react-confetti": "^6.1.0",
+    "react-dom": "^18.2.0",
+    "react-dropzone": "^14.2.3",
+    "react-helmet-async": "^2.0.4",
+    "react-hook-form": "^7.48.2",
+    "react-hot-toast": "^2.4.1",
+    "react-i18next": "^15.6.1",
+    "react-intersection-observer": "^9.5.3",
+    "react-loading-skeleton": "^3.3.1",
+    "react-query": "^3.39.3",
+    "react-router-dom": "6.8.1",
+    "react-scripts": "5.0.1",
+    "react-spring": "^10.0.1",
+    "react-syntax-highlighter": "^15.5.0",
+    "recharts": "^2.8.0",
+    "socket.io-client": "^4.7.5",
+    "yup": "^1.4.0"
   },
   "scripts": {
+    "dev": "NODE_NO_WARNINGS=1 react-scripts start",
     "start": "NODE_NO_WARNINGS=1 react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test"
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint src --fix --ext .js,.jsx,.ts,.tsx"
   },
-  "proxy": "http://localhost:5000",
+  "proxy": "http://localhost:5001",
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
-    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.55.0",
+    "eslint-config-react-app": "^7.0.1",
+    "postcss": "^8.4.32",
+    "prettier": "^3.1.1",
+    "tailwindcss": "^3.4.0"
   }
 }

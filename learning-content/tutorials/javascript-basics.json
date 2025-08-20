@@ -1,0 +1,226 @@
+{
+  "id": "javascript-basics",
+  "title": "JavaScript Fundamentals",
+  "description": "Learn the core concepts of JavaScript programming",
+  "difficulty": "beginner",
+  "estimatedTime": 120,
+  "prerequisites": [],
+  "tags": ["javascript", "fundamentals", "programming"],
+  "author": {
+    "name": "Seek Team",
+    "avatar": null
+  },
+  "lessons": [
+    {
+      "id": "variables-and-data-types",
+      "title": "Variables and Data Types",
+      "description": "Learn about JavaScript variables and different data types",
+      "duration": 20,
+      "concepts": [
+        "Variables (let, const, var)",
+        "Data types (string, number, boolean, null, undefined)",
+        "Type coercion",
+        "Naming conventions"
+      ],
+      "content": {
+        "text": "In JavaScript, variables are containers for storing data values. You can declare variables using `let`, `const`, or `var` keywords.\n\n## Variable Declaration\n\n```javascript\nlet name = 'John';\nconst age = 25;\nvar city = 'New York';\n```\n\n## Data Types\n\nJavaScript has several built-in data types:\n\n1. **String** - Text data\n2. **Number** - Numeric data\n3. **Boolean** - True/false values\n4. **Null** - Intentionally empty value\n5. **Undefined** - Variable declared but not assigned\n6. **Object** - Complex data structure\n7. **Symbol** - Unique identifier (ES6)\n\n## Best Practices\n\n- Use `const` for values that won't change\n- Use `let` for variables that will be reassigned\n- Avoid `var` in modern JavaScript\n- Use descriptive variable names",
+        "examples": [
+          {
+            "title": "Variable Declaration Examples",
+            "code": "// String\nconst firstName = 'Alice';\nlet lastName = 'Johnson';\n\n// Number\nconst pi = 3.14159;\nlet score = 0;\n\n// Boolean\nconst isActive = true;\nlet isComplete = false;\n\n// Check types\nconsole.log(typeof firstName); // 'string'\nconsole.log(typeof pi); // 'number'\nconsole.log(typeof isActive); // 'boolean'\n\n// Undefined and null\nlet undefinedVar;\nlet nullVar = null;\n\nconsole.log(undefinedVar); // undefined\nconsole.log(nullVar); // null",
+            "language": "javascript"
+          }
+        ]
+      },
+      "exercises": [
+        {
+          "id": "variable-practice",
+          "title": "Variable Practice",
+          "description": "Create variables of different data types and log their values",
+          "starterCode": "// Create variables for the following:\n// 1. Your name (string)\n// 2. Your age (number)\n// 3. Whether you like programming (boolean)\n// 4. Your favorite color (string)\n\n// Your code here:\n\n\n// Log all variables to see their values\nconsole.log('Name:', name);\nconsole.log('Age:', age);\nconsole.log('Likes programming:', likesProgramming);\nconsole.log('Favorite color:', favoriteColor);",
+          "solution": "// Create variables for the following:\nconst name = 'John Doe';\nconst age = 25;\nconst likesProgramming = true;\nconst favoriteColor = 'blue';\n\n// Log all variables to see their values\nconsole.log('Name:', name);\nconsole.log('Age:', age);\nconsole.log('Likes programming:', likesProgramming);\nconsole.log('Favorite color:', favoriteColor);",
+          "tests": [
+            {
+              "description": "Should have a name variable",
+              "code": "typeof name === 'string'"
+            },
+            {
+              "description": "Should have an age variable",
+              "code": "typeof age === 'number'"
+            },
+            {
+              "description": "Should have a likesProgramming variable",
+              "code": "typeof likesProgramming === 'boolean'"
+            }
+          ]
+        }
+      ],
+      "quiz": [
+        {
+          "id": "q1",
+          "type": "multiple-choice",
+          "question": "Which keyword should you use for a variable that won't change its value?",
+          "options": ["var", "let", "const", "static"],
+          "correctAnswer": 2,
+          "explanation": "`const` is used for variables that won't be reassigned after declaration."
+        },
+        {
+          "id": "q2",
+          "type": "multiple-choice",
+          "question": "What will `typeof null` return?",
+          "options": ["'null'", "'undefined'", "'object'", "'boolean'"],
+          "correctAnswer": 2,
+          "explanation": "`typeof null` returns 'object', which is a known quirk in JavaScript."
+        }
+      ]
+    },
+    {
+      "id": "functions",
+      "title": "Functions",
+      "description": "Learn how to create and use functions in JavaScript",
+      "duration": 30,
+      "concepts": [
+        "Function declaration",
+        "Function expression",
+        "Arrow functions",
+        "Parameters and arguments",
+        "Return values",
+        "Scope"
+      ],
+      "content": {
+        "text": "Functions are one of the fundamental building blocks in JavaScript. A function is a reusable block of code designed to perform a particular task.\n\n## Function Declaration\n\n```javascript\nfunction greet(name) {\n  return `Hello, ${name}!`;\n}\n```\n\n## Function Expression\n\n```javascript\nconst greet = function(name) {\n  return `Hello, ${name}!`;\n};\n```\n\n## Arrow Functions (ES6)\n\n```javascript\nconst greet = (name) => {\n  return `Hello, ${name}!`;\n};\n\n// Or shorter syntax for single expressions\nconst greet = name => `Hello, ${name}!`;\n```\n\n## Parameters and Arguments\n\n- **Parameters** are the named variables in the function definition\n- **Arguments** are the actual values passed to the function\n\n## Return Values\n\nFunctions can return values using the `return` statement. If no return statement is used, the function returns `undefined`.",
+        "examples": [
+          {
+            "title": "Function Examples",
+            "code": "// Function declaration\nfunction add(a, b) {\n  return a + b;\n}\n\n// Function expression\nconst multiply = function(a, b) {\n  return a * b;\n};\n\n// Arrow function\nconst divide = (a, b) => a / b;\n\n// Function with default parameters\nfunction greet(name = 'World') {\n  return `Hello, ${name}!`;\n}\n\n// Using the functions\nconsole.log(add(5, 3)); // 8\nconsole.log(multiply(4, 2)); // 8\nconsole.log(divide(10, 2)); // 5\nconsole.log(greet()); // Hello, World!\nconsole.log(greet('Alice')); // Hello, Alice!",
+            "language": "javascript"
+          }
+        ]
+      },
+      "exercises": [
+        {
+          "id": "calculator-functions",
+          "title": "Calculator Functions",
+          "description": "Create basic calculator functions",
+          "starterCode": "// Create the following functions:\n// 1. add(a, b) - returns a + b\n// 2. subtract(a, b) - returns a - b\n// 3. multiply(a, b) - returns a * b\n// 4. divide(a, b) - returns a / b\n// 5. calculate(a, b, operation) - performs the specified operation\n\n// Your functions here:\n\n\n// Test your functions\nconsole.log('Add:', add(10, 5));\nconsole.log('Subtract:', subtract(10, 5));\nconsole.log('Multiply:', multiply(10, 5));\nconsole.log('Divide:', divide(10, 5));\nconsole.log('Calculate add:', calculate(10, 5, 'add'));\nconsole.log('Calculate multiply:', calculate(10, 5, 'multiply'));",
+          "solution": "// Calculator functions\nconst add = (a, b) => a + b;\nconst subtract = (a, b) => a - b;\nconst multiply = (a, b) => a * b;\nconst divide = (a, b) => a / b;\n\nconst calculate = (a, b, operation) => {\n  switch(operation) {\n    case 'add':\n      return add(a, b);\n    case 'subtract':\n      return subtract(a, b);\n    case 'multiply':\n      return multiply(a, b);\n    case 'divide':\n      return divide(a, b);\n    default:\n      return 'Invalid operation';\n  }\n};\n\n// Test your functions\nconsole.log('Add:', add(10, 5)); // 15\nconsole.log('Subtract:', subtract(10, 5)); // 5\nconsole.log('Multiply:', multiply(10, 5)); // 50\nconsole.log('Divide:', divide(10, 5)); // 2\nconsole.log('Calculate add:', calculate(10, 5, 'add')); // 15\nconsole.log('Calculate multiply:', calculate(10, 5, 'multiply')); // 50",
+          "tests": [
+            {
+              "description": "add function should work correctly",
+              "code": "add(5, 3) === 8"
+            },
+            {
+              "description": "subtract function should work correctly",
+              "code": "subtract(10, 3) === 7"
+            },
+            {
+              "description": "calculate function should handle 'add' operation",
+              "code": "calculate(5, 3, 'add') === 8"
+            }
+          ]
+        }
+      ],
+      "quiz": [
+        {
+          "id": "q1",
+          "type": "multiple-choice",
+          "question": "What does a function return if no return statement is specified?",
+          "options": ["null", "undefined", "0", "false"],
+          "correctAnswer": 1,
+          "explanation": "Functions return `undefined` by default if no return statement is specified."
+        }
+      ]
+    },
+    {
+      "id": "arrays-and-objects",
+      "title": "Arrays and Objects",
+      "description": "Learn about JavaScript arrays and objects",
+      "duration": 25,
+      "concepts": [
+        "Array creation and methods",
+        "Object literals",
+        "Property access",
+        "Object methods",
+        "Destructuring"
+      ],
+      "content": {
+        "text": "Arrays and objects are fundamental data structures in JavaScript that allow you to store and organize multiple values.\n\n## Arrays\n\nArrays are ordered lists of values:\n\n```javascript\nconst fruits = ['apple', 'banana', 'orange'];\nconst numbers = [1, 2, 3, 4, 5];\nconst mixed = [1, 'hello', true, null];\n```\n\n## Objects\n\nObjects are collections of key-value pairs:\n\n```javascript\nconst person = {\n  name: 'John',\n  age: 30,\n  city: 'New York'\n};\n```\n\n## Common Array Methods\n\n- `push()` - Add to end\n- `pop()` - Remove from end\n- `unshift()` - Add to beginning\n- `shift()` - Remove from beginning\n- `length` - Get array length\n\n## Object Property Access\n\n- Dot notation: `person.name`\n- Bracket notation: `person['name']`",
+        "examples": [
+          {
+            "title": "Arrays and Objects Examples",
+            "code": "// Arrays\nconst colors = ['red', 'green', 'blue'];\nconsole.log(colors[0]); // 'red'\nconsole.log(colors.length); // 3\n\n// Array methods\ncolors.push('yellow');\nconsole.log(colors); // ['red', 'green', 'blue', 'yellow']\n\nconst lastColor = colors.pop();\nconsole.log(lastColor); // 'yellow'\n\n// Objects\nconst car = {\n  brand: 'Toyota',\n  model: 'Camry',\n  year: 2022,\n  start: function() {\n    return 'Engine started!';\n  }\n};\n\n// Property access\nconsole.log(car.brand); // 'Toyota'\nconsole.log(car['model']); // 'Camry'\nconsole.log(car.start()); // 'Engine started!'\n\n// Adding properties\ncar.color = 'silver';\nconsole.log(car.color); // 'silver'",
+            "language": "javascript"
+          }
+        ]
+      },
+      "exercises": [
+        {
+          "id": "student-data",
+          "title": "Student Data Management",
+          "description": "Create and manipulate student data using arrays and objects",
+          "starterCode": "// Create an array of student objects\n// Each student should have: name, age, grade, subjects (array)\n\nconst students = [\n  // Add at least 3 students here\n];\n\n// Functions to implement:\n// 1. getStudentNames() - return array of all student names\n// 2. getAverageAge() - return average age of all students\n// 3. getStudentsByGrade(grade) - return students with specific grade\n// 4. addSubjectToStudent(studentName, subject) - add subject to student\n\n// Your code here:\n\n\n// Test your functions\nconsole.log('Student names:', getStudentNames());\nconsole.log('Average age:', getAverageAge());\nconsole.log('Grade A students:', getStudentsByGrade('A'));",
+          "solution": "const students = [\n  {\n    name: 'Alice',\n    age: 20,\n    grade: 'A',\n    subjects: ['Math', 'Science']\n  },\n  {\n    name: 'Bob',\n    age: 22,\n    grade: 'B',\n    subjects: ['History', 'English']\n  },\n  {\n    name: 'Charlie',\n    age: 21,\n    grade: 'A',\n    subjects: ['Math', 'Physics']\n  }\n];\n\nconst getStudentNames = () => {\n  return students.map(student => student.name);\n};\n\nconst getAverageAge = () => {\n  const totalAge = students.reduce((sum, student) => sum + student.age, 0);\n  return totalAge / students.length;\n};\n\nconst getStudentsByGrade = (grade) => {\n  return students.filter(student => student.grade === grade);\n};\n\nconst addSubjectToStudent = (studentName, subject) => {\n  const student = students.find(s => s.name === studentName);\n  if (student) {\n    student.subjects.push(subject);\n  }\n};\n\n// Test functions\nconsole.log('Student names:', getStudentNames());\nconsole.log('Average age:', getAverageAge());\nconsole.log('Grade A students:', getStudentsByGrade('A'));",
+          "tests": [
+            {
+              "description": "Should have students array with at least 3 students",
+              "code": "Array.isArray(students) && students.length >= 3"
+            },
+            {
+              "description": "getStudentNames should return array of names",
+              "code": "Array.isArray(getStudentNames()) && getStudentNames().length === students.length"
+            }
+          ]
+        }
+      ],
+      "quiz": [
+        {
+          "id": "q1",
+          "type": "multiple-choice",
+          "question": "Which method adds an element to the end of an array?",
+          "options": ["unshift()", "push()", "pop()", "shift()"],
+          "correctAnswer": 1,
+          "explanation": "`push()` adds one or more elements to the end of an array."
+        }
+      ]
+    }
+  ],
+  "finalProject": {
+    "title": "Personal Profile Generator",
+    "description": "Create a program that generates a personal profile card using all the concepts learned",
+    "requirements": [
+      "Use variables to store personal information",
+      "Create functions to format and display data",
+      "Use objects to organize related data",
+      "Use arrays to store lists (hobbies, skills, etc.)",
+      "Display the profile in a nicely formatted way"
+    ],
+    "starterCode": "// Personal Profile Generator\n// Create a program that generates a personal profile\n\n// 1. Create variables for basic info\n// 2. Create an object to store all personal data\n// 3. Create functions to format and display the profile\n// 4. Use arrays for lists like hobbies, skills\n\n// Your code here:\n\n\n// Display the profile\nconsole.log(generateProfile());",
+    "solution": "// Personal Profile Generator\n\n// Basic information variables\nconst firstName = 'John';\nconst lastName = 'Doe';\nconst age = 25;\nconst occupation = 'Software Developer';\n\n// Personal data object\nconst profile = {\n  name: {\n    first: firstName,\n    last: lastName,\n    full: `${firstName} ${lastName}`\n  },\n  age: age,\n  occupation: occupation,\n  location: 'San Francisco, CA',\n  hobbies: ['reading', 'coding', 'hiking', 'photography'],\n  skills: ['JavaScript', 'Python', 'React', 'Node.js'],\n  contact: {\n    email: 'john.doe@email.com',\n    phone: '+1 (555) 123-4567'\n  }\n};\n\n// Helper functions\nconst formatList = (list) => {\n  return list.map(item => `• ${item}`).join('\\n  ');\n};\n\nconst generateProfile = () => {\n  return `\n=== PERSONAL PROFILE ===\n\nName: ${profile.name.full}\nAge: ${profile.age} years old\nOccupation: ${profile.occupation}\nLocation: ${profile.location}\n\nHobbies:\n  ${formatList(profile.hobbies)}\n\nSkills:\n  ${formatList(profile.skills)}\n\nContact Information:\n  Email: ${profile.contact.email}\n  Phone: ${profile.contact.phone}\n\n========================\n  `;\n};\n\n// Display the profile\nconsole.log(generateProfile());"
+  },
+  "resources": [
+    {
+      "title": "MDN JavaScript Guide",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide",
+      "type": "documentation"
+    },
+    {
+      "title": "JavaScript.info",
+      "url": "https://javascript.info/",
+      "type": "tutorial"
+    },
+    {
+      "title": "Eloquent JavaScript",
+      "url": "https://eloquentjavascript.net/",
+      "type": "book"
+    }
+  ],
+  "certificate": {
+    "available": true,
+    "requirements": {
+      "completedLessons": 3,
+      "passedQuizzes": 3,
+      "completedExercises": 3,
+      "finalProjectScore": 80
+    }
+  }
+}

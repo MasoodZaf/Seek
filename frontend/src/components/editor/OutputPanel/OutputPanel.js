@@ -40,10 +40,15 @@ const OutputPanel = ({
             <pre>{error}</pre>
           </div>
         ) : output ? (
-          <pre className="output-text">{output}</pre>
+          <div className="output-text-container">
+            <pre className="output-text">{output}</pre>
+          </div>
         ) : (
           <div className="empty-output">
-            <span>No output to display</span>
+            <div>
+              <div className="text-secondary-400">▶ Press "Run Code" to execute</div>
+              <div className="text-secondary-500 text-sm mt-1">Output will appear here</div>
+            </div>
           </div>
         )}
       </div>

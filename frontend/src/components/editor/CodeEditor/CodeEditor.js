@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Editor from '@monaco-editor/react';
-import { Loader2, Play, RotateCcw, HelpCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import './CodeEditor.css';
 
 const CodeEditor = ({ 
@@ -15,7 +15,7 @@ const CodeEditor = ({
   const editorRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleEditorDidMount = (editor, monaco) => {
+  const handleEditorDidMount = (editor, _monaco) => {
     editorRef.current = editor;
     setIsLoading(false);
 

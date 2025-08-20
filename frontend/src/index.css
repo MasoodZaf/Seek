@@ -1,19 +1,191 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Custom fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Base styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-white text-secondary-900 font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  html {
+    @apply scroll-smooth;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-secondary-100;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-secondary-300 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-secondary-400;
+  }
+  
+  /* Dark mode scrollbar */
+  .dark ::-webkit-scrollbar-track {
+    @apply bg-secondary-800;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-secondary-600;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-secondary-500;
+  }
 }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Component styles */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-secondary-100 text-secondary-900 hover:bg-secondary-200 focus:ring-secondary-500;
+  }
+  
+  .btn-success {
+    @apply btn bg-success-600 text-white hover:bg-success-700 focus:ring-success-500;
+  }
+  
+  .btn-warning {
+    @apply btn bg-warning-600 text-white hover:bg-warning-700 focus:ring-warning-500;
+  }
+  
+  .btn-error {
+    @apply btn bg-error-600 text-white hover:bg-error-700 focus:ring-error-500;
+  }
+  
+  .btn-ghost {
+    @apply btn bg-transparent text-secondary-700 hover:bg-secondary-100 focus:ring-secondary-500;
+  }
+  
+  .input {
+    @apply w-full rounded-lg border border-secondary-300 px-3 py-2 text-sm placeholder-secondary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl border border-secondary-200 shadow-sm;
+  }
+  
+  .card-hover {
+    @apply card transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+  }
+  
+  .glass {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20;
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent;
+  }
+  
+  .loading-dots::after {
+    content: '';
+    animation: dots 1.5s steps(5, end) infinite;
+  }
+  
+  @keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60% { content: '...'; }
+    80%, 100% { content: ''; }
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Utilities */
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+  }
+  
+  .animation-delay-600 {
+    animation-delay: 0.6s;
+  }
+}
+
+/* Dark mode */
+.dark {
+  @apply bg-secondary-900 text-secondary-100;
+}
+
+.dark .card {
+  @apply bg-secondary-800 border-secondary-700;
+}
+
+.dark .input {
+  @apply bg-secondary-800 border-secondary-700 text-secondary-100 placeholder-secondary-400;
+}
+
+.dark .btn-secondary {
+  @apply bg-secondary-800 text-secondary-100 hover:bg-secondary-700;
+}
+
+.dark .btn-ghost {
+  @apply text-secondary-300 hover:bg-secondary-800;
+}
+
+/* Code highlighting */
+.code-block {
+  @apply rounded-lg bg-secondary-900 p-4 overflow-x-auto;
+}
+
+.code-inline {
+  @apply bg-secondary-100 text-secondary-900 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.dark .code-inline {
+  @apply bg-secondary-800 text-secondary-100;
+}
+
+/* Monaco Editor customizations */
+.monaco-editor {
+  @apply rounded-lg overflow-hidden;
+}
+
+.monaco-editor .margin {
+  @apply bg-secondary-50;
+}
+
+.dark .monaco-editor .margin {
+  @apply bg-secondary-900;
 }

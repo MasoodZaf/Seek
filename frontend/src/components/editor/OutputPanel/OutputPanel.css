@@ -78,11 +78,17 @@
   word-wrap: break-word;
 }
 
+.output-text-container {
+  height: 100%;
+}
+
 .output-text {
   color: #e5e7eb;
   margin: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
+  background: transparent;
+  line-height: 1.5;
 }
 
 .empty-output {
