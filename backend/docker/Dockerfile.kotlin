@@ -1,0 +1,34 @@
+FROM openjdk:17-jdk-slim
+
+# Install Kotlin compiler
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    --no-install-recommends \
+    && wget -q https://github.com/JetBrains/kotlin/releases/download/v1.9.20/kotlin-compiler-1.9.20.zip \
+    && unzip kotlin-compiler-1.9.20.zip \
+    && mv kotlinc /opt/ \
+    && ln -s /opt/kotlinc/bin/kotlinc /usr/local/bin/kotlinc \
+    && ln -s /opt/kotlinc/bin/kotlin /usr/local/bin/kotlin \
+    && rm kotlin-compiler-1.9.20.zip \
+    && apt-get remove -y wget unzip \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Security: Create non-root user
+RUN groupadd -r coderunner && useradd -r -g coderunner coderunner
+
+# Set up working directory
+WORKDIR /app
+RUN chown coderunner:coderunner /app
+
+# Switch to non-root user
+USER coderunner
+
+# Copy execution script
+COPY --chown=coderunner:coderunner execute.kt /app/
+
+# Set Java environment variables
+ENV JAVA_OPTS="-Xmx128m -Xms64m"
+
+CMD ["kotlinc", "-script", "/app/execute.kt"]

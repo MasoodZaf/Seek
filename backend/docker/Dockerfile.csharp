@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+# Security: Create non-root user
+RUN groupadd -r coderunner && useradd -r -g coderunner coderunner
+
+# Set up working directory
+WORKDIR /app
+RUN chown coderunner:coderunner /app
+
+# Switch to non-root user
+USER coderunner
+
+# Copy execution script
+COPY --chown=coderunner:coderunner execute.cs /app/
+
+# Set .NET environment variables
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+
+CMD ["dotnet", "script", "/app/execute.cs"]

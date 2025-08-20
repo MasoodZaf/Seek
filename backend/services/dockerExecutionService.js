@@ -13,9 +13,16 @@ class DockerExecutionService {
     this.images = {
       python: 'seek-python-runner',
       typescript: 'seek-typescript-runner',
+      javascript: 'seek-javascript-runner',
       java: 'seek-java-runner',
       cpp: 'seek-cpp-runner',
-      c: 'seek-c-runner'
+      c: 'seek-c-runner',
+      go: 'seek-go-runner',
+      rust: 'seek-rust-runner',
+      csharp: 'seek-csharp-runner',
+      php: 'seek-php-runner',
+      ruby: 'seek-ruby-runner',
+      kotlin: 'seek-kotlin-runner'
     };
     this.imageBuilt = {};
   }
@@ -65,10 +72,35 @@ class DockerExecutionService {
             scriptName = 'execute.py';
             break;
           case 'typescript':
+          case 'javascript':
             scriptName = 'execute.js';
             break;
           case 'java':
             scriptName = 'Execute.java';
+            break;
+          case 'cpp':
+            scriptName = 'execute.cpp';
+            break;
+          case 'c':
+            scriptName = 'execute.c';
+            break;
+          case 'go':
+            scriptName = 'execute.go';
+            break;
+          case 'rust':
+            scriptName = 'execute.rs';
+            break;
+          case 'csharp':
+            scriptName = 'execute.cs';
+            break;
+          case 'php':
+            scriptName = 'execute.php';
+            break;
+          case 'ruby':
+            scriptName = 'execute.rb';
+            break;
+          case 'kotlin':
+            scriptName = 'execute.kt';
             break;
         }
 
@@ -77,6 +109,16 @@ class DockerExecutionService {
           'utf8'
         );
         tarStream.entry({ name: scriptName }, script);
+        
+        // Add additional files for specific languages
+        if (language === 'rust') {
+          const cargoToml = await fs.readFile(
+            path.join(dockerDir, 'Cargo.toml'),
+            'utf8'
+          );
+          tarStream.entry({ name: 'Cargo.toml' }, cargoToml);
+        }
+        
         tarStream.finalize();
 
         // Build the image
