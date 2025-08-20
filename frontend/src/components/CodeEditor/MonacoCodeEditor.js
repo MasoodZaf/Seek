@@ -1,9 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import Editor, { loader } from '@monaco-editor/react';
-import * as monaco from 'monaco-editor';
-
-// Configure Monaco Editor
-loader.config({ monaco });
+import React, { useRef } from 'react';
+import Editor from '@monaco-editor/react';
 
 const MonacoCodeEditor = ({ 
   value, 
@@ -84,7 +80,7 @@ const MonacoCodeEditor = ({
     setupLanguageSupport(monaco);
     
     // Add custom keyboard shortcuts
-    addCustomKeyboardShortcuts(editor);
+    addCustomKeyboardShortcuts(editor, monaco);
     
     if (onMount) {
       onMount(editor, monaco);
@@ -92,83 +88,39 @@ const MonacoCodeEditor = ({
   };
 
   const setupLanguageSupport = (monaco) => {
-    // Enhanced JavaScript/TypeScript support
-    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: false,
-      noSyntaxValidation: false
-    });
+    // Basic JavaScript/TypeScript support
+    try {
+      if (monaco.languages && monaco.languages.typescript) {
+        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+          noSemanticValidation: false,
+          noSyntaxValidation: false
+        });
 
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-      target: monaco.languages.typescript.ScriptTarget.ES2020,
-      allowNonTsExtensions: true,
-      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-      module: monaco.languages.typescript.ModuleKind.CommonJS,
-      noEmit: true,
-      esModuleInterop: true,
-      jsx: monaco.languages.typescript.JsxEmit.React,
-      allowJs: true
-    });
-
-    // Add common libraries for JavaScript
-    const libUri = 'ts:filename/facts.d.ts';
-    const libSource = `
-      declare const console: {
-        log(...args: any[]): void;
-        error(...args: any[]): void;
-        warn(...args: any[]): void;
-        info(...args: any[]): void;
-      };
-      
-      declare const setTimeout: (callback: () => void, delay: number) => number;
-      declare const setInterval: (callback: () => void, delay: number) => number;
-      declare const clearTimeout: (id: number) => void;
-      declare const clearInterval: (id: number) => void;
-    `;
-
-    if (!monaco.languages.typescript.javascriptDefaults.getExtraLibs()[libUri]) {
-      monaco.languages.typescript.javascriptDefaults.addExtraLib(libSource, libUri);
+        monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+          target: monaco.languages.typescript.ScriptTarget.ES2020,
+          allowNonTsExtensions: true,
+          noEmit: true,
+          allowJs: true
+        });
+      }
+    } catch (error) {
+      console.warn('Monaco language setup failed:', error);
     }
   };
 
-  const addCustomKeyboardShortcuts = (editor) => {
-    // Ctrl+/ or Cmd+/ for toggle comment
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
-      editor.getAction('editor.action.commentLine').run();
-    });
-
-    // Ctrl+D or Cmd+D for duplicate line
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD, () => {
-      editor.getAction('editor.action.copyLinesDownAction').run();
-    });
-
-    // Alt+Up/Down for move line
-    editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.UpArrow, () => {
-      editor.getAction('editor.action.moveLinesUpAction').run();
-    });
-
-    editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.DownArrow, () => {
-      editor.getAction('editor.action.moveLinesDownAction').run();
-    });
-
-    // Ctrl+Shift+K or Cmd+Shift+K for delete line
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyK, () => {
-      editor.getAction('editor.action.deleteLines').run();
-    });
-
-    // F2 for rename symbol
-    editor.addCommand(monaco.KeyCode.F2, () => {
-      editor.getAction('editor.action.rename').run();
-    });
-
-    // Ctrl+F or Cmd+F for find
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF, () => {
-      editor.getAction('actions.find').run();
-    });
-
-    // Ctrl+H or Cmd+H for replace
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyH, () => {
-      editor.getAction('editor.action.startFindReplaceAction').run();
-    });
+  const addCustomKeyboardShortcuts = (editor, monaco) => {
+    try {
+      // Basic keyboard shortcuts
+      if (monaco.KeyMod && monaco.KeyCode) {
+        // Ctrl+/ or Cmd+/ for toggle comment
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
+          const action = editor.getAction('editor.action.commentLine');
+          if (action) action.run();
+        });
+      }
+    } catch (error) {
+      console.warn('Monaco keyboard shortcuts setup failed:', error);
+    }
   };
 
   // Language mappings for Monaco
