@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { 
   ArrowRightIcon, 
@@ -12,7 +11,6 @@ import {
 import SimpleCodeEditor from '../components/CodeEditor/SimpleCodeEditor';
 
 const CodeTranslator = () => {
-  const { t } = useTranslation();
   const [sourceCode, setSourceCode] = useState('');
   const [translatedCode, setTranslatedCode] = useState('');
   const [fromLanguage, setFromLanguage] = useState('javascript');
@@ -42,20 +40,403 @@ const CodeTranslator = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Language examples for quick start
-  const languageExamples = {
-    javascript: `function greet(name) {
+  // Comprehensive examples organized by difficulty and category
+  const codeExamples = {
+    javascript: {
+      beginner: [
+        {
+          title: "Hello World",
+          description: "Basic function and variable usage",
+          code: `function greet(name) {
     console.log("Hello, " + name + "!");
 }
 
 let userName = "World";
-greet(userName);`,
-    python: `def greet(name):
+greet(userName);`
+        },
+        {
+          title: "Simple Calculator",
+          description: "Basic arithmetic operations",
+          code: `function calculator(a, b, operation) {
+    switch(operation) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/': return b !== 0 ? a / b : 'Error: Division by zero';
+        default: return 'Error: Invalid operation';
+    }
+}
+
+console.log(calculator(10, 5, '+'));  // 15
+console.log(calculator(10, 3, '*'));  // 30`
+        },
+        {
+          title: "Array Operations",
+          description: "Working with arrays",
+          code: `let numbers = [1, 2, 3, 4, 5];
+
+// Filter even numbers
+let evenNumbers = numbers.filter(n => n % 2 === 0);
+console.log("Even numbers:", evenNumbers);
+
+// Sum all numbers
+let sum = numbers.reduce((total, n) => total + n, 0);
+console.log("Sum:", sum);
+
+// Square each number
+let squares = numbers.map(n => n * n);
+console.log("Squares:", squares);`
+        }
+      ],
+      intermediate: [
+        {
+          title: "Object-Oriented Programming",
+          description: "Classes and inheritance",
+          code: `class Animal {
+    constructor(name, species) {
+        this.name = name;
+        this.species = species;
+    }
+    
+    makeSound() {
+        console.log(\`\${this.name} makes a sound\`);
+    }
+}
+
+class Dog extends Animal {
+    constructor(name, breed) {
+        super(name, 'Canine');
+        this.breed = breed;
+    }
+    
+    makeSound() {
+        console.log(\`\${this.name} barks!\`);
+    }
+    
+    fetch() {
+        console.log(\`\${this.name} fetches the ball!\`);
+    }
+}
+
+const myDog = new Dog("Buddy", "Golden Retriever");
+myDog.makeSound();
+myDog.fetch();`
+        },
+        {
+          title: "Async/Await with Error Handling",
+          description: "Asynchronous programming patterns",
+          code: `async function fetchUserData(userId) {
+    try {
+        const response = await fetch(\`https://api.example.com/users/\${userId}\`);
+        
+        if (!response.ok) {
+            throw new Error(\`HTTP error! status: \${response.status}\`);
+        }
+        
+        const userData = await response.json();
+        return userData;
+    } catch (error) {
+        console.error('Error fetching user data:', error.message);
+        return null;
+    }
+}
+
+async function displayUser(userId) {
+    const user = await fetchUserData(userId);
+    if (user) {
+        console.log('User:', user.name);
+        console.log('Email:', user.email);
+    } else {
+        console.log('Failed to load user data');
+    }
+}
+
+displayUser(123);`
+        }
+      ],
+      advanced: [
+        {
+          title: "Custom Promise Implementation",
+          description: "Advanced async patterns and custom Promise",
+          code: `class CustomPromise {
+    constructor(executor) {
+        this.state = 'pending';
+        this.value = undefined;
+        this.onResolvedCallbacks = [];
+        this.onRejectedCallbacks = [];
+        
+        const resolve = (value) => {
+            if (this.state === 'pending') {
+                this.state = 'fulfilled';
+                this.value = value;
+                this.onResolvedCallbacks.forEach(callback => callback(value));
+            }
+        };
+        
+        const reject = (reason) => {
+            if (this.state === 'pending') {
+                this.state = 'rejected';
+                this.value = reason;
+                this.onRejectedCallbacks.forEach(callback => callback(reason));
+            }
+        };
+        
+        try {
+            executor(resolve, reject);
+        } catch (error) {
+            reject(error);
+        }
+    }
+    
+    then(onResolved, onRejected) {
+        return new CustomPromise((resolve, reject) => {
+            if (this.state === 'fulfilled') {
+                try {
+                    const result = onResolved ? onResolved(this.value) : this.value;
+                    resolve(result);
+                } catch (error) {
+                    reject(error);
+                }
+            } else if (this.state === 'rejected') {
+                if (onRejected) {
+                    try {
+                        const result = onRejected(this.value);
+                        resolve(result);
+                    } catch (error) {
+                        reject(error);
+                    }
+                } else {
+                    reject(this.value);
+                }
+            } else {
+                this.onResolvedCallbacks.push((value) => {
+                    try {
+                        const result = onResolved ? onResolved(value) : value;
+                        resolve(result);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+                
+                this.onRejectedCallbacks.push((reason) => {
+                    if (onRejected) {
+                        try {
+                            const result = onRejected(reason);
+                            resolve(result);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    } else {
+                        reject(reason);
+                    }
+                });
+            }
+        });
+    }
+}
+
+// Usage example
+const promise = new CustomPromise((resolve, reject) => {
+    setTimeout(() => resolve("Success!"), 1000);
+});
+
+promise.then(result => {
+    console.log(result);
+    return result.toUpperCase();
+}).then(upperResult => {
+    console.log("Uppercase:", upperResult);
+});`
+        }
+      ]
+    },
+    python: {
+      beginner: [
+        {
+          title: "Hello World",
+          description: "Basic function and variable usage",
+          code: `def greet(name):
     print(f"Hello, {name}!")
 
 user_name = "World"
-greet(user_name)`,
-    java: `public class HelloWorld {
+greet(user_name)`
+        },
+        {
+          title: "Simple Calculator",
+          description: "Basic arithmetic operations",
+          code: `def calculator(a, b, operation):
+    operations = {
+        '+': lambda x, y: x + y,
+        '-': lambda x, y: x - y,
+        '*': lambda x, y: x * y,
+        '/': lambda x, y: x / y if y != 0 else "Error: Division by zero"
+    }
+    
+    return operations.get(operation, "Error: Invalid operation")(a, b)
+
+print(calculator(10, 5, '+'))  # 15
+print(calculator(10, 3, '*'))  # 30
+print(calculator(10, 0, '/'))  # Error: Division by zero`
+        },
+        {
+          title: "List Operations",
+          description: "Working with lists",
+          code: `numbers = [1, 2, 3, 4, 5]
+
+# Filter even numbers
+even_numbers = [n for n in numbers if n % 2 == 0]
+print("Even numbers:", even_numbers)
+
+# Sum all numbers
+total = sum(numbers)
+print("Sum:", total)
+
+# Square each number
+squares = [n ** 2 for n in numbers]
+print("Squares:", squares)
+
+# Using built-in functions
+print("Max:", max(numbers))
+print("Min:", min(numbers))
+print("Length:", len(numbers))`
+        }
+      ],
+      intermediate: [
+        {
+          title: "Object-Oriented Programming",
+          description: "Classes and inheritance",
+          code: `class Animal:
+    def __init__(self, name, species):
+        self.name = name
+        self.species = species
+    
+    def make_sound(self):
+        print(f"{self.name} makes a sound")
+    
+    def __str__(self):
+        return f"{self.name} ({self.species})"
+
+class Dog(Animal):
+    def __init__(self, name, breed):
+        super().__init__(name, 'Canine')
+        self.breed = breed
+    
+    def make_sound(self):
+        print(f"{self.name} barks!")
+    
+    def fetch(self):
+        print(f"{self.name} fetches the ball!")
+
+# Usage
+my_dog = Dog("Buddy", "Golden Retriever")
+print(my_dog)
+my_dog.make_sound()
+my_dog.fetch()`
+        },
+        {
+          title: "Decorators and Context Managers",
+          description: "Advanced Python features",
+          code: `import time
+import functools
+from contextlib import contextmanager
+
+# Decorator for timing functions
+def timer(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print(f"{func.__name__} took {end - start:.4f} seconds")
+        return result
+    return wrapper
+
+# Context manager for file operations
+@contextmanager
+def managed_file(filename, mode):
+    try:
+        file = open(filename, mode)
+        yield file
+    finally:
+        file.close()
+        print(f"File {filename} closed")
+
+# Usage examples
+@timer
+def slow_function():
+    time.sleep(1)
+    return "Done!"
+
+result = slow_function()
+
+# Context manager usage
+with managed_file("example.txt", "w") as f:
+    f.write("Hello, World!")
+
+print("Context manager completed")`
+        }
+      ],
+      advanced: [
+        {
+          title: "Metaclasses and Descriptors",
+          description: "Advanced Python metaclasses",
+          code: `class ValidatedAttribute:
+    def __init__(self, validator, name=None):
+        self.validator = validator
+        self.name = name
+    
+    def __set_name__(self, owner, name):
+        self.name = name
+    
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return instance.__dict__.get(self.name)
+    
+    def __set__(self, instance, value):
+        if not self.validator(value):
+            raise ValueError(f"Invalid value for {self.name}: {value}")
+        instance.__dict__[self.name] = value
+
+class SingletonMeta(type):
+    _instances = {}
+    
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class Person(metaclass=SingletonMeta):
+    name = ValidatedAttribute(lambda x: isinstance(x, str) and len(x) > 0)
+    age = ValidatedAttribute(lambda x: isinstance(x, int) and 0 <= x <= 150)
+    
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    
+    def __str__(self):
+        return f"Person(name='{self.name}', age={self.age})"
+
+# Usage - will always return the same instance due to Singleton
+person1 = Person("Alice", 25)
+person2 = Person("Bob", 30)  # This will still be Alice!
+print(person1)  # Person(name='Alice', age=25)
+print(person2)  # Person(name='Alice', age=25)
+print(person1 is person2)  # True
+
+# Validation in action
+try:
+    person1.age = -5  # Will raise ValueError
+except ValueError as e:
+    print(f"Validation error: {e}")`
+        }
+      ]
+    },
+    java: {
+      beginner: [
+        {
+          title: "Hello World",
+          description: "Basic class and method structure",
+          code: `public class HelloWorld {
     public static void main(String[] args) {
         String name = "World";
         greet(name);
@@ -64,12 +445,324 @@ greet(user_name)`,
     public static void greet(String name) {
         System.out.println("Hello, " + name + "!");
     }
-}`,
-    cpp: `#include <iostream>
+}`
+        },
+        {
+          title: "Simple Calculator",
+          description: "Basic arithmetic with methods",
+          code: `public class Calculator {
+    public static void main(String[] args) {
+        Calculator calc = new Calculator();
+        
+        System.out.println("10 + 5 = " + calc.add(10, 5));
+        System.out.println("10 - 3 = " + calc.subtract(10, 3));
+        System.out.println("10 * 2 = " + calc.multiply(10, 2));
+        System.out.println("10 / 2 = " + calc.divide(10, 2));
+    }
+    
+    public double add(double a, double b) {
+        return a + b;
+    }
+    
+    public double subtract(double a, double b) {
+        return a - b;
+    }
+    
+    public double multiply(double a, double b) {
+        return a * b;
+    }
+    
+    public double divide(double a, double b) {
+        if (b == 0) {
+            System.out.println("Error: Division by zero");
+            return Double.NaN;
+        }
+        return a / b;
+    }
+}`
+        }
+      ],
+      intermediate: [
+        {
+          title: "Object-Oriented Programming",
+          description: "Classes, inheritance, and polymorphism",
+          code: `abstract class Animal {
+    protected String name;
+    protected String species;
+    
+    public Animal(String name, String species) {
+        this.name = name;
+        this.species = species;
+    }
+    
+    public abstract void makeSound();
+    
+    public void displayInfo() {
+        System.out.println("Name: " + name + ", Species: " + species);
+    }
+}
+
+interface Trainable {
+    void train(String command);
+}
+
+class Dog extends Animal implements Trainable {
+    private String breed;
+    
+    public Dog(String name, String breed) {
+        super(name, "Canine");
+        this.breed = breed;
+    }
+    
+    @Override
+    public void makeSound() {
+        System.out.println(name + " barks!");
+    }
+    
+    @Override
+    public void train(String command) {
+        System.out.println(name + " is learning: " + command);
+    }
+    
+    public void fetch() {
+        System.out.println(name + " fetches the ball!");
+    }
+}
+
+public class AnimalDemo {
+    public static void main(String[] args) {
+        Dog myDog = new Dog("Buddy", "Golden Retriever");
+        myDog.displayInfo();
+        myDog.makeSound();
+        myDog.train("sit");
+        myDog.fetch();
+    }
+}`
+        }
+      ],
+      advanced: [
+        {
+          title: "Generic Collections with Streams",
+          description: "Advanced generics and functional programming",
+          code: `import java.util.*;
+import java.util.stream.*;
+import java.util.function.*;
+
+public class GenericExample<T extends Comparable<T>> {
+    private List<T> items = new ArrayList<>();
+    
+    public void add(T item) {
+        items.add(item);
+    }
+    
+    public Optional<T> findMax() {
+        return items.stream().max(T::compareTo);
+    }
+    
+    public List<T> filterAndSort(Predicate<T> filter) {
+        return items.stream()
+                   .filter(filter)
+                   .sorted()
+                   .collect(Collectors.toList());
+    }
+    
+    public <R> List<R> transformAndCollect(Function<T, R> mapper) {
+        return items.stream()
+                   .map(mapper)
+                   .collect(Collectors.toList());
+    }
+    
+    public static void main(String[] args) {
+        GenericExample<Integer> numbers = new GenericExample<>();
+        numbers.add(5);
+        numbers.add(2);
+        numbers.add(8);
+        numbers.add(1);
+        numbers.add(9);
+        
+        // Find maximum
+        numbers.findMax().ifPresent(max -> 
+            System.out.println("Max: " + max));
+        
+        // Filter even numbers and sort
+        List<Integer> evenNumbers = numbers.filterAndSort(n -> n % 2 == 0);
+        System.out.println("Even numbers: " + evenNumbers);
+        
+        // Transform to strings
+        List<String> strings = numbers.transformAndCollect(n -> "Number: " + n);
+        strings.forEach(System.out::println);
+        
+        // Complex stream operations
+        Map<Boolean, List<Integer>> partitioned = numbers.items.stream()
+            .collect(Collectors.partitioningBy(n -> n > 5));
+        System.out.println("Numbers > 5: " + partitioned.get(true));
+        System.out.println("Numbers <= 5: " + partitioned.get(false));
+    }
+}`
+        }
+      ]
+    },
+    typescript: {
+      beginner: [
+        {
+          title: "Hello World",
+          description: "Basic TypeScript with types",
+          code: `function greet(name: string): void {
+    console.log(\`Hello, \${name}!\`);
+}
+
+const userName: string = "World";
+greet(userName);`
+        },
+        {
+          title: "Interface and Types",
+          description: "Working with interfaces and custom types",
+          code: `interface User {
+    id: number;
+    name: string;
+    email: string;
+    age?: number;
+}
+
+type Role = 'admin' | 'user' | 'guest';
+
+function createUser(userData: Omit<User, 'id'>, role: Role = 'user'): User {
+    return {
+        id: Math.random(),
+        ...userData
+    };
+}
+
+const newUser = createUser({
+    name: "John Doe",
+    email: "john@example.com",
+    age: 25
+}, 'admin');
+
+console.log(newUser);`
+        }
+      ],
+      intermediate: [
+        {
+          title: "Generic Functions and Classes",
+          description: "Advanced TypeScript generics",
+          code: `class Repository<T extends { id: string | number }> {
+    private items: T[] = [];
+    
+    add(item: T): void {
+        this.items.push(item);
+    }
+    
+    findById(id: T['id']): T | undefined {
+        return this.items.find(item => item.id === id);
+    }
+    
+    getAll(): ReadonlyArray<T> {
+        return [...this.items];
+    }
+    
+    update(id: T['id'], updates: Partial<T>): T | null {
+        const index = this.items.findIndex(item => item.id === id);
+        if (index === -1) return null;
+        
+        this.items[index] = { ...this.items[index], ...updates };
+        return this.items[index];
+    }
+}
+
+interface Product {
+    id: string;
+    name: string;
+    price: number;
+    category: string;
+}
+
+const productRepo = new Repository<Product>();
+productRepo.add({ id: '1', name: 'Laptop', price: 999, category: 'Electronics' });
+
+const laptop = productRepo.findById('1');
+console.log(laptop);`
+        }
+      ],
+      advanced: [
+        {
+          title: "Advanced Type Manipulation",
+          description: "Conditional types and mapped types",
+          code: `// Utility types
+type DeepReadonly<T> = {
+    readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
+};
+
+type NonNullable<T> = T extends null | undefined ? never : T;
+
+// Conditional types
+type ApiResponse<T> = T extends string 
+    ? { message: T } 
+    : T extends number 
+    ? { count: T } 
+    : T extends boolean 
+    ? { success: T } 
+    : { data: T };
+
+// Template literal types
+type EventName<T extends string> = \`on\${Capitalize<T>}\`;
+type MouseEvents = EventName<'click' | 'hover' | 'focus'>;
+
+// Advanced generic constraints
+interface Serializable {
+    serialize(): string;
+}
+
+class DataProcessor<T extends Serializable> {
+    private items: T[] = [];
+    
+    add(item: T): void {
+        this.items.push(item);
+    }
+    
+    export(): string {
+        return JSON.stringify(
+            this.items.map(item => item.serialize())
+        );
+    }
+    
+    process<U>(mapper: (item: T) => U): U[] {
+        return this.items.map(mapper);
+    }
+}
+
+class User implements Serializable {
+    constructor(
+        public readonly id: string,
+        public readonly name: string,
+        public readonly email: string
+    ) {}
+    
+    serialize(): string {
+        return JSON.stringify({
+            id: this.id,
+            name: this.name,
+            email: this.email
+        });
+    }
+}
+
+const processor = new DataProcessor<User>();
+processor.add(new User('1', 'John', 'john@example.com'));
+console.log(processor.export());`
+        }
+      ]
+    },
+    cpp: {
+      beginner: [
+        {
+          title: "Hello World",
+          description: "Basic C++ structure",
+          code: `#include <iostream>
 #include <string>
 using namespace std;
 
-void greet(string name) {
+void greet(const string& name) {
     cout << "Hello, " << name << "!" << endl;
 }
 
@@ -77,25 +770,424 @@ int main() {
     string userName = "World";
     greet(userName);
     return 0;
-}`,
-    c: `#include <stdio.h>
+}`
+        },
+        {
+          title: "Simple Calculator",
+          description: "Basic arithmetic operations",
+          code: `#include <iostream>
+using namespace std;
 
-void greet(char* name) {
+class Calculator {
+public:
+    double add(double a, double b) { return a + b; }
+    double subtract(double a, double b) { return a - b; }
+    double multiply(double a, double b) { return a * b; }
+    
+    double divide(double a, double b) {
+        if (b == 0) {
+            cout << "Error: Division by zero" << endl;
+            return 0;
+        }
+        return a / b;
+    }
+};
+
+int main() {
+    Calculator calc;
+    
+    cout << "10 + 5 = " << calc.add(10, 5) << endl;
+    cout << "10 - 3 = " << calc.subtract(10, 3) << endl;
+    cout << "10 * 2 = " << calc.multiply(10, 2) << endl;
+    cout << "10 / 2 = " << calc.divide(10, 2) << endl;
+    
+    return 0;
+}`
+        }
+      ],
+      intermediate: [
+        {
+          title: "Object-Oriented Programming",
+          description: "Classes, inheritance, and virtual functions",
+          code: `#include <iostream>
+#include <string>
+#include <memory>
+using namespace std;
+
+class Animal {
+protected:
+    string name;
+    string species;
+    
+public:
+    Animal(const string& n, const string& s) : name(n), species(s) {}
+    virtual ~Animal() = default;
+    
+    virtual void makeSound() const = 0;
+    
+    void displayInfo() const {
+        cout << "Name: " << name << ", Species: " << species << endl;
+    }
+};
+
+class Dog : public Animal {
+private:
+    string breed;
+    
+public:
+    Dog(const string& name, const string& breed) 
+        : Animal(name, "Canine"), breed(breed) {}
+    
+    void makeSound() const override {
+        cout << name << " barks!" << endl;
+    }
+    
+    void fetch() const {
+        cout << name << " fetches the ball!" << endl;
+    }
+};
+
+int main() {
+    auto myDog = make_unique<Dog>("Buddy", "Golden Retriever");
+    myDog->displayInfo();
+    myDog->makeSound();
+    myDog->fetch();
+    
+    return 0;
+}`
+        }
+      ],
+      advanced: [
+        {
+          title: "Template Metaprogramming",
+          description: "Advanced templates and SFINAE",
+          code: `#include <iostream>
+#include <vector>
+#include <type_traits>
+#include <iterator>
+using namespace std;
+
+// SFINAE helper
+template<typename T>
+using enable_if_integral_t = enable_if_t<is_integral_v<T>>;
+
+template<typename T>
+using enable_if_floating_t = enable_if_t<is_floating_point_v<T>>;
+
+// Template specialization for different types
+template<typename T, typename = void>
+struct Processor {
+    static void process(const T& value) {
+        cout << "Processing generic type: " << value << endl;
+    }
+};
+
+template<typename T>
+struct Processor<T, enable_if_integral_t<T>> {
+    static void process(const T& value) {
+        cout << "Processing integer: " << value << " (doubled: " << value * 2 << ")" << endl;
+    }
+};
+
+template<typename T>
+struct Processor<T, enable_if_floating_t<T>> {
+    static void process(const T& value) {
+        cout << "Processing float: " << value << " (squared: " << value * value << ")" << endl;
+    }
+};
+
+// Variadic template function
+template<typename... Args>
+void processAll(Args... args) {
+    (Processor<Args>::process(args), ...); // C++17 fold expression
+}
+
+// Template class with iterator support
+template<typename T>
+class Container {
+private:
+    vector<T> data;
+    
+public:
+    void add(const T& item) { data.push_back(item); }
+    
+    // Iterator support
+    using iterator = typename vector<T>::iterator;
+    using const_iterator = typename vector<T>::const_iterator;
+    
+    iterator begin() { return data.begin(); }
+    iterator end() { return data.end(); }
+    const_iterator begin() const { return data.begin(); }
+    const_iterator end() const { return data.end(); }
+    
+    // Template member function
+    template<typename Predicate>
+    vector<T> filter(Predicate pred) const {
+        vector<T> result;
+        copy_if(data.begin(), data.end(), back_inserter(result), pred);
+        return result;
+    }
+};
+
+int main() {
+    // Template specialization demo
+    processAll(42, 3.14, "hello");
+    
+    // Container demo
+    Container<int> numbers;
+    numbers.add(1);
+    numbers.add(2);
+    numbers.add(3);
+    numbers.add(4);
+    numbers.add(5);
+    
+    auto evens = numbers.filter([](int n) { return n % 2 == 0; });
+    
+    cout << "Even numbers: ";
+    for (const auto& n : evens) {
+        cout << n << " ";
+    }
+    cout << endl;
+    
+    return 0;
+}`
+        }
+      ]
+    },
+    c: {
+      beginner: [
+        {
+          title: "Hello World",
+          description: "Basic C program structure",
+          code: `#include <stdio.h>
+#include <string.h>
+
+void greet(const char* name) {
     printf("Hello, %s!\\n", name);
 }
 
 int main() {
-    char* userName = "World";
+    char userName[] = "World";
     greet(userName);
     return 0;
-}`,
-    typescript: `function greet(name: string): void {
-    console.log(\`Hello, \${name}!\`);
+}`
+        },
+        {
+          title: "Simple Calculator",
+          description: "Basic arithmetic with functions",
+          code: `#include <stdio.h>
+
+typedef struct {
+    double (*add)(double, double);
+    double (*subtract)(double, double);
+    double (*multiply)(double, double);
+    double (*divide)(double, double);
+} Calculator;
+
+double add(double a, double b) { return a + b; }
+double subtract(double a, double b) { return a - b; }
+double multiply(double a, double b) { return a * b; }
+
+double divide(double a, double b) {
+    if (b == 0.0) {
+        printf("Error: Division by zero\\n");
+        return 0.0;
+    }
+    return a / b;
 }
 
-const userName: string = "World";
-greet(userName);`
+int main() {
+    Calculator calc = {add, subtract, multiply, divide};
+    
+    printf("10 + 5 = %.2f\\n", calc.add(10, 5));
+    printf("10 - 3 = %.2f\\n", calc.subtract(10, 3));
+    printf("10 * 2 = %.2f\\n", calc.multiply(10, 2));
+    printf("10 / 2 = %.2f\\n", calc.divide(10, 2));
+    
+    return 0;
+}`
+        }
+      ],
+      intermediate: [
+        {
+          title: "Structures and Dynamic Memory",
+          description: "Working with structs and malloc",
+          code: `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char* name;
+    int age;
+    char* breed;
+} Dog;
+
+typedef struct {
+    Dog** dogs;
+    int count;
+    int capacity;
+} DogArray;
+
+DogArray* createDogArray() {
+    DogArray* arr = malloc(sizeof(DogArray));
+    arr->dogs = malloc(sizeof(Dog*) * 2);
+    arr->count = 0;
+    arr->capacity = 2;
+    return arr;
+}
+
+void addDog(DogArray* arr, const char* name, int age, const char* breed) {
+    if (arr->count >= arr->capacity) {
+        arr->capacity *= 2;
+        arr->dogs = realloc(arr->dogs, sizeof(Dog*) * arr->capacity);
+    }
+    
+    Dog* dog = malloc(sizeof(Dog));
+    dog->name = malloc(strlen(name) + 1);
+    strcpy(dog->name, name);
+    dog->age = age;
+    dog->breed = malloc(strlen(breed) + 1);
+    strcpy(dog->breed, breed);
+    
+    arr->dogs[arr->count++] = dog;
+}
+
+void printDogs(const DogArray* arr) {
+    for (int i = 0; i < arr->count; i++) {
+        printf("Dog %d: %s (age %d, breed: %s)\\n", 
+               i + 1, arr->dogs[i]->name, arr->dogs[i]->age, arr->dogs[i]->breed);
+    }
+}
+
+void freeDogArray(DogArray* arr) {
+    for (int i = 0; i < arr->count; i++) {
+        free(arr->dogs[i]->name);
+        free(arr->dogs[i]->breed);
+        free(arr->dogs[i]);
+    }
+    free(arr->dogs);
+    free(arr);
+}
+
+int main() {
+    DogArray* dogs = createDogArray();
+    
+    addDog(dogs, "Buddy", 5, "Golden Retriever");
+    addDog(dogs, "Max", 3, "German Shepherd");
+    addDog(dogs, "Luna", 2, "Border Collie");
+    
+    printDogs(dogs);
+    
+    freeDogArray(dogs);
+    return 0;
+}`
+        }
+      ],
+      advanced: [
+        {
+          title: "Function Pointers and Callbacks",
+          description: "Advanced function pointer usage",
+          code: `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Function pointer types
+typedef int (*CompareFunc)(const void* a, const void* b);
+typedef void (*ProcessFunc)(void* item, void* context);
+
+// Generic dynamic array structure
+typedef struct {
+    void** items;
+    int count;
+    int capacity;
+    size_t itemSize;
+} GenericArray;
+
+GenericArray* createArray(size_t itemSize) {
+    GenericArray* arr = malloc(sizeof(GenericArray));
+    arr->items = malloc(sizeof(void*) * 2);
+    arr->count = 0;
+    arr->capacity = 2;
+    arr->itemSize = itemSize;
+    return arr;
+}
+
+void addItem(GenericArray* arr, void* item) {
+    if (arr->count >= arr->capacity) {
+        arr->capacity *= 2;
+        arr->items = realloc(arr->items, sizeof(void*) * arr->capacity);
+    }
+    
+    void* newItem = malloc(arr->itemSize);
+    memcpy(newItem, item, arr->itemSize);
+    arr->items[arr->count++] = newItem;
+}
+
+void sortArray(GenericArray* arr, CompareFunc compare) {
+    for (int i = 0; i < arr->count - 1; i++) {
+        for (int j = 0; j < arr->count - i - 1; j++) {
+            if (compare(arr->items[j], arr->items[j + 1]) > 0) {
+                void* temp = arr->items[j];
+                arr->items[j] = arr->items[j + 1];
+                arr->items[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void processArray(GenericArray* arr, ProcessFunc process, void* context) {
+    for (int i = 0; i < arr->count; i++) {
+        process(arr->items[i], context);
+    }
+}
+
+// Specific implementations for integers
+int compareInts(const void* a, const void* b) {
+    int intA = *(const int*)a;
+    int intB = *(const int*)b;
+    return intA - intB;
+}
+
+void printInt(void* item, void* context) {
+    const char* prefix = (const char*)context;
+    printf("%s%d\\n", prefix, *(int*)item);
+}
+
+void freeArray(GenericArray* arr) {
+    for (int i = 0; i < arr->count; i++) {
+        free(arr->items[i]);
+    }
+    free(arr->items);
+    free(arr);
+}
+
+int main() {
+    GenericArray* numbers = createArray(sizeof(int));
+    
+    int values[] = {5, 2, 8, 1, 9, 3};
+    for (int i = 0; i < 6; i++) {
+        addItem(numbers, &values[i]);
+    }
+    
+    printf("Original array:\\n");
+    processArray(numbers, printInt, "  ");
+    
+    sortArray(numbers, compareInts);
+    
+    printf("\\nSorted array:\\n");
+    processArray(numbers, printInt, "  ");
+    
+    freeArray(numbers);
+    return 0;
+}`
+        }
+      ]
+    }
   };
+  
+  // Current selected example state
+  const [selectedCategory, setSelectedCategory] = useState('beginner');
+  const [selectedExampleIndex, setSelectedExampleIndex] = useState(0);
 
   useEffect(() => {
     fetchSupportedLanguages();
@@ -239,14 +1331,30 @@ greet(userName);`
     });
   };
 
-  const loadExample = () => {
-    const example = languageExamples[fromLanguage];
-    if (example) {
-      setSourceCode(example);
+  const loadExample = (category = selectedCategory, index = selectedExampleIndex) => {
+    const languageExamples = codeExamples[fromLanguage];
+    if (languageExamples && languageExamples[category] && languageExamples[category][index]) {
+      const example = languageExamples[category][index];
+      setSourceCode(example.code);
       setTranslatedCode('');
-      toast.success(`${fromLanguage.toUpperCase()} example loaded!`);
+      toast.success(`${example.title} example loaded!`);
+    } else {
+      toast.error(`No example found for ${fromLanguage} in ${category} category`);
     }
   };
+
+  const getCurrentExample = () => {
+    const languageExamples = codeExamples[fromLanguage];
+    if (languageExamples && languageExamples[selectedCategory] && languageExamples[selectedCategory][selectedExampleIndex]) {
+      return languageExamples[selectedCategory][selectedExampleIndex];
+    }
+    return null;
+  };
+
+  // Reset example selection when language changes
+  React.useEffect(() => {
+    setSelectedExampleIndex(0);
+  }, [fromLanguage, selectedCategory]);
 
   const clearCode = () => {
     setSourceCode('');
@@ -275,8 +1383,7 @@ greet(userName);`
             </h1>
           </div>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Convert your code between different programming languages instantly. 
-            Like a currency converter, but for code! 🔄
+            Convert your code between different programming languages instantly
           </p>
         </div>
 
@@ -336,28 +1443,122 @@ greet(userName);`
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-center space-x-4 mt-6">
-              <button
-                onClick={loadExample}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center space-x-2"
-              >
-                <SparklesIcon className="w-4 h-4" />
-                <span>Load Example</span>
-              </button>
-              <button
-                onClick={clearCode}
-                className="px-4 py-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
-              >
-                Clear All
-              </button>
-            </div>
+            {/* Example Selection Interface - Compact Version */}
+            {codeExamples[fromLanguage] && (
+              <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                {/* Header Row */}
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-medium text-gray-900 dark:text-white flex items-center">
+                    <SparklesIcon className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
+                    Examples: {getLanguageName(fromLanguage)}
+                  </h3>
+                  {/* Compact Difficulty Selector */}
+                  <div className="flex space-x-1 bg-white dark:bg-gray-800 rounded-md p-0.5 border border-gray-200 dark:border-gray-600">
+                    {['beginner', 'intermediate', 'advanced'].map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => setSelectedCategory(category)}
+                        className={`px-3 py-1 text-xs font-medium rounded transition-all duration-200 ${
+                          selectedCategory === category
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <span className="flex items-center space-x-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            category === 'beginner' ? 'bg-green-400' :
+                            category === 'intermediate' ? 'bg-yellow-400' : 'bg-red-400'
+                          }`}></span>
+                          <span className="capitalize">{category}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Compact Example Grid */}
+                {codeExamples[fromLanguage]?.[selectedCategory] && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+                    {codeExamples[fromLanguage][selectedCategory].map((example, index) => (
+                      <div
+                        key={index}
+                        className={`p-3 rounded-md border cursor-pointer transition-all duration-200 ${
+                          selectedExampleIndex === index
+                            ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-900/50 dark:border-indigo-400'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-indigo-300 dark:hover:border-indigo-500'
+                        }`}
+                        onClick={() => setSelectedExampleIndex(index)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                              {example.title}
+                            </h4>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {example.description}
+                            </p>
+                          </div>
+                          {selectedExampleIndex === index && (
+                            <div className="ml-2 text-indigo-600 dark:text-indigo-400">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Compact Action Bar */}
+                {getCurrentExample() && (
+                  <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-200 dark:border-gray-600">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                          {getCurrentExample().title}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">
+                          {getCurrentExample().code.split('\\n').length} lines
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                        {getCurrentExample().description}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2 ml-3">
+                      <button
+                        onClick={() => loadExample()}
+                        className="px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors flex items-center space-x-1.5 text-sm"
+                      >
+                        <SparklesIcon className="w-3.5 h-3.5" />
+                        <span>Load</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(getCurrentExample().code).then(() => {
+                            toast.success('Example copied to clipboard!');
+                          }).catch(() => {
+                            toast.error('Failed to copy example');
+                          });
+                        }}
+                        className="px-3 py-1.5 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors flex items-center space-x-1.5 text-sm"
+                      >
+                        <DocumentDuplicateIcon className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Code Translation Panel */}
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Code Translation Panel - Vertical Layout */}
+        <div className="max-w-4xl mx-auto">
+          <div className="space-y-6">
             {/* Source Code */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg">
               <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
@@ -406,19 +1607,30 @@ greet(userName);`
               </div>
             </div>
 
-            {/* Translation Arrow & Button */}
-            <div className="lg:hidden flex justify-center">
+
+            {/* Translate Button */}
+            <div className="flex justify-center">
               <button
                 onClick={handleTranslate}
                 disabled={isTranslating || !sourceCode.trim()}
-                className="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                className={`flex items-center space-x-3 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-200 ${
+                  isTranslating || !sourceCode.trim()
+                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                }`}
               >
                 {isTranslating ? (
-                  <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                  <>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    <span>Translating...</span>
+                  </>
                 ) : (
-                  <ArrowRightIcon className="w-5 h-5" />
+                  <>
+                    <ArrowRightIcon className="w-6 h-6 transform rotate-90" />
+                    <span>Translate Code</span>
+                    <span className="text-sm opacity-80">({getLanguageName(fromLanguage)} → {getLanguageName(toLanguage)})</span>
+                  </>
                 )}
-                <span>{isTranslating ? 'Translating...' : 'Translate Code'}</span>
               </button>
             </div>
 
@@ -460,21 +1672,6 @@ greet(userName);`
             </div>
           </div>
 
-          {/* Desktop Translate Button */}
-          <div className="hidden lg:flex justify-center mt-8">
-            <button
-              onClick={handleTranslate}
-              disabled={isTranslating || !sourceCode.trim()}
-              className="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 text-lg"
-            >
-              {isTranslating ? (
-                <ArrowPathIcon className="w-6 h-6 animate-spin" />
-              ) : (
-                <ArrowRightIcon className="w-6 h-6" />
-              )}
-              <span>{isTranslating ? 'Translating...' : 'Translate Code'}</span>
-            </button>
-          </div>
         </div>
 
         {/* Info Panel */}
