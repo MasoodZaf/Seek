@@ -65,11 +65,28 @@ const Button = forwardRef(({
         ref={ref}
         className={classes}
         disabled={disabled || loading}
-        whileHover={{ scale: disabled || loading ? 1 : 1.02 }}
-        whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
-        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        whileHover={{ 
+          scale: disabled || loading ? 1 : 1.05,
+          y: disabled || loading ? 0 : -2,
+          boxShadow: disabled || loading ? 'none' : '0 10px 25px -5px rgba(59, 130, 246, 0.4)'
+        }}
+        whileTap={{ 
+          scale: disabled || loading ? 1 : 0.95,
+          y: disabled || loading ? 0 : 0
+        }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 400, 
+          damping: 17,
+          boxShadow: { duration: 0.2 }
+        }}
         {...props}
       >
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0"
+          whileHover={{ opacity: 1, x: ['-100%', '100%'] }}
+          transition={{ duration: 0.6, ease: 'easeInOut' }}
+        />
         <ButtonContent />
       </motion.button>
     );

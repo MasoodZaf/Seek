@@ -20,10 +20,12 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Practice from './pages/Practice';
 import Achievements from './pages/Achievements';
+import ComponentsDemo from './pages/ComponentsDemo';
 
 // Import components
 import Layout from './components/layout/Layout';
 import { LoadingPage } from './components/ui';
+import { ToastProvider } from './components/ui/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Create a query client
@@ -73,59 +75,62 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <Router>
             <ThemeProvider>
-              <AuthProvider>
-                <SocketProvider>
-                <div className="App">
-              <Routes>
-                {/* Public routes */}
-                <Route 
-                  path="/login" 
-                  element={
-                    <PublicRoute>
-                      <Login />
-                    </PublicRoute>
-                  } 
-                />
-                <Route 
-                  path="/register" 
-                  element={
-                    <PublicRoute>
-                      <Register />
-                    </PublicRoute>
-                  } 
-                />
-                
-                {/* Protected routes */}
-                <Route 
-                  path="/" 
-                  element={
-                    <ProtectedRoute>
-                      <Layout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Navigate to="/playground" replace />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="tutorials" element={<Tutorials />} />
-                  <Route path="playground" element={<PlaygroundNew />} />
-                  <Route path="translator" element={<CodeTranslator />} />
-                  <Route path="practice" element={<Practice />} />
-                  <Route path="achievements" element={<Achievements />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="settings" element={<Settings />} />
-                  
-                  {/* Tutorial routes */}
-                  <Route path="tutorials/:id" element={<TutorialDetail />} />
-                  <Route path="tutorials/:id/learn" element={<TutorialLearn />} />
-                  <Route path="progress" element={<div>Progress Page (Coming Soon)</div>} />
-                </Route>
-                
-                {/* Catch all - redirect to login */}
-                <Route path="*" element={<Navigate to="/login" replace />} />
-              </Routes>
-              </div>
-              </SocketProvider>
-            </AuthProvider>
+              <ToastProvider>
+                <AuthProvider>
+                  <SocketProvider>
+                    <div className="App">
+                      <Routes>
+                        {/* Public routes */}
+                        <Route 
+                          path="/login" 
+                          element={
+                            <PublicRoute>
+                              <Login />
+                            </PublicRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/register" 
+                          element={
+                            <PublicRoute>
+                              <Register />
+                            </PublicRoute>
+                          } 
+                        />
+                        
+                        {/* Protected routes */}
+                        <Route 
+                          path="/" 
+                          element={
+                            <ProtectedRoute>
+                              <Layout />
+                            </ProtectedRoute>
+                          }
+                        >
+                          <Route index element={<Navigate to="/playground" replace />} />
+                          <Route path="dashboard" element={<Dashboard />} />
+                          <Route path="tutorials" element={<Tutorials />} />
+                          <Route path="playground" element={<PlaygroundNew />} />
+                          <Route path="translator" element={<CodeTranslator />} />
+                          <Route path="practice" element={<Practice />} />
+                          <Route path="achievements" element={<Achievements />} />
+                          <Route path="profile" element={<Profile />} />
+                          <Route path="settings" element={<Settings />} />
+                          <Route path="components-demo" element={<ComponentsDemo />} />
+                          
+                          {/* Tutorial routes */}
+                          <Route path="tutorials/:id" element={<TutorialDetail />} />
+                          <Route path="tutorials/:id/learn" element={<TutorialLearn />} />
+                          <Route path="progress" element={<div>Progress Page (Coming Soon)</div>} />
+                        </Route>
+                        
+                        {/* Catch all - redirect to login */}
+                        <Route path="*" element={<Navigate to="/login" replace />} />
+                      </Routes>
+                    </div>
+                  </SocketProvider>
+                </AuthProvider>
+              </ToastProvider>
           </ThemeProvider>
         </Router>
       </QueryClientProvider>
