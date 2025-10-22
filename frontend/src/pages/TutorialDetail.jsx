@@ -15,6 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, Button, Badge, Progress } from '../components/ui';
 import { useTheme } from '../context/ThemeContext';
+import api from '../utils/api';
 
 const TutorialDetail = () => {
   const { id } = useParams();
@@ -32,13 +33,10 @@ const TutorialDetail = () => {
   const fetchTutorial = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/v1/mongo-tutorials/${id}`, {
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setTutorial(data.data.tutorial);
+      const response = await api.get(`/mongo-tutorials/${id}`);
+
+      if (response.data.success) {
+        setTutorial(response.data.data.tutorial);
         setEnrolled(false); // MongoDB tutorials don't have enrollment yet
         setProgress(0); // MongoDB tutorials don't have progress tracking yet
       }

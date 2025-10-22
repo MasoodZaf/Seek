@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, Button, Progress } from '../components/ui';
 import { useTheme } from '../context/ThemeContext';
+import api from '../utils/api';
 
 const TutorialLearn = () => {
   const { id } = useParams();
@@ -47,13 +48,10 @@ const TutorialLearn = () => {
   const fetchTutorial = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/v1/mongo-tutorials/${id}`, {
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setTutorial(data.data.tutorial);
+      const response = await api.get(`/mongo-tutorials/${id}`);
+
+      if (response.data) {
+        setTutorial(response.data.data.tutorial);
       }
     } catch (error) {
       console.error('Error fetching tutorial:', error);
@@ -175,11 +173,24 @@ const TutorialLearn = () => {
     }
   };
 
-  const completeContent = () => {
+  const completeContent = async () => {
+    // Update local state
     setLessonProgress(prev => ({
       ...prev,
       [currentLesson.id]: { ...prev[currentLesson.id], content: true }
     }));
+
+    // Check if this was the last lesson
+    const isLastLesson = currentLessonIndex === totalLessons - 1;
+    if (isLastLesson) {
+      try {
+        // Mark entire tutorial as complete
+        await api.post(`/mongo-tutorials/${tutorial._id || id}/complete`);
+        console.log('Tutorial marked as complete');
+      } catch (error) {
+        console.error('Error marking tutorial as complete:', error);
+      }
+    }
   };
 
   if (loading) {
@@ -215,10 +226,10 @@ const TutorialLearn = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
-                to={`/tutorials/${id}`}
+                to={`/tutorials/${tutorial.slug || id}`}
                 className={`inline-flex items-center transition-colors ${
-                  isDarkMode 
-                    ? 'text-gray-400 hover:text-gray-200' 
+                  isDarkMode
+                    ? 'text-gray-400 hover:text-gray-200'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >

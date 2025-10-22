@@ -188,7 +188,7 @@ class DockerExecutionService {
       // Start container
       await container.start();
 
-      // Get execution stream
+      // Get execution stream with simpler approach
       const stream = await container.attach({
         stream: true,
         stdin: true,
@@ -197,18 +197,24 @@ class DockerExecutionService {
       });
 
       // Send code to container
-      stream.write(code);
+      logger.info(`Sending code to ${language} container: ${code.slice(0, 100)}...`);
+      
+      // Write code to stdin
+      const codeBuffer = Buffer.from(code, 'utf8');
+      stream.write(codeBuffer);
       stream.end();
 
-      // Set execution timeout
+      // Set execution timeout (increased for debugging)
+      const timeoutMs = this.maxExecutionTime * 2; // Double timeout for now
+      logger.info(`Setting timeout for ${language} container: ${timeoutMs}ms`);
       const timeout = setTimeout(async () => {
         try {
           await container.kill('SIGTERM');
-          logger.warn(`Container killed due to timeout: ${language}`);
+          logger.warn(`Container killed due to timeout: ${language} after ${timeoutMs}ms`);
         } catch (error) {
           logger.error('Error killing timed out container:', error);
         }
-      }, this.maxExecutionTime);
+      }, timeoutMs);
 
       // Wait for container to finish
       const result = await container.wait();
@@ -221,12 +227,44 @@ class DockerExecutionService {
         timestamps: false
       });
 
-      // Parse output
-      const output = logs.toString('utf8');
+      // Parse Docker logs - they use a special format with 8-byte headers for each line
+      // Docker log format: [STREAM_TYPE][RESERVED][SIZE] followed by data
+      let cleanOutput = '';
+      let offset = 0;
+      
+      while (offset < logs.length) {
+        if (offset + 8 > logs.length) {
+          // Not enough bytes for a header, treat as raw data
+          cleanOutput += logs.slice(offset).toString('utf8');
+          break;
+        }
+        
+        // Read the header
+        const streamType = logs[offset]; // 1=stdout, 2=stderr
+        const size = logs.readUInt32BE(offset + 4); // Big-endian 32-bit size
+        
+        if (size === 0 || offset + 8 + size > logs.length) {
+          // Invalid header or not enough data, treat as raw
+          cleanOutput += logs.slice(offset).toString('utf8');
+          break;
+        }
+        
+        // Extract the data
+        const data = logs.slice(offset + 8, offset + 8 + size).toString('utf8');
+        cleanOutput += data;
+        
+        // Move to next chunk
+        offset += 8 + size;
+      }
+      
+      cleanOutput = cleanOutput.trim();
 
+      logger.info(`Raw Docker logs length: ${logs.length}, Clean output length: ${cleanOutput.length}`);
+      logger.info(`Clean output preview: ${cleanOutput.slice(0, 200)}`);
+      
       try {
         // Try to parse as JSON (from our execution scripts)
-        const parsedOutput = JSON.parse(output);
+        const parsedOutput = JSON.parse(cleanOutput);
         return {
           success: parsedOutput.success,
           output: {
@@ -238,11 +276,14 @@ class DockerExecutionService {
           memoryUsage: 0 // Would need container stats for this
         };
       } catch (parseError) {
+        logger.warn(`Failed to parse JSON output for ${language}:`, parseError.message);
+        logger.warn('Raw output:', cleanOutput.slice(0, 500));
+        
         // Fallback if JSON parsing fails
         return {
           success: result.StatusCode === 0,
           output: {
-            stdout: output,
+            stdout: cleanOutput,
             stderr: result.StatusCode !== 0 ? 'Non-zero exit code' : '',
             exitCode: result.StatusCode
           },

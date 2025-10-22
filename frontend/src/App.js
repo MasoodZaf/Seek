@@ -1,32 +1,42 @@
-import React from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { SocketProvider } from './context/SocketContext';
-import { ThemeProvider } from './context/ThemeContext';
 import './i18n';
 
-// Import pages
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import Dashboard from './pages/Dashboard';
-import Tutorials from './pages/Tutorials';
-import TutorialDetail from './pages/TutorialDetail';
-import TutorialLearn from './pages/TutorialLearn';
-import PlaygroundNew from './pages/PlaygroundNew';
-import CodeTranslator from './pages/CodeTranslator';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
-import Practice from './pages/Practice';
-import Achievements from './pages/Achievements';
-import ComponentsDemo from './pages/ComponentsDemo';
+// Import performance monitoring and service worker
+import performanceMonitor from './utils/performanceMonitoring';
+import { serviceWorkerManager } from './utils/serviceWorker';
+import { initializeBrowserSupport } from './utils/browserDetection';
+import performanceOptimizer from './utils/performanceOptimization';
 
-// Import components
+// Import browser compatibility styles
+import './styles/browser-compatibility.css';
+
+// Import components (keep these as regular imports for critical path)
 import Layout from './components/layout/Layout';
 import { LoadingPage } from './components/ui';
 import { ToastProvider } from './components/ui/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
+import { PerformanceMonitorToggle } from './components/ui/PerformanceMonitor';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
+import { ThemeProvider } from './context/ThemeContext';
+
+// Lazy load pages for code splitting
+const Login = React.lazy(() => import('./pages/auth/Login'));
+const Register = React.lazy(() => import('./pages/auth/Register'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Tutorials = React.lazy(() => import('./pages/Tutorials'));
+const TutorialDetail = React.lazy(() => import('./pages/TutorialDetail'));
+const TutorialLearn = React.lazy(() => import('./pages/TutorialLearn'));
+const PlaygroundNew = React.lazy(() => import('./pages/PlaygroundNew'));
+const CodeTranslator = React.lazy(() => import('./pages/CodeTranslator'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const Practice = React.lazy(() => import('./pages/Practice'));
+const Achievements = React.lazy(() => import('./pages/Achievements'));
+const ComponentsDemo = React.lazy(() => import('./pages/ComponentsDemo'));
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -69,6 +79,37 @@ const PublicRoute = ({ children }) => {
 };
 
 function App() {
+  useEffect(() => {
+    // Initialize browser detection and compatibility features
+    const browserInfo = initializeBrowserSupport();
+    
+    // Initialize performance optimization and monitoring
+    performanceOptimizer.init();
+    
+    // Initialize performance monitoring
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Performance monitoring initialized');
+      console.log('Browser info:', browserInfo.browser);
+    }
+
+    // Register service worker - DISABLED TEMPORARILY TO FIX LOGIN ISSUE
+    // serviceWorkerManager.register({
+    //   onUpdate: (registration) => {
+    //     console.log('New app version available');
+    //     // You could show a toast notification here
+    //   },
+    //   onSuccess: (registration) => {
+    //     console.log('App cached for offline use');
+    //   }
+    // });
+
+    return () => {
+      // Cleanup if needed
+      performanceMonitor.destroy();
+      performanceOptimizer.cleanup();
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <HelmetProvider>
@@ -85,7 +126,9 @@ function App() {
                           path="/login" 
                           element={
                             <PublicRoute>
-                              <Login />
+                              <Suspense fallback={<LoadingPage text="Loading login..." />}>
+                                <Login />
+                              </Suspense>
                             </PublicRoute>
                           } 
                         />
@@ -93,7 +136,9 @@ function App() {
                           path="/register" 
                           element={
                             <PublicRoute>
-                              <Register />
+                              <Suspense fallback={<LoadingPage text="Loading registration..." />}>
+                                <Register />
+                              </Suspense>
                             </PublicRoute>
                           } 
                         />
@@ -108,25 +153,72 @@ function App() {
                           }
                         >
                           <Route index element={<Navigate to="/playground" replace />} />
-                          <Route path="dashboard" element={<Dashboard />} />
-                          <Route path="tutorials" element={<Tutorials />} />
-                          <Route path="playground" element={<PlaygroundNew />} />
-                          <Route path="translator" element={<CodeTranslator />} />
-                          <Route path="practice" element={<Practice />} />
-                          <Route path="achievements" element={<Achievements />} />
-                          <Route path="profile" element={<Profile />} />
-                          <Route path="settings" element={<Settings />} />
-                          <Route path="components-demo" element={<ComponentsDemo />} />
+                          <Route path="dashboard" element={
+                            <Suspense fallback={<LoadingPage text="Loading dashboard..." />}>
+                              <Dashboard />
+                            </Suspense>
+                          } />
+                          <Route path="tutorials" element={
+                            <Suspense fallback={<LoadingPage text="Loading tutorials..." />}>
+                              <Tutorials />
+                            </Suspense>
+                          } />
+                          <Route path="playground" element={
+                            <Suspense fallback={<LoadingPage text="Loading playground..." />}>
+                              <PlaygroundNew />
+                            </Suspense>
+                          } />
+                          <Route path="translator" element={
+                            <Suspense fallback={<LoadingPage text="Loading translator..." />}>
+                              <CodeTranslator />
+                            </Suspense>
+                          } />
+                          <Route path="practice" element={
+                            <Suspense fallback={<LoadingPage text="Loading practice..." />}>
+                              <Practice />
+                            </Suspense>
+                          } />
+                          <Route path="achievements" element={
+                            <Suspense fallback={<LoadingPage text="Loading achievements..." />}>
+                              <Achievements />
+                            </Suspense>
+                          } />
+                          <Route path="profile" element={
+                            <Suspense fallback={<LoadingPage text="Loading profile..." />}>
+                              <Profile />
+                            </Suspense>
+                          } />
+                          <Route path="settings" element={
+                            <Suspense fallback={<LoadingPage text="Loading settings..." />}>
+                              <Settings />
+                            </Suspense>
+                          } />
+                          <Route path="components-demo" element={
+                            <Suspense fallback={<LoadingPage text="Loading demo..." />}>
+                              <ComponentsDemo />
+                            </Suspense>
+                          } />
                           
                           {/* Tutorial routes */}
-                          <Route path="tutorials/:id" element={<TutorialDetail />} />
-                          <Route path="tutorials/:id/learn" element={<TutorialLearn />} />
+                          <Route path="tutorials/:id" element={
+                            <Suspense fallback={<LoadingPage text="Loading tutorial..." />}>
+                              <TutorialDetail />
+                            </Suspense>
+                          } />
+                          <Route path="tutorials/:id/learn" element={
+                            <Suspense fallback={<LoadingPage text="Loading lesson..." />}>
+                              <TutorialLearn />
+                            </Suspense>
+                          } />
                           <Route path="progress" element={<div>Progress Page (Coming Soon)</div>} />
                         </Route>
                         
                         {/* Catch all - redirect to login */}
                         <Route path="*" element={<Navigate to="/login" replace />} />
                       </Routes>
+                      
+                      {/* Performance Monitor (Development only) */}
+                      <PerformanceMonitorToggle />
                     </div>
                   </SocketProvider>
                 </AuthProvider>

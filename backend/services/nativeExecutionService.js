@@ -30,6 +30,9 @@ class NativeExecutionService {
         case 'python':
           result = await this.executePython(code, input, executionId);
           break;
+        case 'javascript':
+          result = await this.executeJavaScript(code, input, executionId);
+          break;
         case 'typescript':
           result = await this.executeTypeScript(code, input, executionId);
           break;
@@ -123,6 +126,70 @@ class NativeExecutionService {
       try {
         await fs.unlink(filename);
       } catch (e) {
+        // Ignore cleanup errors
+      }
+      throw error;
+    }
+  }
+
+  async executeJavaScript(code, input, executionId) {
+    const jsFilename = path.join(this.tempDir, `${executionId}.js`);
+    
+    try {
+      await fs.writeFile(jsFilename, code);
+      
+      const childProcess = spawn('node', [jsFilename], {
+        cwd: this.tempDir,
+        timeout: this.maxExecutionTime,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=64' }
+      });
+
+      let output = '';
+      let stderr = '';
+
+      childProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      childProcess.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      if (input) {
+        childProcess.stdin.write(input);
+        childProcess.stdin.end();
+      }
+
+      return new Promise((resolve, reject) => {
+        childProcess.on('close', async (code) => {
+          try {
+            await fs.unlink(jsFilename);
+          } catch (error) {
+            // Ignore cleanup errors
+          }
+
+          resolve({
+            output: output.trim(),
+            stderr: stderr.trim(),
+            exitCode: code || 0,
+            executionTime: Date.now()
+          });
+        });
+
+        childProcess.on('error', async (error) => {
+          try {
+            await fs.unlink(jsFilename);
+          } catch (cleanupError) {
+            // Ignore cleanup errors
+          }
+          reject(error);
+        });
+      });
+    } catch (error) {
+      try {
+        await fs.unlink(jsFilename);
+      } catch (cleanupError) {
         // Ignore cleanup errors
       }
       throw error;

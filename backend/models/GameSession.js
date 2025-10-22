@@ -76,8 +76,7 @@ const GameSessionSchema = new mongoose.Schema({
     unique: true
   },
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: mongoose.Schema.Types.Mixed, // Support both ObjectId and SQLite integer IDs
     required: true
   },
   gameId: {

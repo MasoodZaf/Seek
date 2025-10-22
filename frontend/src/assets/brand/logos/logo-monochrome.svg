@@ -1,0 +1,22 @@
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <defs>
+    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.1)"/>
+    </filter>
+  </defs>
+  
+  <rect width="192" height="192" rx="24" ry="24" fill="white" filter="url(#dropShadow)"/>
+  
+  <circle cx="48" cy="48" r="3" fill="rgba(0,0,0,0.1)"/>
+  <circle cx="144" cy="144" r="3" fill="rgba(0,0,0,0.1)"/>
+  <rect x="32" y="32" width="2" height="16" fill="rgba(0,0,0,0.08)" rx="1"/>
+  <rect x="158" y="144" width="2" height="16" fill="rgba(0,0,0,0.08)" rx="1"/>
+  
+  <text x="96" y="105" fill="#1e293b" text-anchor="middle" dominant-baseline="middle" 
+        font-size="32" font-family="Inter, system-ui, sans-serif" font-weight="700" 
+        letter-spacing="-0.02em">SEEK</text>
+  
+  <text x="96" y="125" fill="rgba(30,41,59,0.6)" text-anchor="middle" dominant-baseline="middle" 
+        font-size="10" font-family="Inter, system-ui, sans-serif" font-weight="500" 
+        letter-spacing="0.05em">LEARN • CODE • GROW</text>
+</svg>

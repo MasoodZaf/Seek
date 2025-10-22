@@ -15,6 +15,7 @@ import {
 import { Button, Card, Badge, Progress, Loading } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import api from '../utils/api';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -45,15 +46,10 @@ const Profile = () => {
   const loadProfileStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/v1/progress/stats', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data.data);
+      const response = await api.get('/progress/stats');
+
+      if (response.data) {
+        setStats(response.data.data);
       }
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -64,15 +60,12 @@ const Profile = () => {
 
   const loadRecentActivity = async () => {
     try {
-      const response = await fetch('/api/v1/code/history?limit=10', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const response = await api.get('/code/history', {
+        params: { limit: 10 }
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setRecentActivity(data.data?.executions || []);
+
+      if (response.data) {
+        setRecentActivity(response.data.data?.executions || []);
       }
     } catch (error) {
       console.error('Error loading activity:', error);
@@ -118,17 +111,10 @@ const Profile = () => {
   const handleSaveProfile = async () => {
     try {
       setLoading(true);
-      
-      const response = await fetch('/api/v1/auth/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(profileData)
-      });
 
-      if (response.ok) {
+      const response = await api.put('/auth/profile', profileData);
+
+      if (response.data) {
         toast.success('Profile updated successfully!');
         setIsEditing(false);
       } else {

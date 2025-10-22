@@ -3,6 +3,76 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow, prism } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getSyntaxHelp } from './SyntaxHelper';
 
+// Custom lighter dark theme for better readability
+const lightDarkTheme = {
+  'code[class*="language-"]': {
+    color: '#f8f8f2',
+    background: 'rgb(55, 65, 81)', // gray-700
+    textShadow: '0 1px rgba(0, 0, 0, 0.3)',
+    fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
+    fontSize: '1em',
+    lineHeight: '1.5',
+    whiteSpace: 'pre',
+    wordSpacing: 'normal',
+    wordBreak: 'normal',
+    wordWrap: 'normal',
+    tabSize: 4,
+    hyphens: 'none'
+  },
+  'pre[class*="language-"]': {
+    color: '#f8f8f2',
+    background: 'rgb(55, 65, 81)', // gray-700
+    textShadow: '0 1px rgba(0, 0, 0, 0.3)',
+    fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
+    fontSize: '1em',
+    lineHeight: '1.5',
+    whiteSpace: 'pre',
+    wordSpacing: 'normal',
+    wordBreak: 'normal',
+    wordWrap: 'normal',
+    tabSize: 4,
+    hyphens: 'none',
+    padding: '1em',
+    margin: '.5em 0',
+    overflow: 'auto',
+    borderRadius: '0.3em'
+  },
+  token: {
+    comment: { color: '#8292a2' },
+    prolog: { color: '#8292a2' },
+    doctype: { color: '#8292a2' },
+    cdata: { color: '#8292a2' },
+    punctuation: { color: '#f8f8f2' },
+    namespace: { opacity: '.7' },
+    property: { color: '#66d9ef' },
+    tag: { color: '#f92672' },
+    constant: { color: '#66d9ef' },
+    symbol: { color: '#66d9ef' },
+    deleted: { color: '#f92672' },
+    boolean: { color: '#ae81ff' },
+    number: { color: '#ae81ff' },
+    selector: { color: '#a6e22e' },
+    'attr-name': { color: '#a6e22e' },
+    string: { color: '#e6db74' },
+    char: { color: '#e6db74' },
+    builtin: { color: '#a6e22e' },
+    inserted: { color: '#a6e22e' },
+    variable: { color: '#f8f8f2' },
+    operator: { color: '#f92672' },
+    entity: { color: '#f8f8f2', cursor: 'help' },
+    url: { color: '#f8f8f2' },
+    keyword: { color: '#f92672' },
+    atrule: { color: '#e6db74' },
+    'attr-value': { color: '#e6db74' },
+    regex: { color: '#e6db74' },
+    important: { color: '#f92672', fontWeight: 'bold' },
+    bold: { fontWeight: 'bold' },
+    italic: { fontStyle: 'italic' },
+    function: { color: '#66d9ef' },
+    'class-name': { color: '#a6e22e' }
+  }
+};
+
 const SimpleCodeEditor = ({ 
   code, 
   onChange, 
@@ -58,38 +128,52 @@ const SimpleCodeEditor = ({
     return (
       <div className={`relative w-full h-full ${className}`}>
         <div 
-          className="w-full h-full p-4 font-mono text-sm overflow-auto"
+          className={`w-full h-full font-mono text-sm overflow-auto rounded-lg ${
+            isDark ? 'bg-gray-700' : 'bg-gray-50'
+          }`}
           onMouseLeave={hideTooltip}
         >
-          <SyntaxHighlighter
-            language={getPrismLanguage(language)}
-            style={isDark ? tomorrow : prism}
-            showLineNumbers={true}
-            customStyle={{
-              margin: 0,
-              padding: 0,
-              background: 'transparent',
-              fontSize: 'inherit',
-              lineHeight: 'inherit',
-              minHeight: '100%'
-            }}
-            codeTagProps={{
-              style: {
+          {code ? (
+            <SyntaxHighlighter
+              language={getPrismLanguage(language)}
+              style={isDark ? lightDarkTheme : prism}
+              showLineNumbers={true}
+              customStyle={{
+                margin: 0,
+                padding: '1rem',
+                background: 'transparent',
                 fontSize: 'inherit',
-                lineHeight: 'inherit'
-              },
-              onMouseOver: handleWordHover,
-              onMouseOut: hideTooltip
-            }}
-            wrapLines={true}
-            lineProps={(_lineNumber) => ({
-              style: { display: 'block', width: 'fit-content' },
-              onMouseOver: handleWordHover,
-              onMouseOut: hideTooltip
-            })}
-          >
-            {code || placeholder}
-          </SyntaxHighlighter>
+                lineHeight: 'inherit',
+                minHeight: '100%',
+                borderRadius: '0.5rem'
+              }}
+              codeTagProps={{
+                style: {
+                  fontSize: 'inherit',
+                  lineHeight: 'inherit'
+                },
+                onMouseOver: handleWordHover,
+                onMouseOut: hideTooltip
+              }}
+              wrapLines={true}
+              lineProps={(_lineNumber) => ({
+                style: { display: 'block', width: 'fit-content' },
+                onMouseOver: handleWordHover,
+                onMouseOut: hideTooltip
+              })}
+            >
+              {code}
+            </SyntaxHighlighter>
+          ) : (
+            <div className={`flex items-center justify-center h-full ${
+              isDark ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+              <div className="text-center">
+                <div className="text-lg mb-2">📝</div>
+                <div className="text-sm italic">{placeholder}</div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tooltip */}
@@ -146,7 +230,7 @@ const SimpleCodeEditor = ({
         value={code}
         onChange={(e) => onChange && onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+        className="w-full h-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none placeholder-gray-500 dark:placeholder-gray-400"
         spellCheck="false"
         autoComplete="off"
         autoCorrect="off"

@@ -64,13 +64,21 @@ const authReducer = (state, action) => {
   }
 };
 
-// Configure axios defaults - use proxy in development, env variable in production
-axios.defaults.baseURL = process.env.NODE_ENV === 'production' 
-  ? (process.env.REACT_APP_API_URL || '/api/v1')
-  : '/api/v1';
-axios.defaults.headers.post['Content-Type'] = 'application/json';
-axios.defaults.headers.put['Content-Type'] = 'application/json';
-axios.defaults.headers.patch['Content-Type'] = 'application/json';
+// Create axios instance with custom config
+// Hardcoded for now since .env not loading properly
+const API_BASE_URL = 'http://localhost:5001/api/v1';
+
+console.log('🔧 AuthContext API Configuration:');
+console.log('  REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+console.log('  API_BASE_URL:', API_BASE_URL);
+console.log('  Full login URL will be:', API_BASE_URL + '/auth/login');
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 // Token management functions
 const getStoredToken = () => {
@@ -80,11 +88,11 @@ const getStoredToken = () => {
 const setStoredToken = (token) => {
   if (token) {
     localStorage.setItem('accessToken', token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    delete axios.defaults.headers.common['Authorization'];
+    delete api.defaults.headers.common['Authorization'];
   }
 };
 
@@ -99,7 +107,7 @@ const setStoredRefreshToken = (token) => {
 // Set token on app initialization if it exists
 const existingToken = getStoredToken();
 if (existingToken) {
-  axios.defaults.headers.common['Authorization'] = `Bearer ${existingToken}`;
+  api.defaults.headers.common['Authorization'] = `Bearer ${existingToken}`;
 }
 
 export const AuthProvider = ({ children }) => {
@@ -113,10 +121,10 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       dispatch({ type: 'AUTH_START' });
-      const response = await axios.get('/auth/profile');
-      dispatch({ 
-        type: 'AUTH_SUCCESS', 
-        payload: { user: response.data.data.user } 
+      const response = await api.get('/auth/profile');
+      dispatch({
+        type: 'AUTH_SUCCESS',
+        payload: { user: response.data.data.user }
       });
     } catch (error) {
       // Handle session expiration specifically
@@ -128,30 +136,30 @@ export const AuthProvider = ({ children }) => {
       }
     }
   };
-  
+
   const login = async (email, password) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      
-      const response = await axios.post('/auth/login', {
+
+      const response = await api.post('/auth/login', {
         email,
         password,
       });
-      
+
       const { user, tokens } = response.data.data;
-      
+
       // Store tokens
       setStoredToken(tokens.accessToken);
       setStoredRefreshToken(tokens.refreshToken);
-      
-      dispatch({ 
-        type: 'AUTH_SUCCESS', 
-        payload: { user } 
+
+      dispatch({
+        type: 'AUTH_SUCCESS',
+        payload: { user }
       });
-      
+
       toast.success(`Welcome back, ${user.firstName}!`);
       return { success: true, user };
-      
+
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Login failed';
       dispatch({ type: 'AUTH_ERROR', payload: errorMessage });
@@ -159,47 +167,47 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: errorMessage };
     }
   };
-  
+
   const register = async (userData) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      
-      const response = await axios.post('/auth/register', userData);
-      
+
+      const response = await api.post('/auth/register', userData);
+
       const { user, tokens } = response.data.data;
-      
+
       // Store tokens
       setStoredToken(tokens.accessToken);
       setStoredRefreshToken(tokens.refreshToken);
-      
-      dispatch({ 
-        type: 'AUTH_SUCCESS', 
-        payload: { user } 
+
+      dispatch({
+        type: 'AUTH_SUCCESS',
+        payload: { user }
       });
-      
+
       toast.success(`Welcome to Seek, ${user.firstName}!`);
       return { success: true, user };
-      
+
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Registration failed';
       const errors = error.response?.data?.errors || [];
-      
+
       dispatch({ type: 'AUTH_ERROR', payload: errorMessage });
-      
+
       if (errors.length > 0) {
         errors.forEach(err => toast.error(err.message));
       } else {
         toast.error(errorMessage);
       }
-      
+
       return { success: false, error: errorMessage, errors };
     }
   };
-  
+
   const logout = async () => {
     try {
       // Call logout endpoint to invalidate token on server
-      await axios.post('/auth/logout', {});
+      await api.post('/auth/logout', {});
     } catch (error) {
       // Continue with logout even if server call fails
     } finally {
@@ -210,44 +218,44 @@ export const AuthProvider = ({ children }) => {
       toast.success('Logged out successfully');
     }
   };
-  
+
   const updateProfile = async (userData) => {
     try {
-      const response = await axios.put('/auth/profile', userData);
+      const response = await api.put('/auth/profile', userData);
       const updatedUser = response.data.data.user;
-      
-      dispatch({ 
-        type: 'AUTH_UPDATE_USER', 
-        payload: updatedUser 
+
+      dispatch({
+        type: 'AUTH_UPDATE_USER',
+        payload: updatedUser
       });
-      
+
       toast.success('Profile updated successfully');
       return { success: true, user: updatedUser };
-      
+
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Update failed';
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
   };
-  
+
   const changePassword = async (currentPassword, newPassword) => {
     try {
-      await axios.put('/auth/password', {
+      await api.put('/auth/password', {
         currentPassword,
         newPassword,
       });
-      
+
       toast.success('Password changed successfully. Please login again.');
-      
+
       // Force logout after password change
       dispatch({ type: 'AUTH_LOGOUT' });
       setTimeout(() => {
         window.location.reload();
       }, 500);
-      
+
       return { success: true };
-      
+
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Password change failed';
       toast.error(errorMessage);

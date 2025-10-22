@@ -73,7 +73,7 @@ const validateCodeExecution = [
     .withMessage('Code is required and cannot exceed 10000 characters'),
 
   body('language')
-    .isIn(['javascript', 'python', 'java', 'typescript', 'cpp', 'c', 'gml'])
+    .isIn(['javascript', 'python', 'java', 'typescript', 'cpp', 'c', 'go', 'rust', 'csharp', 'php', 'ruby', 'kotlin', 'swift', 'gml'])
     .withMessage('Invalid programming language'),
 
   body('input')
@@ -96,7 +96,7 @@ const validateTutorialCreation = [
     .withMessage('Description is required and cannot exceed 1000 characters'),
 
   body('language')
-    .isIn(['javascript', 'python', 'java', 'typescript', 'cpp', 'c', 'gml'])
+    .isIn(['javascript', 'python', 'java', 'typescript', 'cpp', 'c', 'go', 'rust', 'csharp', 'php', 'ruby', 'kotlin', 'swift', 'gml'])
     .withMessage('Invalid programming language'),
 
   body('category')

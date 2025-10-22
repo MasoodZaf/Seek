@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   HomeIcon,
   BookOpenIcon,
@@ -12,18 +12,32 @@ import {
   TrophyIcon,
   PlayIcon,
   LanguageIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  StarIcon,
+  FireIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
 
-const navigation = [
-  { name: 'Code Playground', href: '/playground', iconType: 'code' },
-  { name: 'Code Translator', href: '/translator', iconType: 'language' },
-  { name: 'Browse Tutorials', href: '/tutorials', iconType: 'book' },
-  { name: 'Dashboard', href: '/dashboard', iconType: 'home' },
-  { name: 'My Progress', href: '/progress', iconType: 'chart' },
-  { name: 'Practice', href: '/practice', iconType: 'play' },
-  { name: 'Achievements', href: '/achievements', iconType: 'trophy' },
+const navigationSections = [
+  {
+    title: 'Learning',
+    items: [
+      { name: 'Dashboard', href: '/dashboard', iconType: 'home', badge: null },
+      { name: 'Browse Tutorials', href: '/tutorials', iconType: 'book', badge: 'New' },
+      { name: 'Practice', href: '/practice', iconType: 'play', badge: null },
+      { name: 'My Progress', href: '/progress', iconType: 'chart', badge: null },
+    ]
+  },
+  {
+    title: 'Tools',
+    items: [
+      { name: 'Code Playground', href: '/playground', iconType: 'code', badge: null },
+      { name: 'Code Translator', href: '/translator', iconType: 'language', badge: 'Beta' },
+      { name: 'Achievements', href: '/achievements', iconType: 'trophy', badge: null },
+    ]
+  }
 ];
 
 const bottomNavigation = [
@@ -33,6 +47,7 @@ const bottomNavigation = [
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
+  const [collapsedSections, setCollapsedSections] = useState({});
 
   // Icon mapping function to prevent object rendering
   const getIconComponent = (iconType) => {
@@ -49,6 +64,13 @@ const Sidebar = ({ isOpen, onClose }) => {
     };
     return iconMap[iconType] || HomeIcon;
   };
+
+  const toggleSection = (sectionTitle) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle]
+    }));
+  };
   
   const NavItem = ({ item, mobile = false }) => (
     <NavLink
@@ -56,10 +78,10 @@ const Sidebar = ({ isOpen, onClose }) => {
       onClick={mobile ? onClose : undefined}
       className={({ isActive }) =>
         clsx(
-          'group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200',
+          'group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 hover-lift',
           {
-            'bg-primary-100 text-primary-700 shadow-sm': isActive,
-            'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-50': !isActive,
+            'bg-gradient-to-r from-white/20 to-white/10 text-white shadow-lg backdrop-blur-sm border border-white/20': isActive,
+            'text-white/70 hover:text-white hover:bg-white/10 hover:backdrop-blur-sm': !isActive,
           }
         )
       }
@@ -71,21 +93,44 @@ const Sidebar = ({ isOpen, onClose }) => {
             return (
               <IconComponent
                 className={clsx(
-                  'mr-3 h-5 w-5 transition-colors',
+                  'mr-3 h-5 w-5 transition-all duration-300',
                   {
-                    'text-primary-600': isActive,
-                    'text-secondary-400 group-hover:text-secondary-600': !isActive,
+                    'text-white drop-shadow-sm': isActive,
+                    'text-white/60 group-hover:text-white/90 group-hover:scale-110': !isActive,
                   }
                 )}
               />
             );
           })()}
-          <span className="truncate">{item.name}</span>
+          <span className="truncate font-medium">{item.name}</span>
+          {item.badge && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className={clsx(
+                'ml-auto px-2 py-0.5 text-xs font-semibold rounded-full',
+                {
+                  'bg-white/20 text-white': item.badge === 'New',
+                  'bg-yellow-400/20 text-yellow-200': item.badge === 'Beta',
+                }
+              )}
+            >
+              {item.badge}
+            </motion.span>
+          )}
           {isActive && (
             <motion.div
               layoutId="activeTab"
-              className="absolute left-0 w-1 bg-primary-600 rounded-r-full"
-              style={{ height: '24px' }}
+              className="absolute left-0 w-1 bg-white rounded-r-full shadow-glow"
+              style={{ height: '32px' }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+          {isActive && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent rounded-xl"
             />
           )}
         </>
@@ -94,53 +139,155 @@ const Sidebar = ({ isOpen, onClose }) => {
   );
   
   const SidebarContent = () => (
-    <div className="h-full flex flex-col bg-white border-r border-secondary-200">
-      {/* Logo */}
-      <div className="flex items-center px-6 py-4 border-b border-secondary-200">
-        <div className="flex items-center space-x-3">
-          <div className="h-10 w-10 bg-gradient-to-r from-primary-600 to-purple-600 rounded-lg flex items-center justify-center">
-            <AcademicCapIcon className="h-6 w-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-bold text-secondary-900">Seek</span>
-            <span className="text-xs text-secondary-500">Learning Platform</span>
-          </div>
-        </div>
+    <div className="h-full flex flex-col relative overflow-hidden">
+      {/* Gradient Background with Texture Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        <div className="absolute inset-0 opacity-10" 
+             style={{
+               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+             }} 
+        />
       </div>
       
-      {/* User Profile */}
-      <div className="px-6 py-4 border-b border-secondary-200">
-        <div className="flex items-center space-x-3">
-          <div className="h-8 w-8 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center">
-            <span className="text-sm font-semibold text-white">
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
-            </span>
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col">
+        {/* Logo */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center px-6 py-6 border-b border-white/10"
+        >
+          <div className="flex items-center space-x-3">
+            <motion.div 
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              className="h-12 w-12 bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20 shadow-lg"
+            >
+              <AcademicCapIcon className="h-7 w-7 text-white drop-shadow-sm" />
+            </motion.div>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold text-white drop-shadow-sm">Seek</span>
+              <span className="text-xs text-white/60 font-medium">Learning Platform</span>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-secondary-900 truncate">
-              {user?.firstName} {user?.lastName}
-            </p>
-            <p className="text-xs text-secondary-500 truncate">
-              Level {user?.progress?.level || 1} Learner
-            </p>
+        </motion.div>
+        
+        {/* Enhanced User Profile */}
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="px-6 py-6 border-b border-white/10"
+        >
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <motion.div 
+                whileHover={{ scale: 1.1 }}
+                className="h-12 w-12 bg-gradient-to-r from-white/30 to-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 shadow-lg"
+              >
+                <span className="text-lg font-bold text-white drop-shadow-sm">
+                  {user?.firstName?.[0]}{user?.lastName?.[0]}
+                </span>
+              </motion.div>
+              <motion.div 
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute -top-1 -right-1 h-4 w-4 bg-green-400 rounded-full border-2 border-white shadow-sm"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-white truncate drop-shadow-sm">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <div className="flex items-center space-x-2 mt-1">
+                <div className="flex items-center space-x-1">
+                  <StarIcon className="h-3 w-3 text-yellow-400" />
+                  <span className="text-xs text-white/70 font-medium">
+                    Level {user?.progress?.level || 1}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <FireIcon className="h-3 w-3 text-orange-400" />
+                  <span className="text-xs text-white/70 font-medium">
+                    {user?.progress?.streak || 0} day streak
+                  </span>
+                </div>
+              </div>
+              {/* Progress Bar */}
+              <div className="mt-2 w-full bg-white/20 rounded-full h-1.5 backdrop-blur-sm">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(user?.progress?.xp % 100) || 25}%` }}
+                  transition={{ duration: 1, delay: 0.5 }}
+                  className="bg-gradient-to-r from-yellow-400 to-orange-400 h-1.5 rounded-full shadow-sm"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-        {navigation.map((item) => (
-          <div key={item.name} className="relative">
-            <NavItem item={item} />
+        </motion.div>
+        
+        {/* Navigation Sections */}
+        <nav className="flex-1 px-4 py-4 overflow-y-auto">
+          <div className="space-y-6">
+            {navigationSections.map((section, sectionIndex) => (
+              <motion.div 
+                key={section.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 + sectionIndex * 0.1 }}
+              >
+                <button
+                  onClick={() => toggleSection(section.title)}
+                  className="flex items-center justify-between w-full px-2 py-2 text-xs font-semibold text-white/60 uppercase tracking-wider hover:text-white/80 transition-colors duration-200"
+                >
+                  <span>{section.title}</span>
+                  <motion.div
+                    animate={{ rotate: collapsedSections[section.title] ? 0 : 90 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </motion.div>
+                </button>
+                
+                <AnimatePresence>
+                  {!collapsedSections[section.title] && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-1 mt-2"
+                    >
+                      {section.items.map((item, itemIndex) => (
+                        <motion.div
+                          key={item.name}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: itemIndex * 0.05 }}
+                        >
+                          <NavItem item={item} />
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
           </div>
-        ))}
-      </nav>
-      
-      {/* Bottom Navigation */}
-      <div className="px-4 py-4 border-t border-secondary-200 space-y-1">
-        {bottomNavigation.map((item) => (
-          <NavItem key={item.name} item={item} />
-        ))}
+        </nav>
+        
+        {/* Bottom Navigation */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="px-4 py-4 border-t border-white/10 space-y-1"
+        >
+          {bottomNavigation.map((item) => (
+            <NavItem key={item.name} item={item} />
+          ))}
+        </motion.div>
       </div>
     </div>
   );
@@ -155,26 +302,33 @@ const Sidebar = ({ isOpen, onClose }) => {
       </div>
       
       {/* Mobile Sidebar */}
-      {isOpen && (
-        <div className="fixed inset-0 flex z-40 lg:hidden">
-          <div className="fixed inset-0">
-            <div 
-              className="absolute inset-0 bg-secondary-600 opacity-75"
-              onClick={onClose}
-            />
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 flex z-40 lg:hidden">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0"
+            >
+              <div 
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={onClose}
+              />
+            </motion.div>
+            
+            <motion.div
+              initial={{ x: -320, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -320, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="relative flex-1 flex flex-col max-w-xs w-full shadow-2xl"
+            >
+              <SidebarContent />
+            </motion.div>
           </div>
-          
-          <motion.div
-            initial={{ x: -320 }}
-            animate={{ x: 0 }}
-            exit={{ x: -320 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative flex-1 flex flex-col max-w-xs w-full bg-white"
-          >
-            <SidebarContent />
-          </motion.div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </>
   );
 };

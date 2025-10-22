@@ -6,8 +6,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+/* Professional Design System */
+@import './styles/design-system.css';
+
 /* Enhanced component styles */
 @import './styles/components.css';
+
+/* Browser compatibility styles */
+@import './styles/browser-compatibility.css';
 
 /* Base styles */
 @layer base {

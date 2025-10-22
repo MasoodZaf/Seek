@@ -18,6 +18,7 @@ import {
 import { Button, Card, Badge, Loading, Input } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import api from '../utils/api';
 
 const Settings = () => {
   const { user, updateUser } = useAuth();
@@ -126,17 +127,10 @@ const Settings = () => {
   const handleSaveSettings = async () => {
     try {
       setLoading(true);
-      
-      const response = await fetch('/api/v1/auth/preferences', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(settings)
-      });
 
-      if (response.ok) {
+      const response = await api.put('/auth/preferences', settings);
+
+      if (response.data) {
         toast.success(t('settings.settingsSaved'));
         // Update user context with new preferences
         updateUser({ ...user, preferences: settings });
@@ -152,7 +146,7 @@ const Settings = () => {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    
+
     if (passwords.new !== passwords.confirm) {
       toast.error(t('settings.passwordsDoNotMatch'));
       return;
@@ -165,25 +159,17 @@ const Settings = () => {
 
     try {
       setLoading(true);
-      
-      const response = await fetch('/api/v1/auth/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          currentPassword: passwords.current,
-          newPassword: passwords.new
-        })
+
+      const response = await api.post('/auth/change-password', {
+        currentPassword: passwords.current,
+        newPassword: passwords.new
       });
 
-      if (response.ok) {
+      if (response.data) {
         toast.success(t('settings.passwordChanged'));
         setPasswords({ current: '', new: '', confirm: '' });
       } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to change password');
+        throw new Error('Failed to change password');
       }
     } catch (error) {
       toast.error('Error changing password: ' + error.message);
@@ -195,15 +181,10 @@ const Settings = () => {
   const handleDeleteAccount = async () => {
     try {
       setLoading(true);
-      
-      const response = await fetch('/api/v1/auth/delete-account', {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
 
-      if (response.ok) {
+      const response = await api.delete('/auth/delete-account');
+
+      if (response.data) {
         toast.success(t('settings.accountDeleted'));
         // Logout and redirect
         localStorage.removeItem('token');

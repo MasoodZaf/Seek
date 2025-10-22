@@ -1,39 +1,94 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
+import { SEEK_PROFESSIONAL_THEMES, getThemeByName, LANGUAGE_SPECIFIC_THEMES } from './themes/seekProfessional';
 
 const MonacoCodeEditor = ({ 
   value, 
   onChange, 
   language, 
-  theme = 'vs-dark',
+  theme = 'seek-dark-professional',
   height = '400px',
   options = {},
-  onMount
+  onMount,
+  enableProfessionalFeatures = true,
+  fontSize = 14,
+  fontFamily = 'JetBrains Mono, Consolas, "Courier New", monospace',
+  enableAnimations = true
 }) => {
   const editorRef = useRef(null);
+  const [isThemeRegistered, setIsThemeRegistered] = useState(false);
 
   const defaultOptions = {
+    // Basic editor options
     selectOnLineNumbers: true,
     roundedSelection: false,
     readOnly: false,
     cursorStyle: 'line',
     automaticLayout: true,
-    minimap: { enabled: true },
     scrollBeyondLastLine: false,
     wordWrap: 'on',
-    fontSize: 14,
-    fontFamily: 'Consolas, "Courier New", monospace',
     lineNumbers: 'on',
     renderLineHighlight: 'all',
     contextmenu: true,
+    
+    // Professional typography
+    fontSize: fontSize,
+    fontFamily: fontFamily,
+    fontLigatures: true,
+    fontWeight: '400',
+    letterSpacing: 0.5,
+    lineHeight: 1.6,
+    
+    // Enhanced minimap
+    minimap: { 
+      enabled: true,
+      side: 'right',
+      showSlider: 'always',
+      renderCharacters: true,
+      maxColumn: 120,
+      scale: 1
+    },
+    
+    // Professional folding
     folding: true,
     foldingStrategy: 'indentation',
     showFoldingControls: 'always',
-    bracketPairColorization: { enabled: true },
+    foldingHighlight: true,
+    
+    // Enhanced bracket matching
+    bracketPairColorization: { 
+      enabled: true,
+      independentColorPoolPerBracketType: true
+    },
+    matchBrackets: 'always',
+    
+    // Professional guides
     guides: {
       bracketPairs: true,
-      indentation: true
+      bracketPairsHorizontal: true,
+      highlightActiveBracketPair: true,
+      indentation: true,
+      highlightActiveIndentation: true
     },
+    
+    // Enhanced rulers and margins
+    rulers: [80, 120],
+    renderWhitespace: 'selection',
+    renderControlCharacters: false,
+    
+    // Professional scrolling
+    smoothScrolling: enableAnimations,
+    scrollbar: {
+      vertical: 'auto',
+      horizontal: 'auto',
+      useShadows: true,
+      verticalHasArrows: false,
+      horizontalHasArrows: false,
+      verticalScrollbarSize: 14,
+      horizontalScrollbarSize: 14
+    },
+    
+    // Enhanced suggestions
     suggest: {
       enabled: true,
       showMethods: true,
@@ -58,23 +113,112 @@ const MonacoCodeEditor = ({
       showTextPresentation: true,
       showSnippets: true,
       showUsers: true,
-      showIssues: true
+      showIssues: true,
+      insertMode: 'insert',
+      filterGraceful: true,
+      snippetsPreventQuickSuggestions: false,
+      localityBonus: true,
+      shareSuggestSelections: true,
+      showIcons: true,
+      maxVisibleSuggestions: 12,
+      showStatusBar: true
     },
+    
+    // Professional quick suggestions
     quickSuggestions: {
       other: true,
       comments: true,
       strings: true
     },
-    parameterHints: { enabled: true },
-    hover: { enabled: true },
+    quickSuggestionsDelay: 100,
+    
+    // Enhanced IntelliSense
+    parameterHints: { 
+      enabled: true,
+      cycle: true
+    },
+    hover: { 
+      enabled: true,
+      delay: 300,
+      sticky: true
+    },
+    
+    // Professional editing
     acceptSuggestionOnCommitCharacter: true,
     acceptSuggestionOnEnter: 'on',
     tabCompletion: 'on',
+    wordBasedSuggestions: true,
+    wordBasedSuggestionsOnlySameLanguage: false,
+    
+    // Enhanced find/replace
+    find: {
+      seedSearchStringFromSelection: 'always',
+      autoFindInSelection: 'never',
+      globalFindClipboard: false,
+      addExtraSpaceOnTop: true,
+      loop: true
+    },
+    
+    // Professional cursor
+    cursorBlinking: 'smooth',
+    cursorSmoothCaretAnimation: enableAnimations,
+    cursorWidth: 2,
+    
+    // Enhanced selection
+    multiCursorModifier: 'ctrlCmd',
+    multiCursorMergeOverlapping: true,
+    selectionHighlight: true,
+    occurrencesHighlight: true,
+    
+    // Professional formatting
+    formatOnPaste: true,
+    formatOnType: true,
+    autoIndent: 'full',
+    insertSpaces: true,
+    tabSize: 2,
+    detectIndentation: true,
+    trimAutoWhitespace: true,
+    
+    // Enhanced error handling
+    showUnused: true,
+    showDeprecated: true,
+    
+    // Performance optimizations
+    renderValidationDecorations: 'on',
+    renderFinalNewline: true,
+    
+    // Accessibility
+    accessibilitySupport: 'auto',
+    accessibilityPageSize: 10,
+    
+    // Merge with custom options
     ...options
+  };
+
+  // Register professional themes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.monaco && !isThemeRegistered) {
+      registerProfessionalThemes(window.monaco);
+      setIsThemeRegistered(true);
+    }
+  }, [isThemeRegistered]);
+
+  const registerProfessionalThemes = (monaco) => {
+    try {
+      Object.entries(SEEK_PROFESSIONAL_THEMES).forEach(([themeName, themeData]) => {
+        monaco.editor.defineTheme(themeName, themeData);
+      });
+    } catch (error) {
+      console.warn('Failed to register professional themes:', error);
+    }
   };
 
   const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor;
+    
+    // Register professional themes
+    registerProfessionalThemes(monaco);
+    setIsThemeRegistered(true);
     
     // Configure language-specific settings
     setupLanguageSupport(monaco);
@@ -82,25 +226,123 @@ const MonacoCodeEditor = ({
     // Add custom keyboard shortcuts
     addCustomKeyboardShortcuts(editor, monaco);
     
+    // Setup professional features
+    if (enableProfessionalFeatures) {
+      setupProfessionalFeatures(editor, monaco);
+    }
+    
+    // Apply language-specific theme enhancements
+    applyLanguageSpecificTheme(monaco, language, theme);
+    
     if (onMount) {
       onMount(editor, monaco);
     }
   };
 
   const setupLanguageSupport = (monaco) => {
-    // Basic JavaScript/TypeScript support
     try {
+      // Enhanced JavaScript/TypeScript support
       if (monaco.languages && monaco.languages.typescript) {
+        // JavaScript configuration
         monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
           noSemanticValidation: false,
-          noSyntaxValidation: false
+          noSyntaxValidation: false,
+          noSuggestionDiagnostics: false,
+          diagnosticCodesToIgnore: []
         });
 
         monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
           target: monaco.languages.typescript.ScriptTarget.ES2020,
           allowNonTsExtensions: true,
+          moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+          module: monaco.languages.typescript.ModuleKind.CommonJS,
           noEmit: true,
-          allowJs: true
+          allowJs: true,
+          typeRoots: ['node_modules/@types'],
+          lib: ['ES2020', 'DOM', 'DOM.Iterable']
+        });
+
+        // TypeScript configuration
+        monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+          noSemanticValidation: false,
+          noSyntaxValidation: false,
+          noSuggestionDiagnostics: false
+        });
+
+        monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+          target: monaco.languages.typescript.ScriptTarget.ES2020,
+          allowNonTsExtensions: true,
+          moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+          module: monaco.languages.typescript.ModuleKind.CommonJS,
+          noEmit: true,
+          allowJs: true,
+          strict: true,
+          esModuleInterop: true,
+          skipLibCheck: true,
+          forceConsistentCasingInFileNames: true,
+          lib: ['ES2020', 'DOM', 'DOM.Iterable']
+        });
+      }
+
+      // Enhanced JSON support
+      if (monaco.languages && monaco.languages.json) {
+        monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+          validate: true,
+          allowComments: true,
+          schemas: [],
+          enableSchemaRequest: true
+        });
+      }
+
+      // Enhanced CSS support
+      if (monaco.languages && monaco.languages.css) {
+        monaco.languages.css.cssDefaults.setOptions({
+          validate: true,
+          lint: {
+            compatibleVendorPrefixes: 'ignore',
+            vendorPrefix: 'warning',
+            duplicateProperties: 'warning',
+            emptyRules: 'warning',
+            importStatement: 'ignore',
+            boxModel: 'ignore',
+            universalSelector: 'ignore',
+            zeroUnits: 'ignore',
+            fontFaceProperties: 'warning',
+            hexColorLength: 'error',
+            argumentsInColorFunction: 'error',
+            unknownProperties: 'warning',
+            ieHack: 'ignore',
+            unknownVendorSpecificProperties: 'ignore',
+            propertyIgnoredDueToDisplay: 'warning',
+            important: 'ignore',
+            float: 'ignore',
+            idSelector: 'ignore'
+          }
+        });
+      }
+
+      // Enhanced HTML support
+      if (monaco.languages && monaco.languages.html) {
+        monaco.languages.html.htmlDefaults.setOptions({
+          format: {
+            tabSize: 2,
+            insertSpaces: true,
+            wrapLineLength: 120,
+            unformatted: 'default',
+            contentUnformatted: 'pre,code,textarea',
+            indentInnerHtml: false,
+            preserveNewLines: true,
+            maxPreserveNewLines: 2,
+            indentHandlebars: false,
+            endWithNewline: false,
+            extraLiners: 'head, body, /html',
+            wrapAttributes: 'auto'
+          },
+          suggest: {
+            html5: true,
+            angular1: false,
+            ionic: false
+          }
         });
       }
     } catch (error) {
@@ -110,16 +352,115 @@ const MonacoCodeEditor = ({
 
   const addCustomKeyboardShortcuts = (editor, monaco) => {
     try {
-      // Basic keyboard shortcuts
       if (monaco.KeyMod && monaco.KeyCode) {
-        // Ctrl+/ or Cmd+/ for toggle comment
+        // Enhanced commenting
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
           const action = editor.getAction('editor.action.commentLine');
+          if (action) action.run();
+        });
+
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Slash, () => {
+          const action = editor.getAction('editor.action.blockComment');
+          if (action) action.run();
+        });
+
+        // Professional formatting
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, () => {
+          const action = editor.getAction('editor.action.formatDocument');
+          if (action) action.run();
+        });
+
+        // Enhanced selection
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD, () => {
+          const action = editor.getAction('editor.action.addSelectionToNextFindMatch');
+          if (action) action.run();
+        });
+
+        // Professional navigation
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG, () => {
+          const action = editor.getAction('editor.action.gotoLine');
+          if (action) action.run();
+        });
+
+        // Enhanced folding
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK, monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit0, () => {
+          const action = editor.getAction('editor.foldAll');
+          if (action) action.run();
+        });
+
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK, monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ, () => {
+          const action = editor.getAction('editor.unfoldAll');
+          if (action) action.run();
+        });
+
+        // Professional code actions
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Period, () => {
+          const action = editor.getAction('editor.action.quickFix');
+          if (action) action.run();
+        });
+
+        // Enhanced find/replace
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyL, () => {
+          const action = editor.getAction('editor.action.selectHighlights');
           if (action) action.run();
         });
       }
     } catch (error) {
       console.warn('Monaco keyboard shortcuts setup failed:', error);
+    }
+  };
+
+  const setupProfessionalFeatures = (editor, monaco) => {
+    try {
+      // Enhanced error handling and diagnostics
+      editor.onDidChangeModelDecorations(() => {
+        const model = editor.getModel();
+        if (model) {
+          const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+          // Could emit events for error tracking here
+        }
+      });
+
+      // Professional cursor tracking
+      editor.onDidChangeCursorPosition((e) => {
+        // Could implement cursor position tracking for analytics
+      });
+
+      // Enhanced content change tracking
+      editor.onDidChangeModelContent((e) => {
+        // Could implement real-time collaboration features here
+      });
+
+      // Professional focus management
+      editor.onDidFocusEditorWidget(() => {
+        // Could implement focus analytics
+      });
+
+      editor.onDidBlurEditorWidget(() => {
+        // Could implement blur analytics
+      });
+
+    } catch (error) {
+      console.warn('Professional features setup failed:', error);
+    }
+  };
+
+  const applyLanguageSpecificTheme = (monaco, currentLanguage, currentTheme) => {
+    try {
+      const languageTheme = LANGUAGE_SPECIFIC_THEMES[currentLanguage];
+      if (languageTheme && languageTheme.additionalRules) {
+        const baseTheme = getThemeByName(currentTheme);
+        const enhancedTheme = {
+          ...baseTheme,
+          rules: [...baseTheme.rules, ...languageTheme.additionalRules]
+        };
+        
+        const enhancedThemeName = `${currentTheme}-${currentLanguage}`;
+        monaco.editor.defineTheme(enhancedThemeName, enhancedTheme);
+        monaco.editor.setTheme(enhancedThemeName);
+      }
+    } catch (error) {
+      console.warn('Language-specific theme application failed:', error);
     }
   };
 

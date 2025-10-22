@@ -1,4 +1,4 @@
-FROM gcc:11-slim
+FROM gcc:latest
 
 # Security: Create non-root user
 RUN groupadd -r coderunner && useradd -r -g coderunner coderunner

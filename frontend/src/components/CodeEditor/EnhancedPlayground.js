@@ -19,7 +19,14 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import MonacoCodeEditor from './MonacoCodeEditor';
+import MobileCodeEditor from './MobileCodeEditor';
+import EditorSettingsPanel from './EditorSettingsPanel';
+import ExecutionButton, { PerformanceIndicator } from './ExecutionButton';
+import EnhancedOutputPanel from './EnhancedOutputPanel';
+import CodeSnippetManager from './CodeSnippetManager';
+import CodeSharingModal from './CodeSharingModal';
 import { SUPPORTED_LANGUAGES, getLanguageById, MONACO_THEMES, getExecutableLanguages } from './languageConfig';
+import { getThemeDisplayNames } from './themes/seekProfessional';
 import useResponsive from '../../hooks/useResponsive';
 import axios from 'axios';
 
@@ -38,12 +45,37 @@ const EnhancedPlayground = () => {
   
   // UI state
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [theme, setTheme] = useState(isDarkMode ? 'vs-dark' : 'vs');
-  const [fontSize, setFontSize] = useState(isMobile ? 12 : 14);
   const [showSettings, setShowSettings] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showExecutionStats, setShowExecutionStats] = useState(false);
+  const [showSnippetManager, setShowSnippetManager] = useState(false);
+  const [showSharingModal, setShowSharingModal] = useState(false);
   const [mobileViewMode, setMobileViewMode] = useState('editor'); // 'editor' | 'output'
+  
+  // Professional editor settings
+  const [editorSettings, setEditorSettings] = useState({
+    theme: isDarkMode ? 'seek-dark-professional' : 'seek-light-professional',
+    fontSize: isMobile ? 12 : 14,
+    fontFamily: 'JetBrains Mono, Consolas, "Courier New", monospace',
+    fontLigatures: true,
+    lineHeight: 1.6,
+    lineNumbers: 'on',
+    minimap: { enabled: !isMobile },
+    wordWrap: 'on',
+    tabSize: 2,
+    insertSpaces: true,
+    rulers: [80, 120],
+    formatOnType: true,
+    formatOnPaste: true,
+    autoIndent: 'full',
+    cursorStyle: 'line',
+    cursorBlinking: 'smooth',
+    smoothScrolling: true,
+    cursorSmoothCaretAnimation: true,
+    bracketPairColorization: { enabled: true },
+    renderWhitespace: 'selection',
+    folding: true
+  });
   
   // Save/Load state
   const [savedCodes, setSavedCodes] = useState([]);
@@ -67,8 +99,20 @@ const EnhancedPlayground = () => {
 
   // Update theme when dark mode changes
   useEffect(() => {
-    setTheme(isDarkMode ? 'vs-dark' : 'vs');
+    setEditorSettings(prev => ({
+      ...prev,
+      theme: isDarkMode ? 'seek-dark-professional' : 'seek-light-professional'
+    }));
   }, [isDarkMode]);
+
+  // Update mobile settings
+  useEffect(() => {
+    setEditorSettings(prev => ({
+      ...prev,
+      fontSize: isMobile ? 12 : 14,
+      minimap: { ...prev.minimap, enabled: !isMobile }
+    }));
+  }, [isMobile]);
 
   // Load saved codes from localStorage
   useEffect(() => {
@@ -259,22 +303,14 @@ const EnhancedPlayground = () => {
     }
   };
 
-  const shareCode = async () => {
-    try {
-      const shareData = {
-        language,
-        code,
-        timestamp: new Date().toISOString()
-      };
-      const encoded = btoa(JSON.stringify(shareData));
-      const url = `${window.location.origin}/playground?share=${encoded}`;
-      
-      await navigator.clipboard.writeText(url);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      // Failed to share
-    }
+  const shareCode = () => {
+    setShowSharingModal(true);
+  };
+
+  const loadSnippet = (snippet) => {
+    setCode(snippet.code);
+    setLanguage(snippet.language);
+    setOutput('');
   };
 
   const downloadCode = () => {
@@ -301,6 +337,53 @@ const EnhancedPlayground = () => {
       editorRef.current.getAction('editor.action.formatDocument').run();
     }
   };
+
+  const handleSettingsChange = (newSettings) => {
+    setEditorSettings(newSettings);
+    // Save to localStorage for persistence
+    localStorage.setItem('playground_editor_settings', JSON.stringify(newSettings));
+  };
+
+  const resetSettingsToDefaults = () => {
+    const defaultSettings = {
+      theme: isDarkMode ? 'seek-dark-professional' : 'seek-light-professional',
+      fontSize: isMobile ? 12 : 14,
+      fontFamily: 'JetBrains Mono, Consolas, "Courier New", monospace',
+      fontLigatures: true,
+      lineHeight: 1.6,
+      lineNumbers: 'on',
+      minimap: { enabled: !isMobile },
+      wordWrap: 'on',
+      tabSize: 2,
+      insertSpaces: true,
+      rulers: [80, 120],
+      formatOnType: true,
+      formatOnPaste: true,
+      autoIndent: 'full',
+      cursorStyle: 'line',
+      cursorBlinking: 'smooth',
+      smoothScrolling: true,
+      cursorSmoothCaretAnimation: true,
+      bracketPairColorization: { enabled: true },
+      renderWhitespace: 'selection',
+      folding: true
+    };
+    setEditorSettings(defaultSettings);
+    localStorage.removeItem('playground_editor_settings');
+  };
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('playground_editor_settings');
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setEditorSettings(prev => ({ ...prev, ...parsed }));
+      } catch (error) {
+        console.warn('Failed to load editor settings:', error);
+      }
+    }
+  }, []);
 
   const currentLanguage = getLanguageById(language);
   const executableLanguages = getExecutableLanguages();
@@ -369,56 +452,32 @@ const EnhancedPlayground = () => {
             </div>
           </div>
 
-          {/* Settings Panel */}
-          {showSettings && (
-            <div className={`mb-6 p-4 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-              <h3 className="text-lg font-semibold mb-3">Settings</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Theme</label>
-                  <select
-                    value={theme}
-                    onChange={(e) => setTheme(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      isDarkMode 
-                        ? 'border-gray-600 bg-gray-700 text-white' 
-                        : 'border-gray-300 bg-white text-gray-900'
-                    }`}
-                  >
-                    {Object.entries(MONACO_THEMES).map(([key, value]) => (
-                      <option key={key} value={key}>{value.name}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Font Size</label>
-                  <select
-                    value={fontSize}
-                    onChange={(e) => setFontSize(Number(e.target.value))}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      isDarkMode 
-                        ? 'border-gray-600 bg-gray-700 text-white' 
-                        : 'border-gray-300 bg-white text-gray-900'
-                    }`}
-                  >
-                    {[10, 12, 14, 16, 18, 20, 24].map(size => (
-                      <option key={size} value={size}>{size}px</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="flex items-end">
-                  <button
-                    onClick={() => setShowSettings(false)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Professional Settings Panel */}
+          <EditorSettingsPanel
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+            settings={editorSettings}
+            onSettingsChange={handleSettingsChange}
+            onResetToDefaults={resetSettingsToDefaults}
+          />
+
+          {/* Code Snippet Manager */}
+          <CodeSnippetManager
+            isOpen={showSnippetManager}
+            onClose={() => setShowSnippetManager(false)}
+            onLoadSnippet={loadSnippet}
+            currentCode={code}
+            currentLanguage={language}
+          />
+
+          {/* Code Sharing Modal */}
+          <CodeSharingModal
+            isOpen={showSharingModal}
+            onClose={() => setShowSharingModal(false)}
+            code={code}
+            language={language}
+            title={currentCodeName || 'Untitled Code'}
+          />
 
           {/* Execution Stats Panel */}
           {showExecutionStats && executionStats && (
@@ -576,13 +635,13 @@ const EnhancedPlayground = () => {
                   </button>
                   
                   <button
-                    onClick={() => setShowSaveDialog(true)}
+                    onClick={() => setShowSnippetManager(true)}
                     className={`p-2 rounded-lg transition-colors ${
                       isDarkMode 
                         ? 'hover:bg-gray-700 text-gray-300' 
                         : 'hover:bg-gray-200 text-gray-600'
                     }`}
-                    title="Save Code"
+                    title="Manage Snippets"
                   >
                     <BookmarkIcon className="h-4 w-4" />
                   </button>
@@ -605,133 +664,130 @@ const EnhancedPlayground = () => {
                 </div>
               )}
               
-              {/* Monaco Code Editor */}
+              {/* Professional Code Editor */}
               <div className="relative">
-                <MonacoCodeEditor
-                  value={code}
-                  onChange={(value) => setCode(value || '')}
-                  language={language}
-                  theme={theme}
-                  height={isFullscreen ? 'calc(100vh - 20rem)' : '400px'}
-                  options={{
-                    fontSize: fontSize,
-                    readOnly: false
-                  }}
-                  onMount={(editor) => {
-                    editorRef.current = editor;
-                  }}
-                />
+                {isMobile ? (
+                  <MobileCodeEditor
+                    value={code}
+                    onChange={(value) => setCode(value || '')}
+                    language={language}
+                    theme={editorSettings.theme}
+                    fontSize={editorSettings.fontSize}
+                    onExecute={runCode}
+                    isExecuting={isExecuting}
+                  />
+                ) : (
+                  <MonacoCodeEditor
+                    value={code}
+                    onChange={(value) => setCode(value || '')}
+                    language={language}
+                    theme={editorSettings.theme}
+                    height={isFullscreen ? 'calc(100vh - 20rem)' : '400px'}
+                    fontSize={editorSettings.fontSize}
+                    fontFamily={editorSettings.fontFamily}
+                    enableProfessionalFeatures={true}
+                    enableAnimations={editorSettings.smoothScrolling}
+                    options={{
+                      readOnly: false,
+                      fontLigatures: editorSettings.fontLigatures,
+                      lineHeight: editorSettings.lineHeight,
+                      lineNumbers: editorSettings.lineNumbers,
+                      minimap: editorSettings.minimap,
+                      wordWrap: editorSettings.wordWrap,
+                      tabSize: editorSettings.tabSize,
+                      insertSpaces: editorSettings.insertSpaces,
+                      rulers: editorSettings.rulers,
+                      formatOnType: editorSettings.formatOnType,
+                      formatOnPaste: editorSettings.formatOnPaste,
+                      autoIndent: editorSettings.autoIndent,
+                      cursorStyle: editorSettings.cursorStyle,
+                      cursorBlinking: editorSettings.cursorBlinking,
+                      smoothScrolling: editorSettings.smoothScrolling,
+                      cursorSmoothCaretAnimation: editorSettings.cursorSmoothCaretAnimation,
+                      bracketPairColorization: editorSettings.bracketPairColorization,
+                      renderWhitespace: editorSettings.renderWhitespace,
+                      folding: editorSettings.folding
+                    }}
+                    onMount={(editor) => {
+                      editorRef.current = editor;
+                    }}
+                  />
+                )}
               </div>
               
-              {/* Editor Footer */}
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={runCode}
-                    disabled={isExecuting}
-                    className={`flex items-center space-x-2 px-6 py-2 rounded-md transition-colors ${
-                      isExecuting
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    } text-white`}
-                  >
-                    <PlayIcon className="h-4 w-4" />
-                    <span>{isExecuting ? 'Running...' : 'Run Code'}</span>
-                  </button>
-                  
-                  {isExecuting && (
+              {/* Enhanced Editor Footer - Hidden on mobile */}
+              {!isMobile && (
+                <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center space-x-3">
+                    {/* Professional execution button */}
+                    <ExecutionButton
+                      onExecute={runCode}
+                      onCancel={cancelExecution}
+                      isExecuting={isExecuting}
+                      executionTime={executionTime}
+                      memoryUsage={memoryUsage}
+                      isExecutable={currentLanguage.executionSupported}
+                      size="md"
+                      variant="primary"
+                      showMetrics={false}
+                    />
+                    
                     <button
-                      onClick={cancelExecution}
-                      className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                      onClick={validateCode}
+                      className={`px-4 py-2 rounded-md transition-colors ${
+                        isDarkMode 
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
                     >
-                      <ExclamationTriangleIcon className="h-4 w-4" />
-                      <span>Cancel</span>
+                      Validate
                     </button>
-                  )}
+                    
+                    <button
+                      onClick={() => setCode('')}
+                      className={`px-4 py-2 rounded-md transition-colors ${
+                        isDarkMode 
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      Clear
+                    </button>
+                  </div>
                   
-                  <button
-                    onClick={validateCode}
-                    className={`px-4 py-2 rounded-md transition-colors ${
-                      isDarkMode 
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    Validate
-                  </button>
-                  
-                  <button
-                    onClick={() => setCode('')}
-                    className={`px-4 py-2 rounded-md transition-colors ${
-                      isDarkMode 
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    Clear
-                  </button>
-                </div>
-                
-                <div className="flex items-center space-x-4">
-                  {executionTime && (
-                    <div className={`flex items-center space-x-1 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      <ClockIcon className="h-4 w-4" />
-                      <span>{executionTime}ms</span>
+                  <div className="flex items-center space-x-4">
+                    {/* Performance indicator */}
+                    {(executionTime || memoryUsage) && (
+                      <PerformanceIndicator 
+                        executionTime={executionTime}
+                        memoryUsage={memoryUsage}
+                      />
+                    )}
+                    
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Lines: {code.split('\n').length} | Characters: {code.length} | {editorSettings.fontFamily.split(',')[0]} {editorSettings.fontSize}px
                     </div>
-                  )}
-                  
-                  {memoryUsage && (
-                    <div className={`flex items-center space-x-1 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      <CpuChipIcon className="h-4 w-4" />
-                      <span>{memoryUsage}KB</span>
-                    </div>
-                  )}
-                  
-                  <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Lines: {code.split('\n').length} | Characters: {code.length}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
             )}
 
-            {/* Output Section */}
+            {/* Enhanced Output Section */}
             {(!isSmallScreen || mobileViewMode === 'output' || isFullscreen) && (
-            <div className={`rounded-lg shadow-lg p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                  Output
-                </h2>
-                <button
-                  onClick={() => setOutput('')}
-                  className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm transition-colors ${
-                    isDarkMode 
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  <TrashIcon className="h-4 w-4" />
-                  <span>Clear</span>
-                </button>
-              </div>
-              
-              <div className={`${isFullscreen ? 'h-[calc(100vh-16rem)]' : 'h-80'} p-4 border rounded-md font-mono text-sm overflow-auto ${
-                isDarkMode 
-                  ? 'border-gray-600 bg-gray-900 text-green-400' 
-                  : 'border-gray-300 bg-gray-900 text-green-400'
-              }`}>
-                {output ? (
-                  <pre className="whitespace-pre-wrap">{output}</pre>
-                ) : (
-                  <div className="text-gray-500">
-                    {currentLanguage.executionSupported 
-                      ? 'Click "Run Code" to see output here...' 
-                      : `${currentLanguage.name} execution not yet supported. Available languages: ${executableLanguages.map(l => l.name).join(', ')}`
-                    }
-                  </div>
+              <EnhancedOutputPanel
+                output={output || (currentLanguage.executionSupported 
+                  ? '' 
+                  : `${currentLanguage.name} execution not yet supported.\nAvailable languages: ${executableLanguages.map(l => l.name).join(', ')}`
                 )}
-              </div>
-            </div>
+                onClear={() => setOutput('')}
+                height={isFullscreen ? 'h-[calc(100vh-16rem)]' : 'h-80'}
+                language={language}
+                executionTime={executionTime}
+                memoryUsage={memoryUsage}
+                isExecuting={isExecuting}
+                className="p-0"
+              />
             )}
           </div>
 

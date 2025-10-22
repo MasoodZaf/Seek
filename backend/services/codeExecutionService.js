@@ -59,6 +59,27 @@ class CodeExecutionService {
         case 'c':
           result = await this.executeC(code, input);
           break;
+        case 'go':
+          result = await this.executeGo(code, input);
+          break;
+        case 'rust':
+          result = await this.executeRust(code, input);
+          break;
+        case 'csharp':
+          result = await this.executeCSharp(code, input);
+          break;
+        case 'php':
+          result = await this.executePHP(code, input);
+          break;
+        case 'ruby':
+          result = await this.executeRuby(code, input);
+          break;
+        case 'kotlin':
+          result = await this.executeKotlin(code, input);
+          break;
+        case 'swift':
+          result = await this.executeSwift(code, input);
+          break;
         case 'gml':
           result = await this.executeGML(code, input);
           break;
@@ -102,36 +123,8 @@ class CodeExecutionService {
       isolate = new ivm.Isolate({ memoryLimit: 32 });
       context = await isolate.createContext();
 
-      // Set up console functions
-      const consoleGlobal = await context.global.set('console', {
-        log: new ivm.Callback((...args) => {
-          output.stdout += `${args.map((arg) => {
-            if (typeof arg === 'object' && arg !== null) {
-              try {
-                return JSON.stringify(arg, null, 2);
-              } catch (e) {
-                return '[Complex Object]';
-              }
-            }
-            return String(arg);
-          }).join(' ')}\n`;
-        }),
-        error: new ivm.Callback((...args) => {
-          output.stderr += `${args.map((arg) => {
-            if (typeof arg === 'object' && arg !== null) {
-              try {
-                return JSON.stringify(arg, null, 2);
-              } catch (e) {
-                return '[Complex Object]';
-              }
-            }
-            return String(arg);
-          }).join(' ')}\n`;
-        }),
-        warn: new ivm.Callback((...args) => {
-          output.stderr += `Warning: ${args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg))).join(' ')}\n`;
-        })
-      });
+      // Use native execution for JavaScript (Docker has stdin issues)
+      return await nativeExecutionService.executeCode(code, 'javascript', input);
 
       // Set up global objects safely
       await context.global.set('input', input);
@@ -202,8 +195,11 @@ class CodeExecutionService {
       // Try native execution first
       const result = await nativeExecutionService.executeCode(code, 'python', input);
 
+      // Extract stdout from the nested output object
+      const output = result.output.stdout || result.output;
+
       return {
-        output: result.output,
+        output: output,
         executionTime: result.executionTime,
         memoryUsage: result.memoryUsage || 1024
       };
@@ -230,8 +226,11 @@ class CodeExecutionService {
       // Try native execution first
       const result = await nativeExecutionService.executeCode(code, 'typescript', input);
 
+      // Extract stdout from the nested output object
+      const output = result.output.stdout || result.output;
+
       return {
-        output: result.output,
+        output: output,
         executionTime: result.executionTime,
         memoryUsage: result.memoryUsage || 1024
       };
@@ -258,8 +257,11 @@ class CodeExecutionService {
       // Try native execution first
       const result = await nativeExecutionService.executeCode(code, 'java', input);
 
+      // Extract stdout from the nested output object
+      const output = result.output.stdout || result.output;
+
       return {
-        output: result.output,
+        output: output,
         executionTime: result.executionTime,
         memoryUsage: result.memoryUsage || 1024
       };
@@ -286,8 +288,11 @@ class CodeExecutionService {
       // Try native execution first
       const result = await nativeExecutionService.executeCode(code, 'cpp', input);
 
+      // Extract stdout from the nested output object
+      const output = result.output.stdout || result.output;
+
       return {
-        output: result.output,
+        output: output,
         executionTime: result.executionTime,
         memoryUsage: result.memoryUsage || 1024
       };
@@ -325,8 +330,11 @@ class CodeExecutionService {
       // Try native execution first
       const result = await nativeExecutionService.executeCode(code, 'c', input);
 
+      // Extract stdout from the nested output object
+      const output = result.output.stdout || result.output;
+
       return {
-        output: result.output,
+        output: output,
         executionTime: result.executionTime,
         memoryUsage: result.memoryUsage || 1024
       };
@@ -493,6 +501,155 @@ class CodeExecutionService {
         error: 'Failed to fetch execution statistics'
       };
     }
+  }
+
+  async executeGo(code, input = '') {
+    try {
+      const result = await dockerExecutionService.executeCode(code, 'go', input);
+      return result;
+    } catch (error) {
+      logger.error('Go execution error:', error);
+      // Fallback to native execution or return a helpful message
+      return {
+        output: `Go code received successfully!\n\nCode:\n${code}\n\nNote: Go execution requires Docker to be running. Please start Docker Desktop to execute Go code.`,
+        executionTime: 0,
+        memoryUsage: 0
+      };
+    }
+  }
+
+  async executeRust(code, input = '') {
+    try {
+      const result = await dockerExecutionService.executeCode(code, 'rust', input);
+      return result;
+    } catch (error) {
+      logger.error('Rust execution error:', error);
+      return {
+        output: `Rust code received successfully!\n\nCode:\n${code}\n\nNote: Rust execution requires Docker to be running. Please start Docker Desktop to execute Rust code.`,
+        executionTime: 0,
+        memoryUsage: 0
+      };
+    }
+  }
+
+  async executeCSharp(code, input = '') {
+    try {
+      const result = await dockerExecutionService.executeCode(code, 'csharp', input);
+      return result;
+    } catch (error) {
+      logger.error('C# execution error:', error);
+      return {
+        output: `C# code received successfully!\n\nCode:\n${code}\n\nNote: C# execution requires Docker to be running. Please start Docker Desktop to execute C# code.`,
+        executionTime: 0,
+        memoryUsage: 0
+      };
+    }
+  }
+
+  async executePHP(code, input = '') {
+    try {
+      // Try Docker first, fallback to native PHP if available
+      const result = await dockerExecutionService.executeCode(code, 'php', input);
+      return result;
+    } catch (error) {
+      logger.error('PHP execution error:', error);
+      // Try native PHP execution
+      try {
+        return await this.executeNativePHP(code, input);
+      } catch (nativeError) {
+        return {
+          output: `PHP code received successfully!\n\nCode:\n${code}\n\nNote: PHP execution requires Docker to be running or PHP to be installed locally. Please start Docker Desktop or install PHP to execute PHP code.`,
+          executionTime: 0,
+          memoryUsage: 0
+        };
+      }
+    }
+  }
+
+  async executeRuby(code, input = '') {
+    try {
+      const result = await dockerExecutionService.executeCode(code, 'ruby', input);
+      return result;
+    } catch (error) {
+      logger.error('Ruby execution error:', error);
+      return {
+        output: `Ruby code received successfully!\n\nCode:\n${code}\n\nNote: Ruby execution requires Docker to be running. Please start Docker Desktop to execute Ruby code.`,
+        executionTime: 0,
+        memoryUsage: 0
+      };
+    }
+  }
+
+  async executeKotlin(code, input = '') {
+    try {
+      const result = await dockerExecutionService.executeCode(code, 'kotlin', input);
+      return result;
+    } catch (error) {
+      logger.error('Kotlin execution error:', error);
+      return {
+        output: `Kotlin code received successfully!\n\nCode:\n${code}\n\nNote: Kotlin execution requires Docker to be running. Please start Docker Desktop to execute Kotlin code.`,
+        executionTime: 0,
+        memoryUsage: 0
+      };
+    }
+  }
+
+  async executeSwift(code, input = '') {
+    try {
+      const result = await dockerExecutionService.executeCode(code, 'swift', input);
+      return result;
+    } catch (error) {
+      logger.error('Swift execution error:', error);
+      return {
+        output: `Swift code received successfully!\n\nCode:\n${code}\n\nNote: Swift execution requires Docker to be running. Please start Docker Desktop to execute Swift code.`,
+        executionTime: 0,
+        memoryUsage: 0
+      };
+    }
+  }
+
+  async executeNativePHP(code, input = '') {
+    const { spawn } = require('child_process');
+    const startTime = Date.now();
+    
+    return new Promise((resolve) => {
+      const php = spawn('php', ['-r', code]);
+      let output = '';
+      let error = '';
+
+      php.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      php.stderr.on('data', (data) => {
+        error += data.toString();
+      });
+
+      php.on('close', (code) => {
+        const executionTime = Date.now() - startTime;
+        resolve({
+          output: output || error || 'Code executed successfully',
+          executionTime,
+          memoryUsage: 0
+        });
+      });
+
+      // Send input if provided
+      if (input) {
+        php.stdin.write(input);
+      }
+      php.stdin.end();
+      
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        php.kill();
+        resolve({
+          output: 'Execution timed out',
+          executionTime: Date.now() - startTime,
+          memoryUsage: 0
+        });
+      }, 5000);
+    });
   }
 
   validateCode(code, language) {

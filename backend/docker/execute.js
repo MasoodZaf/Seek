@@ -2,13 +2,8 @@
 const { writeFileSync } = require('fs');
 const { execSync } = require('child_process');
 
-function executeTypeScript(code) {
+function executeCode(code, language) {
   try {
-    // Write TypeScript code to a temporary file
-    const tempFile = '/tmp/user_code.ts';
-    writeFileSync(tempFile, code);
-
-    // Compile and execute TypeScript
     const result = {
       success: true,
       stdout: '',
@@ -17,26 +12,44 @@ function executeTypeScript(code) {
     };
 
     try {
-      // Compile TypeScript
-      execSync(`tsc ${tempFile} --outDir /tmp --target es2020 --module commonjs --strict false`, {
-        timeout: 5000,
-        stdio: 'pipe'
-      });
+      if (language === 'typescript') {
+        // Write TypeScript code to a temporary file
+        const tempFile = '/tmp/user_code.ts';
+        writeFileSync(tempFile, code);
 
-      // Execute the compiled JavaScript
-      const output = execSync('node /tmp/user_code.js', {
-        timeout: 5000,
-        stdio: 'pipe',
-        encoding: 'utf8'
-      });
+        // Compile TypeScript
+        execSync(`tsc ${tempFile} --outDir /tmp --target es2020 --module commonjs --strict false`, {
+          timeout: 5000,
+          stdio: 'pipe'
+        });
 
-      result.stdout = output;
+        // Execute the compiled JavaScript
+        const output = execSync('node /tmp/user_code.js', {
+          timeout: 5000,
+          stdio: 'pipe',
+          encoding: 'utf8'
+        });
+
+        result.stdout = output;
+      } else {
+        // Execute JavaScript directly
+        const tempFile = '/tmp/user_code.js';
+        writeFileSync(tempFile, code);
+
+        const output = execSync(`node ${tempFile}`, {
+          timeout: 5000,
+          stdio: 'pipe',
+          encoding: 'utf8'
+        });
+
+        result.stdout = output;
+      }
     } catch (execError) {
       result.success = false;
       result.stderr = execError.message || execError.toString();
       result.exit_code = execError.status || 1;
 
-      // Handle compilation errors
+      // Handle compilation/execution errors
       if (execError.stderr) {
         result.stderr = execError.stderr.toString();
       }
@@ -47,7 +60,7 @@ function executeTypeScript(code) {
     console.log(JSON.stringify({
       success: false,
       stdout: '',
-      stderr: `TypeScript execution error: ${error.message}`,
+      stderr: `Execution error: ${error.message}`,
       exit_code: 1
     }));
   }
@@ -58,6 +71,17 @@ function main() {
     // Read code from stdin
     process.stdin.setEncoding('utf8');
     let code = '';
+    
+    // Add timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      console.log(JSON.stringify({
+        success: false,
+        stdout: '',
+        stderr: 'Timeout waiting for input',
+        exit_code: 1
+      }));
+      process.exit(1);
+    }, 5000);
 
     process.stdin.on('readable', () => {
       const chunk = process.stdin.read();
@@ -67,7 +91,19 @@ function main() {
     });
 
     process.stdin.on('end', () => {
-      executeTypeScript(code);
+      clearTimeout(timeout);
+      if (!code.trim()) {
+        console.log(JSON.stringify({
+          success: false,
+          stdout: '',
+          stderr: 'No code received',
+          exit_code: 1
+        }));
+        return;
+      }
+      // Determine language based on container name or assume JavaScript by default
+      const language = process.env.CONTAINER_LANGUAGE || 'javascript';
+      executeCode(code, language);
     });
   } catch (error) {
     console.log(JSON.stringify({

@@ -17,6 +17,7 @@ const logger = require('./config/logger');
 const { specs, swaggerUi, swaggerOptions } = require('./config/swagger');
 const routes = require('./routes');
 const SocketService = require('./services/socketService');
+const dockerExecutionService = require('./services/dockerExecutionService');
 const { createDefaultUsers } = require('./scripts/createDefaultUsers');
 const { createTutorials } = require('./scripts/populateTutorials');
 
@@ -205,6 +206,16 @@ const startServer = async () => {
 
     // Make socket service available to routes
     app.locals.socketService = socketService;
+
+    // Initialize Docker execution service (build images)
+    try {
+      logger.info('🐳 Initializing Docker execution service...');
+      await dockerExecutionService.init();
+      logger.info('🐳 Docker execution service initialized successfully');
+    } catch (error) {
+      logger.warn('🐳 Docker execution service failed to initialize:', error.message);
+      logger.warn('🐳 Code execution will fall back to native execution where available');
+    }
 
     // Start HTTP server
     server.listen(PORT, () => {

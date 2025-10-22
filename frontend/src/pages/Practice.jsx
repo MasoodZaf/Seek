@@ -12,13 +12,16 @@ import {
   StarIcon,
   FireIcon,
   AcademicCapIcon,
-  RocketLaunchIcon
+  RocketLaunchIcon,
+  BookOpenIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Button, Card, Badge, Loading, Input } from '../components/ui';
 import CodeEditor from '../components/editor/CodeEditor/CodeEditor';
 import OutputPanel from '../components/editor/OutputPanel/OutputPanel';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import api from '../utils/api';
 
 const Practice = () => {
   const { user } = useAuth();
@@ -37,6 +40,7 @@ const Practice = () => {
   const [testResults, setTestResults] = useState([]);
   const [showHints, setShowHints] = useState(false);
   const [currentHint, setCurrentHint] = useState(0);
+  const [showSolution, setShowSolution] = useState(false);
   const [completedGames, setCompletedGames] = useState(new Set());
   const [gameStats, setGameStats] = useState({ totalGames: 0, completedGames: 0, totalXP: 0 });
   
@@ -54,23 +58,25 @@ const Practice = () => {
   const fetchGames = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/v1/games?' + new URLSearchParams({
-        limit: '50',
-        difficulty: filters.difficulty !== 'all' ? filters.difficulty : '',
-        language: filters.language !== 'all' ? filters.language : '',
-        category: filters.category !== 'all' ? filters.category : '',
-        gameType: filters.gameType !== 'all' ? filters.gameType : '',
-        search: filters.search
-      }));
-      
-      const result = await response.json();
-      if (result.success) {
-        setGames(result.data);
-        setFilteredGames(result.data);
+      const response = await api.get('/games', {
+        params: {
+          limit: '50',
+          difficulty: filters.difficulty !== 'all' ? filters.difficulty : '',
+          language: filters.language !== 'all' ? filters.language : '',
+          category: filters.category !== 'all' ? filters.category : '',
+          gameType: filters.gameType !== 'all' ? filters.gameType : '',
+          search: filters.search
+        }
+      });
+
+      if (response.data.success) {
+        setGames(response.data.data);
+        setFilteredGames(response.data.data);
       } else {
         toast.error('Failed to load games');
       }
     } catch (error) {
+      console.error('Failed to fetch games:', error);
       toast.error('Failed to connect to server');
     } finally {
       setLoading(false);
@@ -79,30 +85,23 @@ const Practice = () => {
 
   const startGameSession = async (game) => {
     try {
-      const response = await fetch(`/api/v1/games/${game.slug}/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          userId: user?.id || 'guest'
-        })
+      const response = await api.post(`/games/${game.slug}/start`, {
+        userId: user?.id || 'guest'
       });
-      
-      const result = await response.json();
-      if (result.success) {
-        setCurrentSession(result.data.session);
-        setSelectedGame(result.data.game);
+
+      if (response.data.success) {
+        setCurrentSession(response.data.data.session);
+        setSelectedGame(response.data.data.game);
         setChallengeIndex(0);
-        setCurrentChallenge(result.data.game.challenges[0]);
-        setUserCode(result.data.game.challenges[0]?.codeSnippet || '');
+        setCurrentChallenge(response.data.data.game.challenges[0]);
+        setUserCode(response.data.data.game.challenges[0]?.codeSnippet || '');
         setUserAnswer('');
         toast.success(`Started ${game.title}!`);
       } else {
         toast.error('Failed to start game session');
       }
     } catch (error) {
+      console.error('Failed to start game session:', error);
       toast.error('Failed to start game session');
     }
   };
@@ -204,21 +203,14 @@ const Practice = () => {
 
     try {
       setIsRunning(true);
-      const response = await fetch(`/api/v1/game-sessions/${currentSession.sessionId}/answer`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          challengeId: currentChallenge.challengeId,
-          userAnswer: currentChallenge.type === 'code-completion' ? userCode : userAnswer,
-          timeSpent: 30, // Would track actual time
-          hintsUsed: showHints ? currentHint + 1 : 0
-        })
+      const response = await api.put(`/game-sessions/${currentSession.sessionId}/answer`, {
+        challengeId: currentChallenge.challengeId,
+        userAnswer: currentChallenge.type === 'code-completion' ? userCode : userAnswer,
+        timeSpent: 30, // Would track actual time
+        hintsUsed: showHints ? currentHint + 1 : 0
       });
 
-      const result = await response.json();
+      const result = response.data;
       if (result.success) {
         setCurrentSession(prev => ({
           ...prev,
@@ -337,7 +329,8 @@ const Practice = () => {
   };
 
   const formatGameType = (gameType) => {
-    return gameType.split('-').map(word => 
+    if (!gameType) return 'N/A';
+    return gameType.split('-').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
@@ -547,6 +540,14 @@ const Practice = () => {
                       ← Previous
                     </Button>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowSolution(true)}
+                    icon={BookOpenIcon}
+                  >
+                    Show Solution
+                  </Button>
                   <Button
                     variant="primary"
                     size="sm"
@@ -817,6 +818,82 @@ const Practice = () => {
           )}
         </>
       )}
+
+      {/* Solution Modal */}
+      <AnimatePresence>
+        {showSolution && currentChallenge && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-xl font-semibold text-secondary-900">
+                  Challenge Solution
+                </h3>
+                <button
+                  onClick={() => setShowSolution(false)}
+                  className="text-secondary-400 hover:text-secondary-600"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-secondary-900 mb-2">Solution:</h4>
+                    {currentChallenge.type === 'code-completion' && currentChallenge.solution ? (
+                      <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto">
+                        <code>{currentChallenge.solution}</code>
+                      </pre>
+                    ) : (
+                      <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                        <p className="text-green-800 font-medium">
+                          {currentChallenge.correctAnswer || currentChallenge.solution || 'Solution not available'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {currentChallenge.explanation && (
+                    <div>
+                      <h4 className="font-medium text-secondary-900 mb-2">Explanation:</h4>
+                      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <p className="text-secondary-700 whitespace-pre-wrap">
+                          {currentChallenge.explanation}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {currentChallenge.keyPoints && currentChallenge.keyPoints.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-secondary-900 mb-2">Key Points:</h4>
+                      <ul className="list-disc list-inside space-y-2 text-secondary-700">
+                        {currentChallenge.keyPoints.map((point, index) => (
+                          <li key={index}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end p-6 border-t">
+                <Button
+                  variant="primary"
+                  onClick={() => setShowSolution(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

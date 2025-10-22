@@ -9,15 +9,16 @@ import {
   StarIcon,
   PlayIcon,
 } from '@heroicons/react/24/outline';
-import { 
-  Card, 
-  Button, 
-  Badge, 
-  Input, 
+import {
+  Card,
+  Button,
+  Badge,
+  Input,
   Progress,
-  LoadingCard 
+  LoadingCard
 } from '../components/ui';
 import { useTheme } from '../context/ThemeContext';
+import api from '../utils/api';
 
 const Tutorials = () => {
   const [tutorials, setTutorials] = useState([]);
@@ -59,28 +60,21 @@ const Tutorials = () => {
   const fetchTutorials = async () => {
     try {
       setLoading(true);
-      const queryParams = new URLSearchParams({
-        page: 1,
-        limit: 20,
-        ...(filters.search && { search: filters.search }),
-        ...(filters.language && { language: filters.language }),
-        ...(filters.difficulty && { difficulty: filters.difficulty }),
-        ...(filters.category && { category: filters.category }),
+      const response = await api.get('/mongo-tutorials', {
+        params: {
+          page: 1,
+          limit: 20,
+          ...(filters.search && { search: filters.search }),
+          ...(filters.language && { language: filters.language }),
+          ...(filters.difficulty && { difficulty: filters.difficulty }),
+          ...(filters.category && { category: filters.category }),
+        }
       });
-      
-      const response = await fetch(`/api/v1/mongo-tutorials?${queryParams}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setTutorials(data.data?.tutorials || []);
+
+      if (response.data.success) {
+        setTutorials(response.data.data?.tutorials || []);
       } else {
-        console.error('❌ API Response not OK:', response.status, response.statusText);
+        console.error('❌ API Response not OK:', response.status);
       }
     } catch (error) {
       console.error('Error fetching tutorials:', error);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { 
-  ArrowRightIcon, 
+import {
+  ArrowRightIcon,
   ArrowPathIcon,
   DocumentDuplicateIcon,
   LanguageIcon,
@@ -9,6 +9,7 @@ import {
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import SimpleCodeEditor from '../components/CodeEditor/SimpleCodeEditor';
+import api from '../utils/api';
 
 const CodeTranslator = () => {
   const [sourceCode, setSourceCode] = useState('');
@@ -1195,11 +1196,10 @@ int main() {
 
   const fetchSupportedLanguages = async () => {
     try {
-      const response = await fetch('/api/v1/translation/languages');
-      const result = await response.json();
-      
-      if (result.success) {
-        setSupportedLanguages(result.data.languages);
+      const response = await api.get('/translation/languages');
+
+      if (response.data.success) {
+        setSupportedLanguages(response.data.data.languages);
       } else {
         toast.error('Failed to load supported languages');
       }
@@ -1231,81 +1231,27 @@ int main() {
     }
 
     setIsTranslating(true);
-    
-    try {
-      // Try to get token from multiple sources
-      let token = localStorage.getItem('token');
-      if (!token) {
-        token = localStorage.getItem('accessToken');
-      }
-      
-      if (!token) {
-        toast.error('Please log in to use the code translator');
-        setTranslatedCode('// Authentication Required\\n// Please log in to use the code translator');
-        setIsTranslating(false);
-        return;
-      }
 
-      const response = await fetch('/api/v1/translation/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          code: sourceCode,
-          fromLanguage,
-          toLanguage
-        })
+    try {
+      const response = await api.post('/translation/translate', {
+        code: sourceCode,
+        fromLanguage,
+        toLanguage
       });
 
-      // Check if response is ok before parsing JSON
-      if (!response.ok) {
-        if (response.status === 401) {
-          // Clear invalid token
-          localStorage.removeItem('token');
-          localStorage.removeItem('accessToken');
-          
-          toast.error('Your session has expired. Please log in again.');
-          setTranslatedCode('// Session Expired\\n// Please log in again to use the translator');
-          
-          // Redirect to login after a delay
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 2000);
-          return;
-        } else if (response.status >= 500) {
-          toast.error('Server error. Please try again later.');
-          setTranslatedCode('// Server Error\\n// Please try again later');
-          return;
-        } else {
-          const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-          toast.error(errorData.message || `Error ${response.status}: Translation failed`);
-          setTranslatedCode(`// Error ${response.status}\\n// ${errorData.message || 'Translation failed'}`);
-          return;
-        }
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setTranslatedCode(result.data.translatedCode);
+      if (response.data.success) {
+        setTranslatedCode(response.data.data.translatedCode);
         toast.success(`Code translated from ${fromLanguage} to ${toLanguage}!`);
       } else {
-        toast.error(result.message || 'Translation failed');
-        setTranslatedCode(`// Translation Error:\\n// ${result.error || result.message || 'Please check your code and try again'}`);
+        toast.error(response.data.message || 'Translation failed');
+        setTranslatedCode(`// Translation Error:\\n// ${response.data.error || response.data.message || 'Please check your code and try again'}`);
       }
     } catch (error) {
       console.error('Translation error:', error);
-      
-      // Handle different types of errors
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        toast.error('Network error. Please check your connection.');
-        setTranslatedCode('// Network Error\\n// Please check your internet connection and try again');
-      } else {
-        toast.error('Error during translation');
-        setTranslatedCode('// Unexpected Error\\n// Please try again or contact support');
-      }
+
+      const errorMessage = error.response?.data?.message || error.message || 'Error during translation';
+      toast.error(errorMessage);
+      setTranslatedCode(`// Translation Error:\\n// ${errorMessage}`);
     } finally {
       setIsTranslating(false);
     }
