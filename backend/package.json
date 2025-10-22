@@ -13,7 +13,8 @@
     "seed:tutorials": "node scripts/seedAllTutorials.js",
     "seed:comprehensive": "node scripts/seedComprehensiveTutorials.js",
     "seed:full": "node scripts/seedFullTutorials.js",
-    "seed:games": "node scripts/seedLearningGames.js"
+    "seed:games": "node scripts/seedLearningGames.js",
+    "seed:challenges": "node scripts/seedChallenges.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

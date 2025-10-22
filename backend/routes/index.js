@@ -10,6 +10,7 @@ const progressRoutes = require('./progress');
 const translationRoutes = require('./translation');
 const gamesRoutes = require('./games');
 const gameSessionRoutes = require('./gameSessions');
+const challengesRoutes = require('./challenges');
 // Temporarily comment out AI Tutor routes to start server
 // const aiTutorRoutes = require('./aiTutor');
 
@@ -21,6 +22,7 @@ router.use('/progress', progressRoutes);
 router.use('/translation', translationRoutes);
 router.use('/games', gamesRoutes);
 router.use('/game-sessions', gameSessionRoutes);
+router.use('/challenges', challengesRoutes);
 // router.use('/ai-tutor', aiTutorRoutes);
 
 router.get('/', (req, res) => {
