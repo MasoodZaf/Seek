@@ -37,6 +37,8 @@ const Settings = React.lazy(() => import('./pages/Settings'));
 const Practice = React.lazy(() => import('./pages/Practice'));
 const Achievements = React.lazy(() => import('./pages/Achievements'));
 const ComponentsDemo = React.lazy(() => import('./pages/ComponentsDemo'));
+const Challenges = React.lazy(() => import('./pages/Challenges'));
+const ChallengeDetail = React.lazy(() => import('./pages/ChallengeDetail'));
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -176,6 +178,16 @@ function App() {
                           <Route path="practice" element={
                             <Suspense fallback={<LoadingPage text="Loading practice..." />}>
                               <Practice />
+                            </Suspense>
+                          } />
+                          <Route path="challenges" element={
+                            <Suspense fallback={<LoadingPage text="Loading challenges..." />}>
+                              <Challenges />
+                            </Suspense>
+                          } />
+                          <Route path="challenges/:slug" element={
+                            <Suspense fallback={<LoadingPage text="Loading challenge..." />}>
+                              <ChallengeDetail />
                             </Suspense>
                           } />
                           <Route path="achievements" element={

@@ -16,6 +16,7 @@ import {
   ChevronRightIcon,
   StarIcon,
   FireIcon,
+  PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
@@ -27,6 +28,7 @@ const navigationSections = [
       { name: 'Dashboard', href: '/dashboard', iconType: 'home', badge: null },
       { name: 'Browse Tutorials', href: '/tutorials', iconType: 'book', badge: 'New' },
       { name: 'Practice', href: '/practice', iconType: 'play', badge: null },
+      { name: 'Challenges', href: '/challenges', iconType: 'puzzle', badge: 'New' },
       { name: 'My Progress', href: '/progress', iconType: 'chart', badge: null },
     ]
   },
@@ -58,6 +60,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       home: HomeIcon,
       chart: ChartBarIcon,
       play: PlayIcon,
+      puzzle: PuzzlePieceIcon,
       trophy: TrophyIcon,
       user: UserIcon,
       cog: CogIcon,
