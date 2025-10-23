@@ -32,8 +32,13 @@ router.get('/', async (req, res) => {
       page = 1,
       sortBy = 'number',
       order = 'asc',
-      status // accepted, attempted, todo
+      status, // accepted, attempted, todo
+      admin // admin flag
     } = req.query;
+
+    // Check if admin is requesting all challenges
+    const isAdminRequest = admin === 'true' || req.headers['x-admin-access'] === 'true';
+    const effectiveLimit = isAdminRequest ? 1000 : parseInt(limit); // No practical limit for admin
 
     const query = { isActive: true };
 
@@ -69,11 +74,11 @@ router.get('/', async (req, res) => {
       sortOption = { [sortBy]: order === 'asc' ? 1 : -1 };
     }
 
-    const skip = (page - 1) * limit;
+    const skip = isAdminRequest ? 0 : (page - 1) * effectiveLimit;
 
     const challenges = await CodingChallenge.find(query)
       .sort(sortOption)
-      .limit(parseInt(limit))
+      .limit(effectiveLimit)
       .skip(skip)
       .select('-testCases -solutions -hints'); // Exclude sensitive data
 
@@ -100,10 +105,11 @@ router.get('/', async (req, res) => {
       data: challenges,
       pagination: {
         currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / effectiveLimit),
         totalItems: total,
-        hasNext: page * limit < total,
-        hasPrev: page > 1
+        hasNext: page * effectiveLimit < total,
+        hasPrev: page > 1,
+        isAdmin: isAdminRequest
       }
     });
   } catch (error) {

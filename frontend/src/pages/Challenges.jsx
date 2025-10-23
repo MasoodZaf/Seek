@@ -23,12 +23,17 @@ const Challenges = () => {
   const [loading, setLoading] = useState(true);
   const [challenges, setChallenges] = useState([]);
   const [stats, setStats] = useState(null);
+  const [pagination, setPagination] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     difficulty: 'all',
     category: 'all',
     status: 'all',
     search: ''
   });
+
+  // Check if user is admin (you can customize this check)
+  const isAdmin = user?.role === 'admin' || user?.email?.includes('admin');
 
   const difficulties = ['all', 'easy', 'medium', 'hard'];
   const categories = [
@@ -52,7 +57,7 @@ const Challenges = () => {
     if (user) {
       fetchStats();
     }
-  }, [filters]);
+  }, [filters, currentPage]);
 
   const fetchChallenges = async () => {
     try {
@@ -62,13 +67,17 @@ const Challenges = () => {
         category: filters.category !== 'all' ? filters.category : '',
         status: filters.status !== 'all' ? filters.status : '',
         search: filters.search,
-        userId: user?.id || ''
+        userId: user?.id || '',
+        page: currentPage,
+        limit: isAdmin ? 1000 : 50, // Admin sees all challenges
+        admin: isAdmin ? 'true' : 'false'
       };
 
       const response = await api.get('/challenges', { params });
 
       if (response.data.success) {
         setChallenges(response.data.data);
+        setPagination(response.data.pagination);
       }
     } catch (error) {
       console.error('Failed to fetch challenges:', error);
@@ -285,77 +294,144 @@ const Challenges = () => {
             </p>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {challenges.map((challenge, index) => (
-              <motion.div
-                key={challenge._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card
-                  className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/challenges/${challenge.slug}`)}
+          <>
+            <div className="space-y-3">
+              {challenges.map((challenge, index) => (
+                <motion.div
+                  key={challenge._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 flex-1">
-                      {/* Number */}
-                      <div className="w-16 text-center">
-                        <span className="text-lg font-semibold text-gray-700">
-                          #{challenge.number}
-                        </span>
-                      </div>
+                  <Card
+                    className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/challenges/${challenge.slug}`)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4 flex-1">
+                        {/* Number */}
+                        <div className="w-16 text-center">
+                          <span className="text-lg font-semibold text-gray-700">
+                            #{challenge.number}
+                          </span>
+                        </div>
 
-                      {/* Status Icon */}
-                      <div className="w-8">
-                        {challenge.solved && (
-                          <CheckCircleSolid className="h-6 w-6 text-green-600" />
-                        )}
-                      </div>
-
-                      {/* Title & Category */}
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-indigo-600">
-                          {challenge.title}
-                        </h3>
-                        <div className="flex items-center gap-3 text-sm text-gray-600">
-                          <span className="font-medium">{challenge.category}</span>
-                          {challenge.companies && challenge.companies.length > 0 && (
-                            <>
-                              <span>•</span>
-                              <div className="flex gap-2">
-                                {challenge.companies.slice(0, 3).map(company => (
-                                  <span
-                                    key={company}
-                                    className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium"
-                                  >
-                                    {company}
-                                  </span>
-                                ))}
-                              </div>
-                            </>
+                        {/* Status Icon */}
+                        <div className="w-8">
+                          {challenge.solved && (
+                            <CheckCircleSolid className="h-6 w-6 text-green-600" />
                           )}
                         </div>
-                      </div>
 
-                      {/* Acceptance Rate */}
-                      <div className="hidden md:block text-center w-24">
-                        <p className="text-sm text-gray-600 mb-1">Acceptance</p>
-                        <p className="text-lg font-semibold text-green-600">
-                          {challenge.acceptanceRate?.toFixed(1)}%
-                        </p>
-                      </div>
+                        {/* Title & Category */}
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-indigo-600">
+                            {challenge.title}
+                          </h3>
+                          <div className="flex items-center gap-3 text-sm text-gray-600">
+                            <span className="font-medium">{challenge.category}</span>
+                            {challenge.companies && challenge.companies.length > 0 && (
+                              <>
+                                <span>•</span>
+                                <div className="flex gap-2">
+                                  {challenge.companies.slice(0, 3).map(company => (
+                                    <span
+                                      key={company}
+                                      className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium"
+                                    >
+                                      {company}
+                                    </span>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
 
-                      {/* Difficulty */}
-                      <div className="w-28">
-                        {getDifficultyBadge(challenge.difficulty)}
+                        {/* Acceptance Rate */}
+                        <div className="hidden md:block text-center w-24">
+                          <p className="text-sm text-gray-600 mb-1">Acceptance</p>
+                          <p className="text-lg font-semibold text-green-600">
+                            {challenge.acceptanceRate?.toFixed(1)}%
+                          </p>
+                        </div>
+
+                        {/* Difficulty */}
+                        <div className="w-28">
+                          {getDifficultyBadge(challenge.difficulty)}
+                        </div>
                       </div>
                     </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Pagination - Only show for non-admin users */}
+            {!isAdmin && pagination && pagination.totalPages > 1 && (
+              <Card className="p-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    Showing page {pagination.currentPage} of {pagination.totalPages}
+                    <span className="ml-2">({pagination.totalItems} total challenges)</span>
                   </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={!pagination.hasPrev}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                        const pageNum = currentPage <= 3
+                          ? i + 1
+                          : currentPage >= pagination.totalPages - 2
+                            ? pagination.totalPages - 4 + i
+                            : currentPage - 2 + i;
+
+                        if (pageNum < 1 || pageNum > pagination.totalPages) return null;
+
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`px-3 py-1 rounded ${
+                              currentPage === pageNum
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={!pagination.hasNext}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* Admin indicator */}
+            {isAdmin && (
+              <Card className="p-4 mt-6 bg-purple-50 border-purple-200">
+                <div className="flex items-center justify-center gap-2 text-purple-700">
+                  <TrophyIcon className="h-5 w-5" />
+                  <span className="font-semibold">Admin Mode: Showing all {pagination?.totalItems || challenges.length} challenges</span>
+                </div>
+              </Card>
+            )}
+          </>
         )}
       </div>
     </div>
