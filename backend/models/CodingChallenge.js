@@ -115,6 +115,21 @@ const codingChallengeSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  skillLevel: {
+    type: Number,
+    default: 1,
+    min: 1,
+    max: 10,
+    comment: 'Fine-grained difficulty: 1-3 beginner, 4-6 intermediate, 7-10 advanced'
+  },
+  topicDepth: {
+    type: String,
+    enum: ['fundamental', 'intermediate', 'advanced', 'expert'],
+    default: 'fundamental'
+  },
+  prerequisiteTopics: [{
+    type: String
+  }],
   acceptanceRate: {
     type: Number,
     default: 0,

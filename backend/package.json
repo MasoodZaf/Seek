@@ -16,7 +16,8 @@
     "seed:games": "node scripts/seedLearningGames.js",
     "seed:challenges": "node scripts/seedChallenges.js",
     "seed:challenges:expanded": "node scripts/seedExpandedChallenges.js",
-    "seed:all": "npm run seed:tutorials && npm run seed:games && npm run seed:challenges:expanded"
+    "seed:challenges:100": "node scripts/seed100Challenges.js",
+    "seed:all": "npm run seed:tutorials && npm run seed:games && npm run seed:challenges:100"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -2,7 +2,23 @@ const express = require('express');
 const router = express.Router();
 const CodingChallenge = require('../models/CodingChallenge');
 const ChallengeSubmission = require('../models/ChallengeSubmission');
+const UserSkillProfile = require('../models/UserSkillProfile');
 const { executeCode } = require('../services/codeExecutionService');
+const recommendationService = require('../services/challengeRecommendation');
+
+// Middleware to check if user is admin
+const isAdmin = (req, res, next) => {
+  // In a real app, check user role from JWT token or session
+  // For now, check query parameter or header
+  const isAdminUser = req.query.admin === 'true' || req.headers['x-admin-access'] === 'true';
+  if (!isAdminUser) {
+    return res.status(403).json({
+      success: false,
+      message: 'Admin access required to view full challenge list'
+    });
+  }
+  next();
+};
 
 // GET /api/v1/challenges - Get all challenges with filtering
 router.get('/', async (req, res) => {
@@ -322,6 +338,15 @@ router.post('/:slug/submit', async (req, res) => {
     }
     await challenge.save();
 
+    // Update user skill profile if not guest
+    if (userId && userId !== 'guest') {
+      await recommendationService.updateSkillProfile(
+        userId,
+        challenge._id,
+        status === 'Accepted'
+      );
+    }
+
     res.json({
       success: true,
       data: {
@@ -461,6 +486,177 @@ router.get('/stats/summary', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch statistics',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/v1/challenges/admin/all - Get ALL challenges (admin only)
+router.get('/admin/all', isAdmin, async (req, res) => {
+  try {
+    const challenges = await CodingChallenge.find({ isActive: true })
+      .sort({ number: 1 })
+      .select('-solutions -testCases'); // Exclude solutions from list
+
+    res.json({
+      success: true,
+      data: challenges,
+      total: challenges.length,
+      message: 'Full challenge list (admin access)'
+    });
+  } catch (error) {
+    console.error('Get all challenges error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch challenges',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/v1/challenges/recommended - Get personalized recommendations
+router.get('/recommended', async (req, res) => {
+  try {
+    const { userId, count = 10 } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+    }
+
+    const recommendations = await recommendationService.getRecommendations(userId, parseInt(count));
+
+    res.json({
+      success: true,
+      data: recommendations,
+      count: recommendations.length,
+      message: 'Personalized challenge recommendations'
+    });
+  } catch (error) {
+    console.error('Get recommendations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch recommendations',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/v1/challenges/daily - Get daily challenge
+router.get('/daily', async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      // Return a random easy challenge for non-logged-in users
+      const challenge = await CodingChallenge.findOne({
+        difficulty: 'easy',
+        skillLevel: { $lte: 2 }
+      });
+
+      return res.json({
+        success: true,
+        data: challenge
+      });
+    }
+
+    const dailyChallenge = await recommendationService.getDailyChallenge(userId);
+
+    res.json({
+      success: true,
+      data: dailyChallenge,
+      message: 'Daily challenge'
+    });
+  } catch (error) {
+    console.error('Get daily challenge error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch daily challenge',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/v1/challenges/assessment/:questionNumber - Get assessment question
+router.get('/assessment/:questionNumber', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const questionNumber = parseInt(req.params.questionNumber);
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+    }
+
+    const challenge = await recommendationService.getAssessmentChallenge(userId, questionNumber);
+
+    res.json({
+      success: true,
+      data: challenge
+    });
+  } catch (error) {
+    console.error('Get assessment challenge error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch assessment challenge',
+      error: error.message
+    });
+  }
+});
+
+// POST /api/v1/challenges/assessment/complete - Complete assessment
+router.post('/assessment/complete', async (req, res) => {
+  try {
+    const { userId, results } = req.body;
+
+    if (!userId || !results) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId and results are required'
+      });
+    }
+
+    const profile = await recommendationService.completeAssessment(userId, results);
+
+    res.json({
+      success: true,
+      data: profile,
+      message: 'Assessment completed successfully'
+    });
+  } catch (error) {
+    console.error('Complete assessment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to complete assessment',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/v1/challenges/profile/:userId - Get user skill profile
+router.get('/profile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    let profile = await UserSkillProfile.findOne({ userId });
+
+    if (!profile) {
+      profile = await recommendationService.createInitialProfile(userId);
+    }
+
+    res.json({
+      success: true,
+      data: profile
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch profile',
       error: error.message
     });
   }
