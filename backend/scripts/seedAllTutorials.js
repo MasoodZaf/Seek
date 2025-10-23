@@ -1,8 +1,10 @@
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const MongoTutorial = require('../models/MongoTutorial');
 
 // Connect to MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/seek_platform')
+const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/seek_platform';
+mongoose.connect(mongoURI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err);
