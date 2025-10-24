@@ -241,11 +241,18 @@ const DatabaseTutorials = () => {
         />
 
         <select
-          className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
+          className={`w-full px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-purple-500'
-              : 'bg-white border-gray-300 text-gray-900 focus:border-primary-500'
-          } focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
+              ? 'bg-gray-800 border-gray-600 text-gray-100 hover:border-purple-400 focus:border-purple-500'
+              : 'bg-white border-gray-300 text-gray-900 hover:border-primary-400 focus:border-primary-500'
+          } focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none`}
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+            backgroundPosition: 'right 0.5rem center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: '1.5em 1.5em',
+            paddingRight: '2.5rem'
+          }}
           value={filters.database}
           onChange={(e) => setFilters({ ...filters, database: e.target.value })}
         >
@@ -256,11 +263,18 @@ const DatabaseTutorials = () => {
         </select>
 
         <select
-          className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
+          className={`w-full px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-purple-500'
-              : 'bg-white border-gray-300 text-gray-900 focus:border-primary-500'
-          } focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
+              ? 'bg-gray-800 border-gray-600 text-gray-100 hover:border-purple-400 focus:border-purple-500'
+              : 'bg-white border-gray-300 text-gray-900 hover:border-primary-400 focus:border-primary-500'
+          } focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none`}
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+            backgroundPosition: 'right 0.5rem center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: '1.5em 1.5em',
+            paddingRight: '2.5rem'
+          }}
           value={filters.difficulty}
           onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
         >
@@ -271,11 +285,18 @@ const DatabaseTutorials = () => {
         </select>
 
         <select
-          className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
+          className={`w-full px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-purple-500'
-              : 'bg-white border-gray-300 text-gray-900 focus:border-primary-500'
-          } focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
+              ? 'bg-gray-800 border-gray-600 text-gray-100 hover:border-purple-400 focus:border-purple-500'
+              : 'bg-white border-gray-300 text-gray-900 hover:border-primary-400 focus:border-primary-500'
+          } focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none`}
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+            backgroundPosition: 'right 0.5rem center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: '1.5em 1.5em',
+            paddingRight: '2.5rem'
+          }}
           value={filters.language}
           onChange={(e) => setFilters({ ...filters, language: e.target.value })}
         >
