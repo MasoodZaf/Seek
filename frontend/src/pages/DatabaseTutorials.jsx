@@ -241,7 +241,11 @@ const DatabaseTutorials = () => {
         />
 
         <select
-          className="input"
+          className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-purple-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-primary-500'
+          } focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
           value={filters.database}
           onChange={(e) => setFilters({ ...filters, database: e.target.value })}
         >
@@ -252,7 +256,11 @@ const DatabaseTutorials = () => {
         </select>
 
         <select
-          className="input"
+          className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-purple-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-primary-500'
+          } focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
           value={filters.difficulty}
           onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
         >
@@ -263,7 +271,11 @@ const DatabaseTutorials = () => {
         </select>
 
         <select
-          className="input"
+          className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-purple-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-primary-500'
+          } focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
           value={filters.language}
           onChange={(e) => setFilters({ ...filters, language: e.target.value })}
         >
