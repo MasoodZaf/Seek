@@ -17,6 +17,7 @@ import {
   StarIcon,
   FireIcon,
   PuzzlePieceIcon,
+  CircleStackIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
@@ -26,7 +27,8 @@ const navigationSections = [
     title: 'Learning',
     items: [
       { name: 'Dashboard', href: '/dashboard', iconType: 'home', badge: null },
-      { name: 'Browse Tutorials', href: '/tutorials', iconType: 'book', badge: 'New' },
+      { name: 'Browse Tutorials', href: '/tutorials', iconType: 'book', badge: null },
+      { name: 'Database Tutorials', href: '/database-tutorials', iconType: 'database', badge: 'New' },
       { name: 'Practice', href: '/practice', iconType: 'play', badge: null },
       { name: 'Challenges', href: '/challenges', iconType: 'puzzle', badge: 'New' },
       { name: 'My Progress', href: '/progress', iconType: 'chart', badge: null },
@@ -57,6 +59,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       code: CodeBracketIcon,
       language: LanguageIcon,
       book: BookOpenIcon,
+      database: CircleStackIcon,
       home: HomeIcon,
       chart: ChartBarIcon,
       play: PlayIcon,

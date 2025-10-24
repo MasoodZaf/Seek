@@ -20,7 +20,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
 
-const Tutorials = () => {
+const DatabaseTutorials = () => {
   const [tutorials, setTutorials] = useState([]);
   const [loading, setLoading] = useState(true);
   const { isDarkMode } = useTheme();
@@ -28,28 +28,25 @@ const Tutorials = () => {
     search: '',
     language: '',
     difficulty: '',
-    category: '',
+    database: '',
   });
-  
+
   const languages = [
     { id: 'javascript', name: 'JavaScript', color: 'bg-yellow-500' },
-    { id: 'python', name: 'Python', color: 'bg-blue-500' },
-    { id: 'typescript', name: 'TypeScript', color: 'bg-blue-600' },
-    { id: 'java', name: 'Java', color: 'bg-red-500' },
+    { id: 'sql', name: 'SQL', color: 'bg-blue-500' },
   ];
-  
+
   const difficulties = [
     { id: 'beginner', name: 'Beginner', color: 'success' },
     { id: 'intermediate', name: 'Intermediate', color: 'warning' },
     { id: 'advanced', name: 'Advanced', color: 'error' },
   ];
-  
-  const categories = [
-    { id: 'fundamentals', name: 'Fundamentals' },
-    { id: 'web-development', name: 'Web Development' },
-    { id: 'data-structures', name: 'Data Structures' },
-    { id: 'algorithms', name: 'Algorithms' },
-    { id: 'frameworks', name: 'Frameworks' },
+
+  const databases = [
+    { id: 'MongoDB', name: 'MongoDB', icon: '🍃' },
+    { id: 'SQL', name: 'SQL / MySQL', icon: '🗄️' },
+    { id: 'PostgreSQL', name: 'PostgreSQL', icon: '🐘' },
+    { id: 'Redis', name: 'Redis', icon: '⚡' },
   ];
   
   useEffect(() => {
@@ -60,30 +57,32 @@ const Tutorials = () => {
   const fetchTutorials = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/mongo-tutorials', {
+      const response = await api.get('/database-tutorials', {
         params: {
           page: 1,
           limit: 50,
           ...(filters.search && { search: filters.search }),
           ...(filters.language && { language: filters.language }),
           ...(filters.difficulty && { difficulty: filters.difficulty }),
-          ...(filters.category && { category: filters.category }),
         }
       });
 
       if (response.data.success) {
-        // Filter out database tutorials (category: 'Database')
-        const allTutorials = response.data.data?.tutorials || [];
-        const programmingTutorials = allTutorials.filter(tutorial =>
-          tutorial.category !== 'Database'
-        );
-        setTutorials(programmingTutorials);
+        let dbTutorials = response.data.data || [];
+
+        // Filter by database type if selected
+        if (filters.database) {
+          dbTutorials = dbTutorials.filter(tutorial =>
+            tutorial.tags && tutorial.tags.includes(filters.database)
+          );
+        }
+
+        setTutorials(dbTutorials);
       } else {
         console.error('❌ API Response not OK:', response.status);
       }
     } catch (error) {
-      console.error('Error fetching tutorials:', error);
-      // Fallback to empty array on error
+      console.error('Error fetching database tutorials:', error);
       setTutorials([]);
     } finally {
       setLoading(false);
@@ -221,37 +220,37 @@ const Tutorials = () => {
         <h2 className={`text-lg font-semibold ${
           isDarkMode ? 'text-gray-100' : 'text-secondary-900'
         }`}>
-          Find Your Perfect Tutorial
+          Find Your Perfect Database Tutorial
         </h2>
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setFilters({ search: '', language: '', difficulty: '', category: '' })}
+          onClick={() => setFilters({ search: '', language: '', difficulty: '', database: '' })}
         >
           Clear All
         </Button>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Input
           type="text"
-          placeholder="Search tutorials..."
+          placeholder="Search database tutorials..."
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           leftIcon={MagnifyingGlassIcon}
         />
-        
+
         <select
           className="input"
-          value={filters.language}
-          onChange={(e) => setFilters({ ...filters, language: e.target.value })}
+          value={filters.database}
+          onChange={(e) => setFilters({ ...filters, database: e.target.value })}
         >
-          <option value="">All Languages</option>
-          {languages.map(lang => (
-            <option key={lang.id} value={lang.id}>{lang.name}</option>
+          <option value="">All Databases</option>
+          {databases.map(db => (
+            <option key={db.id} value={db.id}>{db.icon} {db.name}</option>
           ))}
         </select>
-        
+
         <select
           className="input"
           value={filters.difficulty}
@@ -262,15 +261,15 @@ const Tutorials = () => {
             <option key={diff.id} value={diff.id}>{diff.name}</option>
           ))}
         </select>
-        
+
         <select
           className="input"
-          value={filters.category}
-          onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+          value={filters.language}
+          onChange={(e) => setFilters({ ...filters, language: e.target.value })}
         >
-          <option value="">All Categories</option>
-          {categories.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
+          <option value="">All Languages</option>
+          {languages.map(lang => (
+            <option key={lang.id} value={lang.id}>{lang.name}</option>
           ))}
         </select>
       </div>
@@ -297,12 +296,12 @@ const Tutorials = () => {
         <h1 className={`text-3xl font-bold mb-4 ${
           isDarkMode ? 'text-gray-100' : 'text-secondary-900'
         }`}>
-          Explore Tutorials
+          Database Tutorials
         </h1>
         <p className={`max-w-2xl mx-auto ${
           isDarkMode ? 'text-gray-400' : 'text-secondary-600'
         }`}>
-          Discover our comprehensive collection of programming tutorials designed to take you from beginner to expert.
+          Master MongoDB, SQL, PostgreSQL, Redis, and more. Learn database fundamentals, advanced queries, optimization, and best practices.
         </p>
       </div>
       
@@ -342,7 +341,7 @@ const Tutorials = () => {
             </p>
             <Button
               variant="ghost"
-              onClick={() => setFilters({ search: '', language: '', difficulty: '', category: '' })}
+              onClick={() => setFilters({ search: '', language: '', difficulty: '', database: '' })}
             >
               Clear All Filters
             </Button>
@@ -367,4 +366,4 @@ const Tutorials = () => {
   );
 };
 
-export default Tutorials;
+export default DatabaseTutorials;

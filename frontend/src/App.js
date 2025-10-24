@@ -28,6 +28,7 @@ const Login = React.lazy(() => import('./pages/auth/Login'));
 const Register = React.lazy(() => import('./pages/auth/Register'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Tutorials = React.lazy(() => import('./pages/Tutorials'));
+const DatabaseTutorials = React.lazy(() => import('./pages/DatabaseTutorials'));
 const TutorialDetail = React.lazy(() => import('./pages/TutorialDetail'));
 const TutorialLearn = React.lazy(() => import('./pages/TutorialLearn'));
 const PlaygroundNew = React.lazy(() => import('./pages/PlaygroundNew'));
@@ -163,6 +164,11 @@ function App() {
                           <Route path="tutorials" element={
                             <Suspense fallback={<LoadingPage text="Loading tutorials..." />}>
                               <Tutorials />
+                            </Suspense>
+                          } />
+                          <Route path="database-tutorials" element={
+                            <Suspense fallback={<LoadingPage text="Loading database tutorials..." />}>
+                              <DatabaseTutorials />
                             </Suspense>
                           } />
                           <Route path="playground" element={
