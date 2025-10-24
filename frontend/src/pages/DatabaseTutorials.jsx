@@ -212,8 +212,13 @@ const DatabaseTutorials = () => {
     );
   };
   
-  const FilterSection = () => (
-    <Card className={`p-6 mb-8 transition-colors duration-300 ${
+  const FilterSection = () => {
+    console.log('DatabaseTutorials - Databases:', databases);
+    console.log('DatabaseTutorials - Difficulties:', difficulties);
+    console.log('DatabaseTutorials - Languages:', languages);
+
+    return (
+    <Card className={`p-6 mb-8 transition-colors duration-300 relative ${
       isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
     }`}>
       <div className="flex items-center justify-between mb-4">
@@ -231,7 +236,7 @@ const DatabaseTutorials = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
         <Input
           type="text"
           placeholder="Search database tutorials..."
@@ -308,6 +313,7 @@ const DatabaseTutorials = () => {
       </div>
     </Card>
   );
+  };
   
   if (loading) {
     return (
