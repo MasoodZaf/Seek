@@ -1,6 +1,6 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
-const MongoTutorial = require('../models/MongoTutorial');
+const DatabaseTutorial = require('../models/DatabaseTutorial');
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/seek_platform';
 
@@ -1819,14 +1819,12 @@ async function seedDatabaseTutorials() {
     await mongoose.connect(mongoURI);
     console.log('✅ Connected to MongoDB');
 
-    // Delete existing database tutorials
-    const deleteResult = await MongoTutorial.deleteMany({
-      category: 'Database'
-    });
+    // Delete existing database tutorials from separate collection
+    const deleteResult = await DatabaseTutorial.deleteMany({});
     console.log(`🗑️  Deleted ${deleteResult.deletedCount} existing database tutorials`);
 
-    // Insert new tutorials
-    const result = await MongoTutorial.insertMany(databaseTutorials);
+    // Insert new tutorials into separate collection
+    const result = await DatabaseTutorial.insertMany(databaseTutorials);
     console.log(`\n✅ Successfully seeded ${result.length} database tutorials`);
 
     // Display summary

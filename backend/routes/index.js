@@ -5,6 +5,7 @@ const router = express.Router();
 const authRoutes = require('./auth');
 const tutorialRoutes = require('./tutorials');
 const mongoTutorialRoutes = require('./mongoTutorials');
+const databaseTutorialRoutes = require('./databaseTutorials');
 const codeRoutes = require('./code');
 const progressRoutes = require('./progress');
 const translationRoutes = require('./translation');
@@ -17,6 +18,7 @@ const challengesRoutes = require('./challenges');
 router.use('/auth', authRoutes);
 router.use('/tutorials', tutorialRoutes);
 router.use('/mongo-tutorials', mongoTutorialRoutes);
+router.use('/database-tutorials', databaseTutorialRoutes);
 router.use('/code', codeRoutes);
 router.use('/progress', progressRoutes);
 router.use('/translation', translationRoutes);
@@ -48,8 +50,10 @@ router.get('/', (req, res) => {
     endpoints: {
       auth: '/api/v1/auth',
       tutorials: '/api/v1/tutorials',
+      databaseTutorials: '/api/v1/database-tutorials',
       games: '/api/v1/games',
       gameSessions: '/api/v1/game-sessions',
+      challenges: '/api/v1/challenges',
       codeExecution: '/api/v1/code',
       codeTranslation: '/api/v1/translation',
       aiTutor: '/api/v1/ai-tutor',
