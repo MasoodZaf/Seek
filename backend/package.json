@@ -18,7 +18,8 @@
     "seed:challenges:expanded": "node scripts/seedExpandedChallenges.js",
     "seed:challenges:100": "node scripts/seed100Challenges.js",
     "seed:databases": "node scripts/seedDatabaseTutorials.js",
-    "seed:all": "npm run seed:tutorials && npm run seed:games && npm run seed:challenges:100 && npm run seed:databases"
+    "seed:typescript-java": "node scripts/seedTypeScriptJavaTutorials.js",
+    "seed:all": "npm run seed:tutorials && npm run seed:games && npm run seed:challenges:100 && npm run seed:databases && npm run seed:typescript-java"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
