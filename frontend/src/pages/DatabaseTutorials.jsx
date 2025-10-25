@@ -20,6 +20,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
 
+// Updated with comprehensive dropdown styling - v2.0
 const DatabaseTutorials = () => {
   const [tutorials, setTutorials] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,9 +73,23 @@ const DatabaseTutorials = () => {
 
         // Filter by database type if selected
         if (filters.database) {
-          dbTutorials = dbTutorials.filter(tutorial =>
-            tutorial.tags && tutorial.tags.includes(filters.database)
-          );
+          // Map filter values to specific tag patterns
+          const databaseTagMap = {
+            'MongoDB': ['mongodb', 'mongo'],
+            'SQL': ['sql', 'mysql'],
+            'PostgreSQL': ['postgresql', 'postgres'],
+            'Redis': ['redis']
+          };
+
+          const tagsToMatch = databaseTagMap[filters.database] || [filters.database.toLowerCase()];
+
+          dbTutorials = dbTutorials.filter(tutorial => {
+            if (!tutorial.tags || !Array.isArray(tutorial.tags)) return false;
+            // Check if any tag exactly matches one of our mapped tags
+            return tutorial.tags.some(tag =>
+              tagsToMatch.some(matchTag => tag.toLowerCase() === matchTag)
+            );
+          });
         }
 
         setTutorials(dbTutorials);

@@ -23,6 +23,8 @@ const TutorialLearn = () => {
   const [tutorial, setTutorial] = useState(null);
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [currentStep, setCurrentStep] = useState('content'); // content, exercise, quiz
+  const [currentPhase, setCurrentPhase] = useState('learn'); // learn, practice, challenge
+  const [hintsUnlocked, setHintsUnlocked] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exerciseCode, setExerciseCode] = useState('');
   const [exerciseResults, setExerciseResults] = useState(null);
@@ -332,23 +334,53 @@ const TutorialLearn = () => {
                   {currentLesson.description || (currentLesson.content ? currentLesson.content.substring(0, 100) + '...' : '')}
                 </p>
                 
-                {/* Step Navigation */}
+                {/* Phase Navigation - Enhanced 3-Phase Learning */}
                 <div className="flex justify-center mt-6">
-                  <div className="flex space-x-4">
+                  <div className="flex space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
                     <button
-                      onClick={() => setCurrentStep('content')}
-                      className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                        currentStep === 'content'
+                      onClick={() => setCurrentPhase('learn')}
+                      className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
+                        currentPhase === 'learn'
                           ? isDarkMode
-                            ? 'bg-blue-900 text-blue-200'
-                            : 'bg-primary-100 text-primary-900'
+                            ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg'
+                            : 'bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-lg'
                           : isDarkMode
-                            ? 'text-gray-400 hover:text-gray-200'
-                            : 'text-gray-600 hover:text-gray-900'
+                            ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                       }`}
                     >
                       <BookOpenIcon className="h-5 w-5 mr-2" />
-                      Content
+                      📚 Learn
+                    </button>
+                    <button
+                      onClick={() => setCurrentPhase('practice')}
+                      className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
+                        currentPhase === 'practice'
+                          ? isDarkMode
+                            ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg'
+                            : 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg'
+                          : isDarkMode
+                            ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                      }`}
+                    >
+                      <CodeBracketIcon className="h-5 w-5 mr-2" />
+                      💻 Practice
+                    </button>
+                    <button
+                      onClick={() => setCurrentPhase('challenge')}
+                      className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
+                        currentPhase === 'challenge'
+                          ? isDarkMode
+                            ? 'bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-lg'
+                            : 'bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-lg'
+                          : isDarkMode
+                            ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                      }`}
+                    >
+                      <AcademicCapIcon className="h-5 w-5 mr-2" />
+                      🎯 Challenge
                     </button>
                     
                     {currentLesson.exercises?.length > 0 && (
@@ -409,66 +441,286 @@ const TutorialLearn = () => {
                     <Card className={`p-8 transition-colors duration-300 ${
                       isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                     }`}>
-                      <div className="prose prose-lg max-w-none">
-                        <div className={`whitespace-pre-wrap ${
-                          isDarkMode ? 'text-gray-200' : 'text-gray-900'
-                        }`}>
-                          {currentLesson.content?.text || currentLesson.content}
-                        </div>
-                        
-                        {(currentLesson.codeExamples || currentLesson.content?.examples || []).map((example, index) => (
-                          <div key={index} className="mt-8">
-                            <h3 className={`text-lg font-semibold mb-4 ${
-                              isDarkMode ? 'text-gray-100' : 'text-gray-900'
-                            }`}>
-                              {example.title || `${example.language} Example`}
-                            </h3>
-                            <div className={`rounded-lg p-4 overflow-x-auto ${
-                              isDarkMode ? 'bg-gray-900' : 'bg-gray-900'
-                            }`}>
-                              <pre className="text-green-400 text-sm">
-                                <code>{example.code}</code>
-                              </pre>
+                      {/* PHASE 1: LEARN */}
+                      {currentPhase === 'learn' && (
+                        <div className="space-y-6">
+                          <div className="flex items-center space-x-3 mb-6">
+                            <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg">
+                              <BookOpenIcon className="h-6 w-6 text-blue-600 dark:text-blue-300" />
                             </div>
-                            {example.explanation && (
-                              <p className={`mt-2 text-sm ${
-                                isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                              }`}>
-                                {example.explanation}
+                            <div>
+                              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                                Understanding the Concept
+                              </h2>
+                              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Learn the theory before you code
                               </p>
-                            )}
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                      
-                      <div className="mt-8 flex justify-between">
+
+                          {/* Concept Explanation */}
+                          <div className="prose prose-lg max-w-none">
+                            <div className={`whitespace-pre-wrap text-base leading-relaxed ${
+                              isDarkMode ? 'text-gray-200' : 'text-gray-900'
+                            }`}>
+                              {currentLesson.learnPhase?.conceptExplanation || currentLesson.content}
+                            </div>
+                          </div>
+
+                          {/* Key Points */}
+                          {currentLesson.learnPhase?.keyPoints?.length > 0 && (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl">
+                              <h3 className={`font-semibold mb-4 flex items-center ${isDarkMode ? 'text-blue-300' : 'text-blue-900'}`}>
+                                <span className="mr-2">💡</span> Key Takeaways
+                              </h3>
+                              <ul className="space-y-2">
+                                {currentLesson.learnPhase.keyPoints.map((point, idx) => (
+                                  <li key={idx} className={`flex items-start ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    <span className="mr-2 text-blue-500">✓</span>
+                                    <span>{point}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Real World Example */}
+                          {currentLesson.learnPhase?.realWorldExample && (
+                            <div className={`border-l-4 border-green-500 pl-6 py-4 ${isDarkMode ? 'bg-gray-750' : 'bg-green-50'}`}>
+                              <h3 className={`font-semibold mb-2 ${isDarkMode ? 'text-green-300' : 'text-green-900'}`}>
+                                🌍 Real-World Use Case
+                              </h3>
+                              <p className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                                {currentLesson.learnPhase.realWorldExample}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Code Examples */}
+                          {(currentLesson.codeExamples || []).map((example, index) => (
+                            <div key={index}>
+                              <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                                📝 {example.title || `${example.language} Example`}
+                              </h3>
+                              <div className="rounded-lg overflow-hidden">
+                                <div className="bg-gray-900 p-4 overflow-x-auto">
+                                  <pre className="text-green-400 text-sm font-mono">
+                                    <code>{example.code}</code>
+                                  </pre>
+                                </div>
+                                {example.explanation && (
+                                  <div className={`p-4 ${isDarkMode ? 'bg-gray-750' : 'bg-gray-100'}`}>
+                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                      {example.explanation}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Common Mistakes */}
+                          {currentLesson.learnPhase?.commonMistakes?.length > 0 && (
+                            <div className={`border-l-4 border-red-500 pl-6 py-4 ${isDarkMode ? 'bg-gray-750' : 'bg-red-50'}`}>
+                              <h3 className={`font-semibold mb-3 ${isDarkMode ? 'text-red-300' : 'text-red-900'}`}>
+                                ⚠️ Common Mistakes to Avoid
+                              </h3>
+                              <ul className="space-y-2">
+                                {currentLesson.learnPhase.commonMistakes.map((mistake, idx) => (
+                                  <li key={idx} className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    • {mistake}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* PHASE 2: PRACTICE */}
+                      {currentPhase === 'practice' && (
+                        <div className="space-y-6">
+                          <div className="flex items-center space-x-3 mb-6">
+                            <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">
+                              <CodeBracketIcon className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+                            </div>
+                            <div>
+                              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                                Practice Makes Perfect
+                              </h2>
+                              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Follow the instructions to complete the code
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Instructions */}
+                          {currentLesson.practicePhase?.instructions?.length > 0 && (
+                            <div className="space-y-3">
+                              <h3 className={`font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                                📋 Steps to Complete
+                              </h3>
+                              {currentLesson.practicePhase.instructions.map((instr, idx) => (
+                                <div key={idx} className={`flex items-start p-4 rounded-lg ${
+                                  isDarkMode ? 'bg-gray-750' : 'bg-purple-50'
+                                }`}>
+                                  <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold mr-3">
+                                    {instr.step}
+                                  </div>
+                                  <div>
+                                    <p className={isDarkMode ? 'text-gray-200' : 'text-gray-900'}>
+                                      {instr.instruction}
+                                    </p>
+                                    {instr.hint && (
+                                      <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        💡 {instr.hint}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Starter Code */}
+                          <div>
+                            <h3 className={`font-semibold mb-3 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                              Your Code
+                            </h3>
+                            <div className="rounded-lg overflow-hidden">
+                              <div className="bg-gray-900 p-4">
+                                <pre className="text-green-400 text-sm font-mono whitespace-pre-wrap">
+                                  <code>{currentLesson.practicePhase?.starterCode || currentLesson.codeExamples?.[0]?.code || '// Start coding here'}</code>
+                                </pre>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Hints System */}
+                          {currentLesson.practicePhase?.hints?.length > 0 && (
+                            <div className="space-y-2">
+                              <h3 className={`font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                                💡 Need Help? Unlock Hints
+                              </h3>
+                              {currentLesson.practicePhase.hints.map((hint, idx) => (
+                                <details key={idx} className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-750' : 'bg-yellow-50'}`}>
+                                  <summary className={`cursor-pointer font-medium ${isDarkMode ? 'text-yellow-300' : 'text-yellow-900'}`}>
+                                    Hint {hint.level} - Click to reveal
+                                  </summary>
+                                  <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    {hint.hint}
+                                  </p>
+                                </details>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* PHASE 3: CHALLENGE */}
+                      {currentPhase === 'challenge' && (
+                        <div className="space-y-6">
+                          <div className="flex items-center space-x-3 mb-6">
+                            <div className="bg-orange-100 dark:bg-orange-900 p-3 rounded-lg">
+                              <AcademicCapIcon className="h-6 w-6 text-orange-600 dark:text-orange-300" />
+                            </div>
+                            <div>
+                              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                                Challenge Yourself
+                              </h2>
+                              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Apply what you've learned independently
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Problem Statement */}
+                          <div className={`p-6 rounded-xl border-2 ${
+                            isDarkMode ? 'bg-orange-900/20 border-orange-700' : 'bg-orange-50 border-orange-200'
+                          }`}>
+                            <h3 className={`font-bold mb-3 ${isDarkMode ? 'text-orange-300' : 'text-orange-900'}`}>
+                              🎯 Challenge Problem
+                            </h3>
+                            <p className={isDarkMode ? 'text-gray-200' : 'text-gray-900'}>
+                              {currentLesson.challengePhase?.problemStatement || 'Build a solution using what you learned!'}
+                            </p>
+                          </div>
+
+                          {/* Requirements */}
+                          {currentLesson.challengePhase?.requirements?.length > 0 && (
+                            <div>
+                              <h3 className={`font-semibold mb-3 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                                ✅ Requirements
+                              </h3>
+                              <ul className="space-y-2">
+                                {currentLesson.challengePhase.requirements.map((req, idx) => (
+                                  <li key={idx} className={`flex items-start ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    <span className="mr-2 text-orange-500">□</span>
+                                    <span>{req}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Test Cases */}
+                          {currentLesson.challengePhase?.testCases?.length > 0 && (
+                            <div>
+                              <h3 className={`font-semibold mb-3 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                                🧪 Test Cases
+                              </h3>
+                              <div className="space-y-2">
+                                {currentLesson.challengePhase.testCases.map((test, idx) => (
+                                  <div key={idx} className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-750' : 'bg-gray-100'}`}>
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <p className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                                          Input: {test.input}
+                                        </p>
+                                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                          Expected: {test.expected}
+                                        </p>
+                                      </div>
+                                      <span className={`text-sm font-semibold ${isDarkMode ? 'text-orange-300' : 'text-orange-600'}`}>
+                                        {test.points} pts
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Navigation Buttons */}
+                      <div className="mt-8 flex justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
                         <Button
                           variant="outline"
                           onClick={goToPreviousLesson}
                           disabled={currentLessonIndex === 0}
                         >
                           <ChevronLeftIcon className="h-4 w-4 mr-2" />
-                          Previous
+                          Previous Step
                         </Button>
-                        
+
                         <div className="space-x-4">
-                          <Button variant="primary" onClick={completeContent}>
-                            <CheckCircleIcon className="h-4 w-4 mr-2" />
-                            Mark Complete
-                          </Button>
-                          
-                          {currentLesson.exercises?.length > 0 ? (
-                            <Button
-                              variant="primary"
-                              onClick={() => setCurrentStep('exercise')}
-                            >
-                              Try Exercise
+                          {currentPhase === 'learn' && (
+                            <Button variant="primary" onClick={() => setCurrentPhase('practice')}>
+                              Start Practice
                               <ChevronRightIcon className="h-4 w-4 ml-2" />
                             </Button>
-                          ) : (
-                            <Button variant="primary" onClick={goToNextLesson}>
-                              Next Lesson
+                          )}
+                          {currentPhase === 'practice' && (
+                            <Button variant="primary" onClick={() => setCurrentPhase('challenge')}>
+                              Try Challenge
                               <ChevronRightIcon className="h-4 w-4 ml-2" />
+                            </Button>
+                          )}
+                          {currentPhase === 'challenge' && (
+                            <Button variant="primary" onClick={goToNextLesson}>
+                              <CheckCircleIcon className="h-4 w-4 mr-2" />
+                              Complete & Next
                             </Button>
                           )}
                         </div>

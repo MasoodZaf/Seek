@@ -21,7 +21,7 @@ const CodeExampleSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
-// Sub-schema for tutorial steps
+// Sub-schema for tutorial steps with 3-phase learning
 const TutorialStepSchema = new mongoose.Schema({
   stepNumber: {
     type: Number,
@@ -47,6 +47,70 @@ const TutorialStepSchema = new mongoose.Schema({
   isCompleted: {
     type: Boolean,
     default: false
+  },
+
+  // PHASE 1: LEARN - Understanding the concept
+  learnPhase: {
+    conceptExplanation: { type: String, default: '' },
+    keyPoints: [{ type: String }],
+    visualAid: {
+      type: { type: String, enum: ['diagram', 'animation', 'flowchart', 'none'], default: 'none' },
+      description: String,
+      url: String
+    },
+    realWorldExample: { type: String, default: '' },
+    whyItMatters: { type: String, default: '' },
+    commonMistakes: [{ type: String }]
+  },
+
+  // PHASE 2: PRACTICE - Guided coding
+  practicePhase: {
+    instructions: [{
+      step: Number,
+      instruction: String,
+      hint: String
+    }],
+    starterCode: { type: String, default: '' },
+    solution: { type: String, default: '' },
+    hints: [{
+      level: Number,
+      hint: String,
+      unlocked: { type: Boolean, default: false }
+    }],
+    tests: [{
+      name: String,
+      description: String,
+      type: { type: String, enum: ['syntax', 'output', 'quality'] },
+      expected: String
+    }],
+    helpfulResources: [{ title: String, url: String }]
+  },
+
+  // PHASE 3: CHALLENGE - Apply knowledge
+  challengePhase: {
+    problemStatement: { type: String, default: '' },
+    difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
+    requirements: [{ type: String }],
+    testCases: [{
+      input: String,
+      expected: String,
+      points: Number
+    }],
+    bonusObjectives: [{ type: String }]
+  },
+
+  // Timing estimates for each phase
+  estimatedTime: {
+    learn: { type: Number, default: 5 }, // minutes
+    practice: { type: Number, default: 10 },
+    challenge: { type: Number, default: 15 }
+  },
+
+  // Progress tracking
+  completionCriteria: {
+    learnCompleted: { type: Boolean, default: false },
+    practiceCompleted: { type: Boolean, default: false },
+    challengeCompleted: { type: Boolean, default: false }
   }
 }, { _id: false });
 
