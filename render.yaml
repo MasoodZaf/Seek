@@ -1,0 +1,62 @@
+# Render.com Blueprint - Infrastructure as Code
+services:
+  # Backend API Service
+  - type: web
+    name: seek-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter # $7/month - upgrade to 'standard' for better performance
+    region: oregon # Choose closest to your users
+    branch: main
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5001
+      - key: MONGODB_URI
+        fromDatabase:
+          name: seek-mongodb
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: COOKIE_EXPIRE
+        value: 7
+      - key: CODE_EXECUTION_TIMEOUT
+        value: 5000
+      - key: RATE_LIMIT_WINDOW
+        value: 900000
+      - key: RATE_LIMIT_MAX
+        value: 100
+      - key: CORS_ORIGIN
+        value: https://seek-frontend.onrender.com
+      - key: DOCKER_HOST
+        value: unix:///var/run/docker.sock
+
+  # Frontend Static Site
+  - type: web
+    name: seek-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: starter # $7/month
+    region: oregon
+    branch: main
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://seek-backend.onrender.com
+      - key: REACT_APP_ENV
+        value: production
+      - key: NODE_ENV
+        value: production
+
+# Database
+databases:
+  - name: seek-mongodb
+    databaseName: seek_production
+    plan: starter # Free 500MB
+    region: oregon
+    ipAllowList: [] # Allow all IPs for Render services

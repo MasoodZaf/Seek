@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build output
+build
+
+# Environment
+.env
+.env.*
+
+# Tests
+**/*.test.js
+**/__tests__
+coverage
+
+# Git
+.git
+
+# Development
+.vscode
+public

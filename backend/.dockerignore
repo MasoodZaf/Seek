@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Environment
+.env
+.env.*
+
+# Tests
+**/*.test.js
+**/__tests__
+
+# Documentation
+README.md
+
+# Git
+.git
+
+# Logs
+logs
+*.log
+
+# SQLite database (will be created in production)
+*.sqlite
+*.db
+
+# Development
+.vscode
