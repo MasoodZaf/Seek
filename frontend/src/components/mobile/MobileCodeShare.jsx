@@ -201,43 +201,50 @@ const MobileCodeShare = ({
             onClick={onClose}
           />
 
-          {/* Share Panel */}
+          {/* Enhanced Share Panel with Glassmorphism */}
           <motion.div
-            className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-t-3xl shadow-2xl"
+            className="relative w-full max-w-md bg-white/95 dark:bg-gray-800/95 backdrop-blur-2xl rounded-t-3xl shadow-2xl border-t-2 border-white/50"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+            {/* Enhanced Handle */}
+            <div className="flex justify-center pt-4 pb-3">
+              <div className="w-14 h-1.5 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full shadow-md" />
             </div>
 
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            {/* Enhanced Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-white/20">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
                   Share Code
                 </h3>
-                <div className="flex items-center space-x-2 mt-1">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLanguageColor(language)}`}>
+                <div className="flex items-center space-x-2 mt-2">
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className={`px-3 py-1 rounded-full text-xs font-bold shadow-md ${getLanguageColor(language)}`}
+                  >
                     {language}
-                  </span>
-                  <span className="text-sm text-gray-500">
+                  </motion.span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300 font-semibold">
                     {code.split('\n').length} lines
                   </span>
                 </div>
               </div>
-              
-              <TouchButton
-                variant="ghost"
-                size="sm"
-                onPress={onClose}
-                haptic="light"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </TouchButton>
+
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <TouchButton
+                  variant="ghost"
+                  size="sm"
+                  onPress={onClose}
+                  haptic="light"
+                  className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </TouchButton>
+              </motion.div>
             </div>
 
             {/* Code Preview */}
@@ -249,58 +256,77 @@ const MobileCodeShare = ({
               </div>
             </div>
 
-            {/* Share Options */}
-            <div className="px-6 py-4 space-y-3">
+            {/* Enhanced Share Options */}
+            <div className="px-6 py-5 space-y-3">
               {shareOptions
                 .filter(option => option.available)
-                .map((option) => {
+                .map((option, index) => {
                   const Icon = option.icon;
                   const isActive = shareMethod === option.id;
-                  
+
                   return (
                     <motion.div
                       key={option.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 }}
+                      transition={{ delay: index * 0.08 }}
+                      whileHover={{ scale: 1.02, x: 5 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <TouchButton
                         variant="ghost"
                         size="lg"
                         onPress={() => handleShare(option.id)}
                         haptic="light"
-                        className={`w-full justify-start space-x-4 p-4 border border-gray-200 dark:border-gray-700 ${
-                          isActive ? 'bg-primary-50 border-primary-200 dark:bg-primary-900/20' : ''
+                        className={`w-full justify-start space-x-4 p-5 border-2 rounded-2xl relative overflow-hidden ${
+                          isActive
+                            ? 'border-indigo-500 bg-gradient-to-r from-indigo-50 to-purple-50 shadow-lg dark:from-indigo-900/20 dark:to-purple-900/20'
+                            : 'border-gray-200 bg-white/50 hover:bg-white/80 dark:border-gray-700 dark:bg-gray-800/50'
                         }`}
                         disabled={isActive}
                       >
-                        <div className={`p-2 rounded-lg ${
-                          isActive 
-                            ? 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-400' 
+                        {isActive && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10" />
+                        )}
+
+                        <div className={`relative p-3 rounded-xl shadow-md ${
+                          isActive
+                            ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white'
+                            : option.id === 'copy' && copied
+                            ? 'bg-gradient-to-br from-green-500 to-emerald-500 text-white'
                             : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
                         }`}>
                           {option.id === 'copy' && copied ? (
-                            <CheckIcon className="h-5 w-5 text-green-600" />
+                            <motion.div
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                            >
+                              <CheckIcon className="h-6 w-6" />
+                            </motion.div>
                           ) : (
-                            <Icon className="h-5 w-5" />
+                            <Icon className="h-6 w-6" />
                           )}
                         </div>
-                        
-                        <div className="flex-1 text-left">
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {option.id === 'copy' && copied ? 'Copied!' : option.label}
+
+                        <div className="flex-1 text-left relative z-10">
+                          <div className={`font-black ${
+                            isActive ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-white'
+                          }`}>
+                            {option.id === 'copy' && copied ? '✨ Copied!' : option.label}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <div className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-0.5">
                             {option.description}
                           </div>
                         </div>
 
                         {isActive && (
                           <motion.div
-                            className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"
+                            className="relative"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                          />
+                          >
+                            <div className="w-6 h-6 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                          </motion.div>
                         )}
                       </TouchButton>
                     </motion.div>

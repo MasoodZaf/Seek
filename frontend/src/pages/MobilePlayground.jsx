@@ -255,118 +255,182 @@ const MobilePlayground = () => {
   const currentLanguage = LANGUAGES.find(l => l.id === language) || LANGUAGES[0];
 
   return (
-    <div className="min-h-screen bg-secondary-50 pb-20">
-      {/* Mobile Header */}
-      <div className="sticky top-16 bg-white border-b border-secondary-200 z-20">
-        <div className="px-4 py-3">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-20">
+      {/* Enhanced Mobile Header with Glassmorphism */}
+      <div className="sticky top-16 bg-white/80 backdrop-blur-xl border-b border-white/50 z-20 shadow-lg">
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-secondary-900">
-              Mobile Playground
-            </h1>
-            
-            {/* Language Selector */}
-            <button
-              onClick={() => setShowLanguageSelector(true)}
-              className="flex items-center space-x-2 px-3 py-2 bg-secondary-100 rounded-lg"
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              <span className="text-lg">{currentLanguage.emoji}</span>
-              <span className="font-medium">{currentLanguage.name}</span>
-            </button>
+              <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
+                Code Playground
+              </h1>
+            </motion.div>
+
+            {/* Enhanced Language Selector */}
+            <motion.button
+              onClick={() => setShowLanguageSelector(true)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`flex items-center space-x-2 px-4 py-2 bg-gradient-to-r ${currentLanguage.color} rounded-xl shadow-lg border border-white/30 backdrop-blur-sm`}
+            >
+              <span className="text-xl">{currentLanguage.emoji}</span>
+              <span className="font-bold text-white drop-shadow-sm">{currentLanguage.name}</span>
+            </motion.button>
           </div>
-          
+
           {user ? (
-            <p className="text-sm text-secondary-500 mt-1">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-sm text-gray-600 dark:text-gray-300 mt-2 font-medium"
+            >
               Ready to code, {user.firstName}! 🚀
-            </p>
+            </motion.p>
           ) : (
-            <p className="text-sm text-error-500 mt-1">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-sm text-red-500 mt-2 font-semibold"
+            >
               Please login to run your code
-            </p>
+            </motion.p>
           )}
         </div>
       </div>
 
-      {/* Code Editor */}
+      {/* Enhanced Code Editor with Glassmorphism */}
       <div className="p-4">
-        <Card className="p-0 overflow-hidden">
-          <MobileCodeEditor
-            ref={editorRef}
-            value={code}
-            onChange={handleCodeChange}
-            language={language}
-            onRun={executeCode}
-            height="50vh"
-            placeholder={`Start coding in ${currentLanguage.name}...`}
-          />
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="p-0 overflow-hidden shadow-2xl bg-white/80 backdrop-blur-xl border border-white/50">
+            <MobileCodeEditor
+              ref={editorRef}
+              value={code}
+              onChange={handleCodeChange}
+              language={language}
+              onRun={executeCode}
+              height="50vh"
+              placeholder={`Start coding in ${currentLanguage.name}...`}
+            />
+          </Card>
+        </motion.div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Enhanced Action Buttons with Glassmorphism */}
       <div className="px-4 mb-4">
-        <div className="flex space-x-2">
-          <Button
-            variant="primary"
-            size="lg"
+        <div className="flex space-x-3">
+          <motion.div
             className="flex-1"
-            onClick={executeCode}
-            disabled={isExecuting || !user}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {isExecuting ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-                Running
-              </>
-            ) : (
-              <>
-                <PlayIcon className="h-4 w-4 mr-2" />
-                Run Code
-              </>
-            )}
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={() => setShowOutput(!showOutput)}
-            className="relative"
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 shadow-xl border-0 relative overflow-hidden group"
+              onClick={executeCode}
+              disabled={isExecuting || !user}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 opacity-0 group-hover:opacity-20 transition-opacity" />
+              {isExecuting ? (
+                <>
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2" />
+                  <span className="font-bold">Running...</span>
+                </>
+              ) : (
+                <>
+                  <PlayIcon className="h-5 w-5 mr-2" />
+                  <span className="font-bold">Run Code</span>
+                </>
+              )}
+            </Button>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            {showOutput ? <ChevronDownIcon className="h-5 w-5" /> : <ChevronUpIcon className="h-5 w-5" />}
-            {(output || error) && (
-              <div className="absolute -top-1 -right-1 h-3 w-3 bg-primary-500 rounded-full" />
-            )}
-          </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => setShowOutput(!showOutput)}
+              className="relative bg-white/80 backdrop-blur-sm border border-white/50 shadow-lg"
+            >
+              {showOutput ? <ChevronDownIcon className="h-6 w-6" /> : <ChevronUpIcon className="h-6 w-6" />}
+              {(output || error) && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 h-4 w-4 bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-lg"
+                />
+              )}
+            </Button>
+          </motion.div>
         </div>
 
         <div className="flex space-x-2 mt-3">
-          <Button variant="secondary" size="sm" onClick={resetCode}>
-            <ArrowPathIcon className="h-4 w-4 mr-1" />
-            Reset
-          </Button>
-          <Button variant="secondary" size="sm" onClick={shareCode}>
-            <ShareIcon className="h-4 w-4 mr-1" />
-            Share
-          </Button>
-          <Button variant="secondary" size="sm" onClick={saveCode}>
-            <BookmarkIcon className="h-4 w-4 mr-1" />
-            Save
-          </Button>
-          <AITutorButton
-            variant="ghost"
-            size="sm"
-            context={{
-              type: 'codeReview',
-              page: 'mobile-playground',
-              language
-            }}
-            code={code}
-            language={language}
-          >
-            AI Help
-          </AITutorButton>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={resetCode}
+              className="bg-white/80 backdrop-blur-sm border border-white/50 shadow-md"
+            >
+              <ArrowPathIcon className="h-4 w-4 mr-1" />
+              Reset
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={shareCode}
+              className="bg-white/80 backdrop-blur-sm border border-white/50 shadow-md"
+            >
+              <ShareIcon className="h-4 w-4 mr-1" />
+              Share
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={saveCode}
+              className="bg-white/80 backdrop-blur-sm border border-white/50 shadow-md"
+            >
+              <BookmarkIcon className="h-4 w-4 mr-1" />
+              Save
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <AITutorButton
+              variant="ghost"
+              size="sm"
+              context={{
+                type: 'codeReview',
+                page: 'mobile-playground',
+                language
+              }}
+              code={code}
+              language={language}
+              className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200"
+            >
+              AI Help
+            </AITutorButton>
+          </motion.div>
         </div>
       </div>
 
-      {/* Output Panel */}
+      {/* Enhanced Output Panel with Glassmorphism */}
       <AnimatePresence>
         {showOutput && (
           <motion.div
@@ -375,40 +439,58 @@ const MobilePlayground = () => {
             exit={{ opacity: 0, height: 0 }}
             className="px-4 mb-4"
           >
-            <Card className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-secondary-900">Output</h3>
-                {(output || error) && (
-                  <div className="flex items-center space-x-2">
-                    {error ? (
-                      <ExclamationTriangleIcon className="h-4 w-4 text-error-500" />
-                    ) : (
-                      <CheckCircleIcon className="h-4 w-4 text-success-500" />
-                    )}
-                  </div>
-                )}
+            <Card className="p-5 shadow-2xl bg-white/80 backdrop-blur-xl border border-white/50">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-black text-gray-900 text-lg flex items-center">
+                  <span className="mr-2">Output</span>
+                  {(output || error) && (
+                    <div className="flex items-center space-x-2">
+                      {error ? (
+                        <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />
+                      ) : (
+                        <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                      )}
+                    </div>
+                  )}
+                </h3>
               </div>
 
               {/* Output Content */}
-              <div className="min-h-[100px] max-h-[200px] overflow-auto">
+              <div className="min-h-[120px] max-h-[250px] overflow-auto">
                 {isExecuting ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin h-6 w-6 border-2 border-primary-500 border-t-transparent rounded-full" />
-                    <span className="ml-2 text-secondary-600">Executing code...</span>
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="relative">
+                      <div className="animate-spin h-8 w-8 border-3 border-indigo-500 border-t-transparent rounded-full" />
+                      <div className="absolute inset-0 bg-indigo-400/20 blur-xl rounded-full" />
+                    </div>
+                    <span className="mt-4 text-gray-700 font-semibold">Executing code...</span>
                   </div>
                 ) : output || error ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {output && (
-                      <div className="bg-success-50 border border-success-200 rounded-lg p-3">
-                        <pre className="text-sm text-success-800 font-mono whitespace-pre-wrap break-words">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4 overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-green-400/10 rounded-full blur-2xl" />
+                        <pre className="relative text-sm text-green-800 font-mono whitespace-pre-wrap break-words font-semibold">
                           {output}
                         </pre>
-                      </div>
+                      </motion.div>
                     )}
                     {error && (
-                      <div className="bg-error-50 border border-error-200 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-error-800">Error</span>
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 rounded-xl p-4 overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-red-400/10 rounded-full blur-2xl" />
+                        <div className="relative flex items-center justify-between mb-3">
+                          <span className="text-sm font-black text-red-800 flex items-center">
+                            <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+                            Error
+                          </span>
                           <AITutorButton
                             variant="ghost"
                             size="sm"
@@ -420,20 +502,26 @@ const MobilePlayground = () => {
                             }}
                             code={code}
                             language={language}
+                            className="bg-white/50 border border-red-300"
                           >
                             Debug Help
                           </AITutorButton>
                         </div>
-                        <pre className="text-sm text-error-700 font-mono whitespace-pre-wrap break-words">
+                        <pre className="relative text-sm text-red-700 font-mono whitespace-pre-wrap break-words font-semibold">
                           {error}
                         </pre>
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-secondary-400">
-                    <PlayIcon className="h-8 w-8 mx-auto mb-2" />
-                    <p>Run your code to see output here</p>
+                  <div className="text-center py-12 text-gray-400">
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <PlayIcon className="h-12 w-12 mx-auto mb-3 text-indigo-400" />
+                    </motion.div>
+                    <p className="font-semibold text-gray-600">Run your code to see output here</p>
                   </div>
                 )}
               </div>
@@ -479,7 +567,7 @@ const MobilePlayground = () => {
         </div>
       )}
 
-      {/* Language Selector Modal */}
+      {/* Enhanced Language Selector Modal with Glassmorphism */}
       <AnimatePresence>
         {showLanguageSelector && (
           <div className="fixed inset-0 z-50 flex items-end">
@@ -487,56 +575,83 @@ const MobilePlayground = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black bg-opacity-50"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setShowLanguageSelector(false)}
             />
-            
+
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 20 }}
-              className="relative w-full bg-white rounded-t-2xl p-6"
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="relative w-full bg-white/95 backdrop-blur-2xl rounded-t-3xl p-6 shadow-2xl border-t-2 border-white/50"
             >
-              <h3 className="text-lg font-semibold text-secondary-900 mb-4">
+              {/* Handle */}
+              <div className="flex justify-center mb-4">
+                <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+              </div>
+
+              <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 mb-6">
                 Choose Language
               </h3>
-              
-              <div className="space-y-2">
-                {LANGUAGES.map((lang) => (
-                  <button
+
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {LANGUAGES.map((lang, index) => (
+                  <motion.button
                     key={lang.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
                     onClick={() => {
                       setLanguage(lang.id);
                       setShowLanguageSelector(false);
                     }}
+                    whileHover={{ scale: 1.02, x: 5 }}
+                    whileTap={{ scale: 0.98 }}
                     className={`
-                      w-full flex items-center space-x-3 p-4 rounded-lg border transition-colors
+                      w-full flex items-center space-x-4 p-4 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden
                       ${language === lang.id
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-secondary-200 hover:bg-secondary-50'
+                        ? 'border-indigo-500 bg-gradient-to-r from-indigo-50 to-purple-50 shadow-lg'
+                        : 'border-gray-200 bg-white/50 hover:bg-white/80 hover:border-gray-300'
                       }
                     `}
                   >
-                    <span className="text-2xl">{lang.emoji}</span>
-                    <div className="text-left">
-                      <div className="font-medium text-secondary-900">
-                        {lang.name}
-                      </div>
-                      <div className="text-sm text-secondary-500">
-                        {lang.id === 'javascript' && 'Modern ES6+ support'}
-                        {lang.id === 'python' && 'Python 3.x ready'}
-                        {lang.id === 'java' && 'Object-oriented'}
-                        {lang.id === 'typescript' && 'Type-safe JavaScript'}
-                        {lang.id === 'cpp' && 'High performance'}
-                      </div>
-                    </div>
                     {language === lang.id && (
-                      <CheckCircleIcon className="h-5 w-5 text-primary-600 ml-auto" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10" />
                     )}
-                  </button>
+                    <div className="relative z-10 flex items-center space-x-4 flex-1">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-md ${language === lang.id ? 'bg-white' : 'bg-gray-100'}`}>
+                        {lang.emoji}
+                      </div>
+                      <div className="text-left flex-1">
+                        <div className={`font-black ${language === lang.id ? 'text-indigo-900' : 'text-gray-900'}`}>
+                          {lang.name}
+                        </div>
+                        <div className="text-sm text-gray-600 font-medium">
+                          {lang.id === 'javascript' && 'Modern ES6+ support'}
+                          {lang.id === 'python' && 'Python 3.x ready'}
+                          {lang.id === 'java' && 'Object-oriented'}
+                          {lang.id === 'typescript' && 'Type-safe JavaScript'}
+                          {lang.id === 'cpp' && 'High performance'}
+                        </div>
+                      </div>
+                      {language === lang.id && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="relative"
+                        >
+                          <CheckCircleIcon className="h-7 w-7 text-indigo-600" />
+                          <div className="absolute inset-0 bg-indigo-400/30 blur-lg rounded-full" />
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.button>
                 ))}
               </div>
+
+              {/* Bottom Safe Area */}
+              <div className="h-6" />
             </motion.div>
           </div>
         )}

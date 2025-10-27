@@ -79,65 +79,84 @@ const MobileTutorialCard = ({
       className={className}
     >
       <motion.div
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden touch-manipulation"
-        whileHover={{ scale: 1.02 }}
+        className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden touch-manipulation"
+        whileHover={{ scale: 1.02, y: -5 }}
         whileTap={{ scale: 0.98 }}
         layout
       >
-        {/* Header Image/Icon */}
-        <div className="relative h-32 bg-gradient-to-br from-primary-500 to-purple-600 overflow-hidden">
+        {/* Enhanced Header Image/Icon with Glassmorphism */}
+        <div className="relative h-40 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 overflow-hidden">
+          {/* Animated Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 animate-pulse" />
+
           {tutorial.image ? (
             <img
               src={tutorial.image}
               alt={tutorial.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover opacity-90"
             />
           ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <PlayIcon className="w-8 h-8 text-white" />
-              </div>
+            <div className="relative flex items-center justify-center h-full">
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl"
+              >
+                <PlayIcon className="w-10 h-10 text-white drop-shadow-lg" />
+              </motion.div>
             </div>
           )}
-          
-          {/* Status Indicators */}
-          <div className="absolute top-3 left-3 flex space-x-2">
+
+          {/* Enhanced Status Indicators */}
+          <div className="absolute top-4 left-4 flex space-x-2">
             {tutorial.isLocked && (
-              <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5">
-                <LockClosedIcon className="w-4 h-4 text-white" />
-              </div>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="bg-black/60 backdrop-blur-md rounded-full p-2 border border-white/20"
+              >
+                <LockClosedIcon className="w-5 h-5 text-white" />
+              </motion.div>
             )}
             {tutorial.progress >= 100 && (
-              <div className="bg-green-500 rounded-full p-1.5">
-                <CheckCircleIcon className="w-4 h-4 text-white" />
-              </div>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-2 shadow-lg border border-white/30"
+              >
+                <CheckCircleIcon className="w-5 h-5 text-white" />
+              </motion.div>
             )}
           </div>
 
-          {/* Bookmark Button */}
+          {/* Enhanced Bookmark Button */}
           <TouchButton
             variant="ghost"
             size="sm"
-            className="absolute top-3 right-3 bg-black/30 backdrop-blur-sm border-0 text-white hover:bg-black/50"
+            className="absolute top-4 right-4 bg-black/40 backdrop-blur-md border border-white/20 text-white hover:bg-black/60 shadow-xl"
             onPress={handleBookmark}
             haptic="light"
           >
-            {isBookmarked ? (
-              <BookmarkSolid className="w-5 h-5" />
-            ) : (
-              <BookmarkIcon className="w-5 h-5" />
-            )}
+            <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
+              {isBookmarked ? (
+                <BookmarkSolid className="w-6 h-6 text-yellow-300" />
+              ) : (
+                <BookmarkIcon className="w-6 h-6" />
+              )}
+            </motion.div>
           </TouchButton>
 
-          {/* Progress Bar */}
+          {/* Enhanced Progress Bar */}
           {tutorial.progress > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+            <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/30 backdrop-blur-sm">
               <motion.div
-                className={`h-full ${getProgressColor(tutorial.progress)}`}
+                className={`h-full shadow-lg ${getProgressColor(tutorial.progress)}`}
                 initial={{ width: 0 }}
                 animate={{ width: `${tutorial.progress}%` }}
-                transition={{ duration: 1, delay: 0.2 }}
-              />
+                transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+              >
+                <div className="absolute inset-0 bg-white/20 animate-pulse" />
+              </motion.div>
             </div>
           )}
         </div>
@@ -187,38 +206,57 @@ const MobileTutorialCard = ({
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex space-x-2 pt-2">
+          {/* Enhanced Action Buttons with Glassmorphism */}
+          <div className="flex space-x-3 pt-3">
             <Link to={`/tutorials/${tutorial.id}`} className="flex-1">
-              <TouchButton
-                variant={tutorial.progress > 0 ? 'secondary' : 'primary'}
-                size="md"
-                className="w-full"
-                haptic="medium"
-              >
-                <PlayIcon className="w-4 h-4 mr-2" />
-                {tutorial.progress > 0 ? 'Continue' : 'Start'}
-              </TouchButton>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <TouchButton
+                  variant={tutorial.progress > 0 ? 'secondary' : 'primary'}
+                  size="md"
+                  className={`w-full relative overflow-hidden ${
+                    tutorial.progress > 0
+                      ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border border-purple-200'
+                      : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xl'
+                  }`}
+                  haptic="medium"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <PlayIcon className="w-5 h-5 mr-2" />
+                  <span className="font-bold">
+                    {tutorial.progress > 0 ? 'Continue' : 'Start'}
+                  </span>
+                </TouchButton>
+              </motion.div>
             </Link>
-            
-            <TouchButton
-              variant="ghost"
-              size="md"
-              className="px-3 border border-gray-200"
-              onPress={handleShare}
-              haptic="light"
-            >
-              <ShareIcon className="w-4 h-4" />
-            </TouchButton>
+
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <TouchButton
+                variant="ghost"
+                size="md"
+                className="px-4 border-2 border-gray-200 bg-white/50 backdrop-blur-sm hover:bg-white/80 shadow-md"
+                onPress={handleShare}
+                haptic="light"
+              >
+                <ShareIcon className="w-5 h-5 text-gray-600" />
+              </TouchButton>
+            </motion.div>
           </div>
 
-          {/* Progress Text */}
+          {/* Enhanced Progress Text */}
           {tutorial.progress > 0 && (
-            <div className="text-center">
-              <p className="text-xs text-gray-500">
-                {tutorial.progress >= 100 ? 'Completed!' : `${tutorial.progress}% complete`}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center pt-2"
+            >
+              <p className={`text-sm font-bold ${
+                tutorial.progress >= 100
+                  ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600'
+                  : 'text-indigo-600'
+              }`}>
+                {tutorial.progress >= 100 ? '✨ Completed!' : `${tutorial.progress}% complete`}
               </p>
-            </div>
+            </motion.div>
           )}
         </div>
 
