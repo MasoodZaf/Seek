@@ -8,7 +8,7 @@ class DockerExecutionService {
   constructor() {
     this.docker = new Docker();
     this.maxExecutionTime = parseInt(process.env.CODE_EXECUTION_TIMEOUT) || 5000;
-    this.maxMemory = '64m'; // 64MB memory limit
+    this.maxMemory = '64m'; // 64MB memory limit (default)
     this.maxCpus = '0.5'; // 50% of one CPU core
     this.images = {
       python: 'seek-python-runner',
@@ -23,6 +23,36 @@ class DockerExecutionService {
       php: 'seek-php-runner',
       ruby: 'seek-ruby-runner',
       kotlin: 'seek-kotlin-runner'
+    };
+    // Memory limits per language (some compilers need more memory)
+    this.memoryLimits = {
+      python: '64m',
+      typescript: '256m', // ts-node needs more memory
+      javascript: '64m',
+      java: '256m', // JVM needs more memory
+      cpp: '128m', // C++ compilation needs more
+      c: '128m',
+      go: '512m', // Go compilation needs even more memory
+      rust: '128m', // Rust is precompiled in the image, but still needs some
+      csharp: '256m',
+      php: '64m',
+      ruby: '64m',
+      kotlin: '256m'
+    };
+    // Process limits per language (Go compiler spawns many processes)
+    this.pidsLimits = {
+      python: 50,
+      typescript: 50,
+      javascript: 50,
+      java: 100,
+      cpp: 100,
+      c: 100,
+      go: 200, // Go compiler needs many processes
+      rust: 100,
+      csharp: 100,
+      php: 50,
+      ruby: 50,
+      kotlin: 100
     };
     this.imageBuilt = {};
   }
@@ -72,6 +102,8 @@ class DockerExecutionService {
             scriptName = 'execute.py';
             break;
           case 'typescript':
+            scriptName = 'execute.ts.js';
+            break;
           case 'javascript':
             scriptName = 'execute.js';
             break;
@@ -152,11 +184,27 @@ class DockerExecutionService {
   }
 
   async executeCode(code, language, _input = '') {
+    // Temporarily disable Go execution
+    if (language === 'go') {
+      return {
+        success: false,
+        output: {
+          stdout: '',
+          stderr: 'Go execution is temporarily disabled. This feature will be available soon.',
+          exitCode: 1
+        },
+        executionTime: 0,
+        memoryUsage: 0
+      };
+    }
+
     if (!this.imageBuilt[language]) {
       throw new Error(`Docker image not available for ${language}`);
     }
 
     const imageName = this.images[language];
+    const memoryLimit = this.memoryLimits[language] || this.maxMemory;
+    const pidsLimit = this.pidsLimits[language] || 50;
     let container;
 
     try {
@@ -171,11 +219,11 @@ class DockerExecutionService {
         AttachStderr: true,
         NetworkMode: 'none', // No network access
         HostConfig: {
-          Memory: this.parseMemory(this.maxMemory),
-          MemorySwap: this.parseMemory(this.maxMemory), // Same as memory to disable swap
+          Memory: this.parseMemory(memoryLimit),
+          MemorySwap: this.parseMemory(memoryLimit), // Same as memory to disable swap
           CpuQuota: Math.floor(this.maxCpus * 100000),
           CpuPeriod: 100000,
-          PidsLimit: 50,
+          PidsLimit: pidsLimit,
           ReadonlyRootfs: false,
           CapDrop: ['ALL'],
           CapAdd: ['SETUID', 'SETGID'], // Minimal caps needed
@@ -185,23 +233,23 @@ class DockerExecutionService {
         User: 'coderunner'
       });
 
-      // Start container
-      await container.start();
-
-      // Get execution stream with simpler approach
+      // Attach to container BEFORE starting it
       const stream = await container.attach({
         stream: true,
         stdin: true,
         stdout: true,
-        stderr: true
+        stderr: true,
+        hijack: true
       });
+
+      // Start container after attaching
+      await container.start();
 
       // Send code to container
       logger.info(`Sending code to ${language} container: ${code.slice(0, 100)}...`);
-      
-      // Write code to stdin
-      const codeBuffer = Buffer.from(code, 'utf8');
-      stream.write(codeBuffer);
+
+      // Write code to stdin and close it
+      stream.write(code);
       stream.end();
 
       // Set execution timeout (increased for debugging)

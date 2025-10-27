@@ -1,14 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 )
 
@@ -21,15 +19,9 @@ type ExecutionResult struct {
 }
 
 func main() {
-	// Read code from stdin
-	scanner := bufio.NewScanner(os.Stdin)
-	var codeLines []string
-	
-	for scanner.Scan() {
-		codeLines = append(codeLines, scanner.Text())
-	}
-	
-	if err := scanner.Err(); err != nil {
+	// Read code from stdin - use io.ReadAll instead of scanner for better EOF handling
+	codeBytes, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
 		result := ExecutionResult{
 			Success:  false,
 			Error:    "Failed to read code: " + err.Error(),
@@ -38,8 +30,8 @@ func main() {
 		outputResult(result)
 		return
 	}
-	
-	code := strings.Join(codeLines, "\n")
+
+	code := string(codeBytes)
 	
 	// Write code to temporary file
 	tmpFile, err := ioutil.TempFile("", "user_code_*.go")

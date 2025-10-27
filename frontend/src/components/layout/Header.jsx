@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import {
   Bars3Icon,
   BellIcon,
@@ -36,7 +37,9 @@ const Header = ({ onMenuClick }) => {
     { id: 2, title: 'Progress milestone reached', time: '1 hour ago', unread: false },
     { id: 3, title: 'Weekly challenge completed', time: '3 hours ago', unread: true },
   ]);
-  
+  const userMenuButtonRef = useRef(null);
+  const [userMenuPosition, setUserMenuPosition] = useState({ top: 0, right: 0 });
+
   const unreadCount = notifications.filter(n => n.unread).length;
 
   // Breadcrumb mapping
@@ -191,7 +194,7 @@ const Header = ({ onMenuClick }) => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 py-2 z-50 max-h-64 overflow-y-auto"
+                      className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 py-2 z-[9999] max-h-64 overflow-y-auto"
                     >
                       {searchSuggestions.map((suggestion, index) => (
                         <motion.button
@@ -266,7 +269,7 @@ const Header = ({ onMenuClick }) => {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="absolute right-0 mt-2 w-80 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 py-2 z-50">
+                <Menu.Items className="absolute right-0 mt-2 w-80 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 py-2 z-[9999]">
                   <div className="px-4 py-3 border-b border-white/20">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-secondary-900">
@@ -324,36 +327,61 @@ const Header = ({ onMenuClick }) => {
             
             {/* Enhanced User menu */}
             <Menu as="div" className="relative">
-              <motion.div whileTap={{ scale: 0.95 }}>
-                <Menu.Button className="flex items-center space-x-3 p-2 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200 hover-lift">
-                  <motion.div 
-                    whileHover={{ scale: 1.05 }}
-                    className="h-8 w-8 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg"
-                  >
-                    <span className="text-sm font-semibold text-white drop-shadow-sm">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
-                    </span>
+              {({ open }) => (
+                <>
+                  <motion.div whileTap={{ scale: 0.95 }}>
+                    <Menu.Button
+                      ref={userMenuButtonRef}
+                      onClick={() => {
+                        if (userMenuButtonRef.current) {
+                          const rect = userMenuButtonRef.current.getBoundingClientRect();
+                          setUserMenuPosition({
+                            top: rect.bottom + 8,
+                            right: window.innerWidth - rect.right
+                          });
+                        }
+                      }}
+                      className="flex items-center space-x-3 p-2 rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200 hover-lift"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        className="h-8 w-8 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg"
+                      >
+                        <span className="text-sm font-semibold text-white drop-shadow-sm">
+                          {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        </span>
+                      </motion.div>
+                      <div className="hidden sm:block text-left">
+                        <p className="text-sm font-medium text-secondary-900">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <p className="text-xs text-secondary-500">
+                          {user?.role || 'Student'}
+                        </p>
+                      </div>
+                    </Menu.Button>
                   </motion.div>
-                  <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium text-secondary-900">
-                      {user?.firstName} {user?.lastName}
-                    </p>
-                    <p className="text-xs text-secondary-500">
-                      {user?.role || 'Student'}
-                    </p>
-                  </div>
-                </Menu.Button>
-              </motion.div>
-              
-              <Transition
-                enter="transition ease-out duration-200"
-                enterFrom="transform opacity-0 scale-95"
-                enterTo="transform opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="transform opacity-100 scale-100"
-                leaveTo="transform opacity-0 scale-95"
-              >
-                <Menu.Items className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 py-2 z-50">
+
+                  {open && createPortal(
+                    <Transition
+                      show={open}
+                      enter="transition ease-out duration-200"
+                      enterFrom="transform opacity-0 scale-95"
+                      enterTo="transform opacity-100 scale-100"
+                      leave="transition ease-in duration-75"
+                      leaveFrom="transform opacity-100 scale-100"
+                      leaveTo="transform opacity-0 scale-95"
+                    >
+                      <Menu.Items
+                        static
+                        style={{
+                          position: 'fixed',
+                          top: `${userMenuPosition.top}px`,
+                          right: `${userMenuPosition.right}px`,
+                          zIndex: 99999
+                        }}
+                        className="w-56 bg-white backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200 py-2"
+                      >
                   {/* User Info Header */}
                   <div className="px-4 py-3 border-b border-white/20">
                     <div className="flex items-center space-x-3">
@@ -421,8 +449,12 @@ const Header = ({ onMenuClick }) => {
                       </button>
                     )}
                   </Menu.Item>
-                </Menu.Items>
-              </Transition>
+                      </Menu.Items>
+                    </Transition>,
+                    document.body
+                  )}
+                </>
+              )}
             </Menu>
           </div>
         </div>

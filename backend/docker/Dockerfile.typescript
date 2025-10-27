@@ -14,7 +14,7 @@ RUN chown coderunner:coderunner /app
 USER coderunner
 
 # Copy execution script
-COPY --chown=coderunner:coderunner execute.js /app/
+COPY --chown=coderunner:coderunner execute.ts.js /app/execute.js
 
 # Set resource limits
 ENV NODE_ENV=sandbox

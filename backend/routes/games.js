@@ -61,7 +61,7 @@ router.get('/', async (req, res) => {
       .sort(sortOption)
       .limit(parseInt(limit))
       .skip(skip)
-      .select('-challenges.expectedOutput -challenges.hints'); // Exclude sensitive data
+      .select('-challenges.expectedOutput -challenges.solution -challenges.correctAnswer -challenges.hints -challenges.keyPoints'); // Exclude sensitive data from list view
 
     const total = await LearningGame.countDocuments(query);
 
@@ -261,7 +261,12 @@ router.post('/:slug/start', async (req, res) => {
             codeSnippet: challenge.codeSnippet,
             points: challenge.points,
             timeLimit: challenge.timeLimit,
-            difficulty: challenge.difficulty
+            difficulty: challenge.difficulty,
+            hints: challenge.hints || [],
+            solution: challenge.solution || '',
+            correctAnswer: challenge.correctAnswer || '',
+            keyPoints: challenge.keyPoints || [],
+            explanation: challenge.explanation || ''
           }))
         },
         session: gameSession

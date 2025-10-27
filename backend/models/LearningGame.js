@@ -35,6 +35,17 @@ const ChallengeSchema = new mongoose.Schema({
   hints: [{
     type: String
   }],
+  solution: {
+    type: String,
+    default: ''
+  },
+  correctAnswer: {
+    type: String,
+    default: ''
+  },
+  keyPoints: [{
+    type: String
+  }],
   explanation: {
     type: String,
     default: ''

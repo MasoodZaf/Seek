@@ -12,13 +12,17 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN chown coderunner:coderunner /app
 
+# Copy Cargo.toml and build dependencies
+COPY --chown=coderunner:coderunner Cargo.toml /app/
+COPY --chown=coderunner:coderunner execute.rs /app/src/main.rs
+
+# Build the execute binary as root first (for cargo permissions)
+RUN cargo build --release
+
 # Switch to non-root user
 USER coderunner
-
-# Copy execution script
-COPY --chown=coderunner:coderunner execute.rs /app/
 
 # Set Rust environment variables
 ENV RUST_BACKTRACE=1
 
-CMD ["sh", "-c", "rustc /app/execute.rs -o /tmp/execute && /tmp/execute"]
+CMD ["/app/target/release/execute"]

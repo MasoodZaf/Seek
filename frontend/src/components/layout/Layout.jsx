@@ -85,7 +85,7 @@ const Layout = () => {
         />
       </AnimatePresence>
       
-      <div className="flex flex-col w-0 flex-1 overflow-hidden">
+      <div className="flex flex-col w-0 flex-1 overflow-x-hidden">
         <Header
           id="navigation"
           onMenuClick={() => setSidebarOpen(true)}

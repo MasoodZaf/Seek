@@ -17,6 +17,7 @@ import {
 import { Card, Button, Progress } from '../components/ui';
 import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
+import EnhancedCodeEditor from '../components/CodeEditor/EnhancedCodeEditor';
 
 const TutorialLearn = () => {
   const { id } = useParams();
@@ -28,6 +29,9 @@ const TutorialLearn = () => {
   const [loading, setLoading] = useState(true);
   const [exerciseCode, setExerciseCode] = useState('');
   const [exerciseResults, setExerciseResults] = useState(null);
+  const [challengeCode, setChallengeCode] = useState('');
+  const [challengeOutput, setChallengeOutput] = useState(null);
+  const [isExecuting, setIsExecuting] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizResults, setQuizResults] = useState({});
   const [lessonProgress, setLessonProgress] = useState({});
@@ -135,6 +139,43 @@ const TutorialLearn = () => {
       }
     } catch (error) {
       console.error('Exercise execution error:', error);
+    }
+  };
+
+  const runChallengeCode = async () => {
+    if (!challengeCode.trim()) {
+      setChallengeOutput({ success: false, error: 'Please enter some code first!' });
+      return;
+    }
+
+    setIsExecuting(true);
+    setChallengeOutput(null);
+
+    try {
+      const response = await api.post('/code/execute', {
+        code: challengeCode,
+        language: tutorial.language || 'javascript'
+      });
+
+      if (response.data.success) {
+        setChallengeOutput({
+          success: true,
+          output: response.data.data.output,
+          executionTime: response.data.data.executionTime
+        });
+      } else {
+        setChallengeOutput({
+          success: false,
+          error: response.data.error || 'Execution failed'
+        });
+      }
+    } catch (error) {
+      setChallengeOutput({
+        success: false,
+        error: error.response?.data?.error || error.message || 'Failed to execute code'
+      });
+    } finally {
+      setIsExecuting(false);
     }
   };
 
@@ -690,6 +731,97 @@ const TutorialLearn = () => {
                               </div>
                             </div>
                           )}
+
+                          {/* Code Playground */}
+                          <div className="mt-8">
+                            <h3 className={`font-semibold mb-4 flex items-center ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                              <CodeBracketIcon className="h-5 w-5 mr-2 text-orange-500" />
+                              Code Playground - Test Your Solution
+                            </h3>
+
+                            <div className={`rounded-xl overflow-hidden border-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                              {/* Code Editor */}
+                              <div className={isDarkMode ? 'bg-gray-800' : 'bg-white'}>
+                                <EnhancedCodeEditor
+                                  code={challengeCode}
+                                  onChange={setChallengeCode}
+                                  language={tutorial?.language || 'javascript'}
+                                  placeholder={`// Write your solution here...\n// Click "Run Code" to test your solution`}
+                                  isDark={isDarkMode}
+                                  showLineNumbers={true}
+                                  className="min-h-[300px]"
+                                />
+                              </div>
+
+                              {/* Run Button */}
+                              <div className={`p-4 border-t-2 ${isDarkMode ? 'bg-gray-750 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                                <Button
+                                  onClick={runChallengeCode}
+                                  disabled={isExecuting || !challengeCode.trim()}
+                                  variant="primary"
+                                  className="w-full sm:w-auto"
+                                >
+                                  {isExecuting ? (
+                                    <>
+                                      <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                      </svg>
+                                      Running...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <PlayIcon className="h-4 w-4 mr-2" />
+                                      Run Code
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+
+                              {/* Output Panel */}
+                              {challengeOutput && (
+                                <div className={`p-4 border-t-2 ${
+                                  isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                                }`}>
+                                  <h4 className={`font-semibold mb-2 flex items-center ${
+                                    challengeOutput.success
+                                      ? 'text-green-600 dark:text-green-400'
+                                      : 'text-red-600 dark:text-red-400'
+                                  }`}>
+                                    {challengeOutput.success ? (
+                                      <>
+                                        <CheckCircleIcon className="h-5 w-5 mr-2" />
+                                        Success
+                                      </>
+                                    ) : (
+                                      <>
+                                        <XCircleIcon className="h-5 w-5 mr-2" />
+                                        Error
+                                      </>
+                                    )}
+                                  </h4>
+                                  <div className={`font-mono text-sm p-4 rounded-lg ${
+                                    isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-100 text-gray-900'
+                                  }`}>
+                                    {challengeOutput.success ? (
+                                      <>
+                                        <pre className="whitespace-pre-wrap">{challengeOutput.output}</pre>
+                                        {challengeOutput.executionTime && (
+                                          <p className="mt-2 text-xs text-gray-500">
+                                            Execution time: {challengeOutput.executionTime}ms
+                                          </p>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <pre className="whitespace-pre-wrap text-red-600 dark:text-red-400">
+                                        {challengeOutput.error}
+                                      </pre>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       )}
 

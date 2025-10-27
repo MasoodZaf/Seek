@@ -32,6 +32,10 @@ const ChallengeDetail = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showHints, setShowHints] = useState(false);
   const [visibleHints, setVisibleHints] = useState(0);
+  const [customInput, setCustomInput] = useState('');
+  const [customOutput, setCustomOutput] = useState(null);
+  const [isRunningCustom, setIsRunningCustom] = useState(false);
+  const [outputTab, setOutputTab] = useState('testcase'); // 'testcase' or 'custom'
 
   useEffect(() => {
     fetchChallenge();
@@ -81,6 +85,7 @@ const ChallengeDetail = () => {
       if (response.data.success) {
         setTestResults(response.data.data);
         setActiveTab('testcase');
+        setOutputTab('testcase');
         if (response.data.data.allPassed) {
           toast.success('All test cases passed!');
         } else {
@@ -92,6 +97,42 @@ const ChallengeDetail = () => {
       toast.error(error.response?.data?.message || 'Failed to run code');
     } finally {
       setIsRunning(false);
+    }
+  };
+
+  const handleRunCustomInput = async () => {
+    try {
+      setIsRunningCustom(true);
+      setCustomOutput(null);
+
+      const response = await api.post('/code/execute', {
+        code,
+        language,
+        input: customInput
+      });
+
+      if (response.data.success) {
+        setCustomOutput({
+          success: true,
+          output: response.data.data.output,
+          executionTime: response.data.data.executionTime
+        });
+        setOutputTab('custom');
+      } else {
+        setCustomOutput({
+          success: false,
+          error: response.data.error || 'Execution failed'
+        });
+        setOutputTab('custom');
+      }
+    } catch (error) {
+      setCustomOutput({
+        success: false,
+        error: error.response?.data?.error || error.message || 'Failed to execute code'
+      });
+      setOutputTab('custom');
+    } finally {
+      setIsRunningCustom(false);
     }
   };
 
@@ -198,8 +239,8 @@ const ChallengeDetail = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Main Content - NEW VERSION 2.0 */}
+      <div className="flex-1 flex overflow-hidden" style={{ backgroundColor: '#fffaeb' }}>
         {/* Left Panel - Problem Description */}
         <div className="w-1/2 border-r border-gray-200 overflow-y-auto bg-white">
           <div className="p-6">
@@ -496,9 +537,10 @@ const ChallengeDetail = () => {
           </div>
         </div>
 
-        {/* Right Panel - Code Editor */}
+        {/* Right Panel - Code Editor & Console */}
         <div className="w-1/2 flex flex-col bg-white">
-          <div className="flex-1 overflow-hidden">
+          {/* Code Editor */}
+          <div className="flex-1 overflow-hidden" style={{ minHeight: '50%' }}>
             <MonacoEditor
               height="100%"
               language={language}
@@ -514,6 +556,105 @@ const ChallengeDetail = () => {
                 tabSize: 2
               }}
             />
+          </div>
+
+          {/* Console/Output Section - UPDATED VERSION */}
+          <div className="border-t-2 border-gray-200 flex flex-col" style={{ height: '40%' }}>
+            {/* Tabs */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200">
+              <button
+                onClick={() => setOutputTab('testcase')}
+                className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                  outputTab === 'testcase'
+                    ? 'bg-orange-600 text-white'
+                    : 'text-gray-600 hover:bg-orange-100'
+                }`}
+              >
+                Test Cases
+              </button>
+              <button
+                onClick={() => setOutputTab('custom')}
+                className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                  outputTab === 'custom'
+                    ? 'bg-orange-600 text-white'
+                    : 'text-gray-600 hover:bg-orange-100'
+                }`}
+              >
+                Custom Input
+              </button>
+            </div>
+
+            {/* Output Content */}
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-900 text-gray-100 font-mono text-sm">
+              {outputTab === 'testcase' ? (
+                testResults ? (
+                  <div className="space-y-2">
+                    <div className={`font-semibold ${testResults.allPassed ? 'text-green-400' : 'text-red-400'}`}>
+                      {testResults.allPassed ? '✓ All test cases passed!' : '✗ Some test cases failed'}
+                    </div>
+                    {testResults.results?.map((result, idx) => (
+                      <div key={idx} className="pl-2">
+                        <span className={result.passed ? 'text-green-400' : 'text-red-400'}>
+                          {result.passed ? '✓' : '✗'} Test {idx + 1}: {result.passed ? 'Passed' : 'Failed'}
+                        </span>
+                        {!result.passed && result.error && (
+                          <div className="text-red-300 text-xs mt-1">{result.error}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-gray-400 italic">
+                    ▶ Press "Run Code" to execute test cases
+                    <br />
+                    Output will appear here
+                  </div>
+                )
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-gray-300 text-xs mb-1 block">Input:</label>
+                    <textarea
+                      value={customInput}
+                      onChange={(e) => setCustomInput(e.target.value)}
+                      placeholder="Enter your custom input here (e.g., [1, 2, 3])"
+                      className="w-full bg-gray-800 text-gray-100 p-2 rounded border border-gray-700 focus:border-indigo-500 focus:outline-none resize-none font-mono text-sm"
+                      rows={3}
+                    />
+                  </div>
+                  <button
+                    onClick={handleRunCustomInput}
+                    disabled={isRunningCustom}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    {isRunningCustom ? 'Running...' : '▶ Run with Custom Input'}
+                  </button>
+                  {customOutput && (
+                    <div className="mt-3">
+                      <label className="text-gray-300 text-xs mb-1 block">Output:</label>
+                      <div className={`p-3 rounded border ${
+                        customOutput.success
+                          ? 'bg-gray-800 border-green-600'
+                          : 'bg-red-900/20 border-red-600'
+                      }`}>
+                        {customOutput.success ? (
+                          <>
+                            <pre className="whitespace-pre-wrap text-green-400">{customOutput.output}</pre>
+                            {customOutput.executionTime && (
+                              <p className="text-xs text-gray-500 mt-2">
+                                Execution time: {customOutput.executionTime}ms
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <pre className="whitespace-pre-wrap text-red-400">{customOutput.error}</pre>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Action Buttons */}

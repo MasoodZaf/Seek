@@ -31,7 +31,7 @@ const Tutorials = React.lazy(() => import('./pages/Tutorials'));
 const DatabaseTutorials = React.lazy(() => import('./pages/DatabaseTutorials'));
 const TutorialDetail = React.lazy(() => import('./pages/TutorialDetail'));
 const TutorialLearn = React.lazy(() => import('./pages/TutorialLearn'));
-const PlaygroundNew = React.lazy(() => import('./pages/PlaygroundNew'));
+const PlaygroundNew = React.lazy(() => import('./pages/PlaygroundModern'));
 const CodeTranslator = React.lazy(() => import('./pages/CodeTranslator'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const Settings = React.lazy(() => import('./pages/Settings'));
@@ -39,7 +39,7 @@ const Practice = React.lazy(() => import('./pages/Practice'));
 const Achievements = React.lazy(() => import('./pages/Achievements'));
 const ComponentsDemo = React.lazy(() => import('./pages/ComponentsDemo'));
 const Challenges = React.lazy(() => import('./pages/Challenges'));
-const ChallengeDetail = React.lazy(() => import('./pages/ChallengeDetail'));
+const ChallengeDetail = React.lazy(() => import('./pages/ChallengeDetailEnhanced'));
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -96,6 +96,27 @@ function App() {
     }
 
     // Register service worker - DISABLED TEMPORARILY TO FIX LOGIN ISSUE
+    // Unregister any existing service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister().then(function(success) {
+            console.log('Service Worker unregistered:', success);
+          });
+        }
+      });
+
+      // Clear all caches
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) {
+            caches.delete(name);
+            console.log('Cache deleted:', name);
+          }
+        });
+      }
+    }
+
     // serviceWorkerManager.register({
     //   onUpdate: (registration) => {
     //     console.log('New app version available');
