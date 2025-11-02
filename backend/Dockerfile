@@ -1,8 +1,12 @@
 # Backend Dockerfile for Render.com deployment
 FROM node:18-alpine
 
-# Install Docker CLI for Dockerode
-RUN apk add --no-cache docker-cli
+# Install build dependencies and Docker CLI
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    docker-cli
 
 # Create app directory
 WORKDIR /app
@@ -11,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy application code
 COPY . .

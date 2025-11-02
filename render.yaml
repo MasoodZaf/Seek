@@ -21,20 +21,36 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
       - key: JWT_EXPIRE
         value: 7d
+      - key: JWT_REFRESH_EXPIRE
+        value: 30d
       - key: COOKIE_EXPIRE
         value: 7
       - key: CODE_EXECUTION_TIMEOUT
         value: 5000
-      - key: RATE_LIMIT_WINDOW
+      - key: MAX_CODE_LENGTH
+        value: 10000
+      - key: RATE_LIMIT_WINDOW_MS
         value: 900000
-      - key: RATE_LIMIT_MAX
+      - key: RATE_LIMIT_MAX_REQUESTS
         value: 100
+      - key: ALLOWED_ORIGINS
+        value: https://seek-frontend.onrender.com
+      - key: FRONTEND_URL
+        value: https://seek-frontend.onrender.com
       - key: CORS_ORIGIN
         value: https://seek-frontend.onrender.com
       - key: DOCKER_HOST
         value: unix:///var/run/docker.sock
+      - key: LOG_LEVEL
+        value: info
+      - key: OPENAI_API_KEY
+        sync: false  # Must be set manually in Render dashboard
+      - key: SENTRY_DSN
+        sync: false  # Optional: Set manually if using Sentry
 
   # Frontend Static Site
   - type: web

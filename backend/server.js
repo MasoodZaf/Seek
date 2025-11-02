@@ -11,6 +11,23 @@ const { Server } = require('socket.io');
 // Load environment variables
 dotenv.config();
 
+// Initialize Sentry for error tracking (production only)
+let Sentry;
+if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+  Sentry = require('@sentry/node');
+  const Tracing = require('@sentry/tracing');
+
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV,
+    tracesSampleRate: 0.1, // 10% of transactions
+    integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Tracing.Integrations.Express()
+    ]
+  });
+}
+
 const { connectSQLite } = require('./config/sqlite');
 const { connectMongoDB } = require('./config/mongodb');
 const logger = require('./config/logger');
@@ -45,6 +62,12 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 5001;
+
+// Sentry request handler (must be first)
+if (Sentry) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
 
 // Trust proxy for accurate IP addresses
 app.set('trust proxy', 1);
@@ -96,15 +119,52 @@ app.use(sanitizeInput);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
 
 // Health check endpoint (before rate limiting)
-app.get('/health', (req, res) => {
-  res.json({
+app.get('/health', async (req, res) => {
+  const health = {
     success: true,
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
-    environment: process.env.NODE_ENV || 'development'
-  });
+    environment: process.env.NODE_ENV || 'development',
+    services: {
+      api: 'operational'
+    }
+  };
+
+  // Check MongoDB connection
+  try {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.connection.db.admin().ping();
+      health.services.mongodb = 'connected';
+    } else {
+      health.services.mongodb = 'disconnected';
+      health.status = 'degraded';
+    }
+  } catch (error) {
+    logger.error('MongoDB health check failed:', error);
+    health.services.mongodb = 'error';
+    health.status = 'degraded';
+  }
+
+  // Check SQLite connection
+  try {
+    const { sequelize } = require('./config/sqlite');
+    if (sequelize) {
+      await sequelize.authenticate();
+      health.services.sqlite = 'connected';
+    } else {
+      health.services.sqlite = 'not_initialized';
+    }
+  } catch (error) {
+    logger.error('SQLite health check failed:', error);
+    health.services.sqlite = 'error';
+    health.status = 'degraded';
+  }
+
+  const statusCode = health.status === 'healthy' ? 200 : 503;
+  res.status(statusCode).json(health);
 });
 
 // API routes
@@ -151,6 +211,16 @@ app.get('/', (req, res) => {
 
 // 404 handler
 app.use(notFound);
+
+// Sentry error handler (must be before other error handlers)
+if (Sentry) {
+  app.use(Sentry.Handlers.errorHandler({
+    shouldHandleError(error) {
+      // Capture all errors with status >= 500
+      return error.status >= 500 || !error.status;
+    }
+  }));
+}
 
 // Global error handler
 app.use(errorHandler);

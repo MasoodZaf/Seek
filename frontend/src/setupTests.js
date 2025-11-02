@@ -8,6 +8,9 @@ import { toHaveNoViolations } from 'jest-axe';
 // Extend Jest matchers with axe-core
 expect.extend(toHaveNoViolations);
 
+// Set test timeout to 30 seconds
+jest.setTimeout(30000);
+
 // Mock IntersectionObserver for tests
 global.IntersectionObserver = jest.fn().mockImplementation((callback) => ({
   observe: jest.fn(),

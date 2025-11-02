@@ -88,6 +88,22 @@ const User = sequelize.define('User', {
   refreshTokens: {
     type: DataTypes.JSON,
     defaultValue: []
+  },
+  aiRequestsThisMonth: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false
+  },
+  aiRequestsLimit: {
+    type: DataTypes.INTEGER,
+    defaultValue: 50,
+    allowNull: false,
+    comment: 'Maximum AI requests allowed per month'
+  },
+  aiRequestsResetDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Date when AI request counter was last reset'
   }
 }, {
   tableName: 'users',

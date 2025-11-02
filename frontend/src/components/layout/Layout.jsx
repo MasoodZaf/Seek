@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import Footer from './Footer';
 import { LoadingPage } from '../ui';
 import { RouteTransition } from '../ui/PageTransition';
 import SkipNavigation from '../ui/SkipNavigation';
@@ -91,7 +92,7 @@ const Layout = () => {
           onMenuClick={() => setSidebarOpen(true)}
         />
         
-        <main 
+        <main
           id="main-content"
           className="flex-1 relative overflow-y-auto focus:outline-none"
           tabIndex="-1"
@@ -105,6 +106,7 @@ const Layout = () => {
               </RouteTransition>
             </div>
           </div>
+          <Footer />
         </main>
       </div>
 

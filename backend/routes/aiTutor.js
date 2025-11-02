@@ -2,13 +2,18 @@ const express = require('express');
 const { body } = require('express-validator');
 const aiTutorController = require('../controllers/aiTutorController');
 const auth = require('../middleware/auth');
+const { checkAIUsageLimit, addAIUsageInfo } = require('../middleware/aiRateLimit');
 
 const router = express.Router();
+
+// Apply AI usage tracking to all routes
+router.use(auth);
+router.use(checkAIUsageLimit);
+router.use(addAIUsageInfo);
 
 // Chat with AI tutor
 router.post(
   '/chat',
-  auth,
   [
     body('message')
       .notEmpty()
@@ -30,7 +35,6 @@ router.post(
 // Get code review from AI
 router.post(
   '/review',
-  auth,
   [
     body('code')
       .notEmpty()
@@ -57,7 +61,6 @@ router.post(
 // Get hints for exercise
 router.post(
   '/hint',
-  auth,
   [
     body('exerciseId')
       .notEmpty()
@@ -81,7 +84,6 @@ router.post(
 // Get debugging help
 router.post(
   '/debug',
-  auth,
   [
     body('code')
       .notEmpty()
@@ -109,14 +111,12 @@ router.post(
 // Generate personalized exercise
 router.post(
   '/exercise/personalized',
-  auth,
   aiTutorController.generatePersonalizedExercise
 );
 
 // Clear conversation context
 router.post(
   '/conversation/clear',
-  auth,
   [
     body('sessionId')
       .optional()
@@ -129,7 +129,6 @@ router.post(
 // Get AI tutor stats (admin only)
 router.get(
   '/stats',
-  auth,
   aiTutorController.getStats
 );
 
