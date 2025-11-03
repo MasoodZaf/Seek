@@ -12,6 +12,8 @@ const translationRoutes = require('./translation');
 const gamesRoutes = require('./games');
 const gameSessionRoutes = require('./gameSessions');
 const challengesRoutes = require('./challenges');
+const feedbackRoutes = require('./feedback');
+const bugReportsRoutes = require('./bugReports');
 // Temporarily comment out AI Tutor routes to start server
 // const aiTutorRoutes = require('./aiTutor');
 
@@ -25,6 +27,8 @@ router.use('/translation', translationRoutes);
 router.use('/games', gamesRoutes);
 router.use('/game-sessions', gameSessionRoutes);
 router.use('/challenges', challengesRoutes);
+router.use('/feedback', feedbackRoutes);
+router.use('/bug-reports', bugReportsRoutes);
 // router.use('/ai-tutor', aiTutorRoutes);
 
 router.get('/', (req, res) => {
@@ -57,7 +61,9 @@ router.get('/', (req, res) => {
       codeExecution: '/api/v1/code',
       codeTranslation: '/api/v1/translation',
       aiTutor: '/api/v1/ai-tutor',
-      progress: '/api/v1/progress'
+      progress: '/api/v1/progress',
+      feedback: '/api/v1/feedback',
+      bugReports: '/api/v1/bug-reports'
     }
   });
 });
