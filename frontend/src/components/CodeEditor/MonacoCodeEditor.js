@@ -1,6 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { SEEK_PROFESSIONAL_THEMES, getThemeByName, LANGUAGE_SPECIFIC_THEMES } from './themes/seekProfessional';
+import {
+  createAutocompleteProviders,
+  createHoverProviders,
+  createCodeActionProviders,
+  setupInlineSuggestions
+} from './autocompleteProviders';
+import { getSnippetsForLanguage } from './codeSnippets';
 
 const MonacoCodeEditor = ({ 
   value, 
@@ -215,25 +222,45 @@ const MonacoCodeEditor = ({
 
   const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor;
-    
+
     // Register professional themes
     registerProfessionalThemes(monaco);
     setIsThemeRegistered(true);
-    
+
     // Configure language-specific settings
     setupLanguageSupport(monaco);
-    
+
     // Add custom keyboard shortcuts
     addCustomKeyboardShortcuts(editor, monaco);
-    
+
     // Setup professional features
     if (enableProfessionalFeatures) {
       setupProfessionalFeatures(editor, monaco);
     }
-    
+
     // Apply language-specific theme enhancements
     applyLanguageSpecificTheme(monaco, language, theme);
-    
+
+    // ========== NEW: Setup Enhanced Autocomplete ==========
+    try {
+      // Create autocomplete providers for all supported languages
+      createAutocompleteProviders(monaco);
+
+      // Create hover providers for documentation on hover
+      createHoverProviders(monaco);
+
+      // Create code action providers for quick fixes
+      createCodeActionProviders(monaco);
+
+      // Setup inline suggestions
+      setupInlineSuggestions(editor, monaco);
+
+      console.log('✅ Enhanced autocomplete features activated');
+    } catch (error) {
+      console.error('Error setting up autocomplete:', error);
+    }
+    // ====================================================
+
     if (onMount) {
       onMount(editor, monaco);
     }

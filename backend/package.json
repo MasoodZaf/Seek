@@ -13,13 +13,16 @@
     "seed:tutorials": "node scripts/seedAllTutorials.js",
     "seed:comprehensive": "node scripts/seedComprehensiveTutorials.js",
     "seed:full": "node scripts/seedFullTutorials.js",
+    "seed:full:doubled": "node scripts/seedFullTutorialsDoubled.js",
     "seed:games": "node scripts/seedLearningGames.js",
     "seed:challenges": "node scripts/seedChallenges.js",
     "seed:challenges:expanded": "node scripts/seedExpandedChallenges.js",
     "seed:challenges:100": "node scripts/seed100Challenges.js",
     "seed:databases": "node scripts/seedDatabaseTutorials.js",
+    "seed:databases:doubled": "node scripts/seedDatabaseTutorialsDoubled.js",
     "seed:typescript-java": "node scripts/seedTypeScriptJavaTutorials.js",
     "seed:all": "npm run seed:tutorials && npm run seed:games && npm run seed:challenges:100 && npm run seed:databases && npm run seed:typescript-java",
+    "seed:all:doubled": "npm run seed:full:doubled && npm run seed:databases:doubled && npm run seed:games && npm run seed:challenges:100",
     "backup:db": "node scripts/backup-db.js"
   },
   "dependencies": {

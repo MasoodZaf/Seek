@@ -51,23 +51,33 @@ const createTutorial = (overrides) => ({
   ...overrides
 });
 
-// Create 25 comprehensive tutorials for each major language
+// Create 50 comprehensive tutorials for each major language (DOUBLED)
 const allTutorials = [
-  // ==================== PYTHON TUTORIALS (25 tutorials) ====================
-  ...Array.from({ length: 25 }, (_, i) => createTutorial({
+  // ==================== PYTHON TUTORIALS (50 tutorials) ====================
+  ...Array.from({ length: 50 }, (_, i) => createTutorial({
     title: `Python Tutorial ${i + 1}: ${[
       'Variables and Data Types', 'Control Flow', 'Functions', 'Lists and Tuples', 'Dictionaries',
       'File I/O', 'Classes and OOP', 'Inheritance', 'Modules', 'Error Handling',
       'Lambda Functions', 'Iterators and Generators', 'Decorators', 'Regular Expressions', 'Web Scraping',
       'Database Programming', 'Testing', 'Concurrency', 'API Development', 'Data Analysis',
-      'Machine Learning Basics', 'Data Visualization', 'File Processing', 'Design Patterns', 'Performance Optimization'
+      'Machine Learning Basics', 'Data Visualization', 'File Processing', 'Design Patterns', 'Performance Optimization',
+      'Virtual Environments', 'Package Management', 'Type Hints', 'Context Managers', 'Metaclasses',
+      'Async/Await', 'SQLAlchemy ORM', 'Django Framework', 'Flask REST APIs', 'NumPy Arrays',
+      'Pandas DataFrames', 'Web Scraping with Selenium', 'Pytest Advanced', 'Code Profiling', 'Memory Management',
+      'Multiprocessing', 'Network Programming', 'GraphQL APIs', 'Docker Integration', 'CI/CD Pipelines',
+      'Security Best Practices', 'Logging and Monitoring', 'Data Validation', 'Celery Task Queues', 'WebSockets'
     ][i]}`,
     slug: `python-tutorial-${i + 1}-${[
       'variables-data-types', 'control-flow', 'functions', 'lists-tuples', 'dictionaries',
       'file-io', 'classes-oop', 'inheritance', 'modules', 'error-handling',
       'lambda-functions', 'iterators-generators', 'decorators', 'regex', 'web-scraping',
       'database-programming', 'testing', 'concurrency', 'api-development', 'data-analysis',
-      'machine-learning', 'data-visualization', 'file-processing', 'design-patterns', 'performance'
+      'machine-learning', 'data-visualization', 'file-processing', 'design-patterns', 'performance',
+      'virtual-environments', 'package-management', 'type-hints', 'context-managers', 'metaclasses',
+      'async-await', 'sqlalchemy-orm', 'django-framework', 'flask-rest-apis', 'numpy-arrays',
+      'pandas-dataframes', 'selenium-scraping', 'pytest-advanced', 'code-profiling', 'memory-management',
+      'multiprocessing', 'network-programming', 'graphql-apis', 'docker-integration', 'cicd-pipelines',
+      'security-best-practices', 'logging-monitoring', 'data-validation', 'celery-tasks', 'websockets'
     ][i]}`,
     description: `Learn ${[
       "Python's fundamental data types and variable handling",
@@ -94,24 +104,61 @@ const allTutorials = [
       'creating charts and graphs with matplotlib',
       'advanced file processing techniques',
       'common software design patterns',
-      'code optimization and performance tuning'
+      'code optimization and performance tuning',
+      'Python virtual environment management',
+      'pip and package dependency management',
+      'static type checking with type hints',
+      'resource management with context managers',
+      'advanced Python metaclass programming',
+      'asynchronous programming patterns',
+      'ORM development with SQLAlchemy',
+      'full-stack development with Django',
+      'building RESTful APIs with Flask',
+      'numerical computing with NumPy',
+      'data manipulation with Pandas',
+      'browser automation with Selenium',
+      'advanced testing with Pytest',
+      'Python code profiling and optimization',
+      'Python memory management techniques',
+      'parallel processing with multiprocessing',
+      'socket programming and networking',
+      'GraphQL API development',
+      'containerization with Docker',
+      'continuous integration and deployment',
+      'Python security and encryption',
+      'application logging and monitoring',
+      'data validation with Pydantic',
+      'distributed task queues with Celery',
+      'real-time communication with WebSockets'
     ][i]}`,
     category: [
       'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals', 'Data Structures', 'Data Structures',
       'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals',
       'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals', 'Web Development',
       'Database', 'Programming Fundamentals', 'Programming Fundamentals', 'Web Development', 'Data Structures',
-      'Machine Learning', 'Data Structures', 'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals'
+      'Machine Learning', 'Data Structures', 'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals',
+      'DevOps', 'DevOps', 'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals',
+      'Programming Fundamentals', 'Database', 'Web Development', 'Web Development', 'Data Structures',
+      'Data Structures', 'Web Development', 'Programming Fundamentals', 'Programming Fundamentals', 'Programming Fundamentals',
+      'Programming Fundamentals', 'Programming Fundamentals', 'Web Development', 'DevOps', 'DevOps',
+      'Security', 'DevOps', 'Programming Fundamentals', 'Web Development', 'Web Development'
     ][i],
     language: 'python',
     difficulty: ['beginner', 'beginner', 'beginner', 'beginner', 'beginner',
       'intermediate', 'intermediate', 'intermediate', 'intermediate', 'intermediate',
       'intermediate', 'advanced', 'advanced', 'intermediate', 'intermediate',
       'intermediate', 'intermediate', 'advanced', 'intermediate', 'intermediate',
-      'advanced', 'intermediate', 'intermediate', 'advanced', 'advanced'][i],
+      'advanced', 'intermediate', 'intermediate', 'advanced', 'advanced',
+      'beginner', 'beginner', 'intermediate', 'intermediate', 'advanced',
+      'advanced', 'advanced', 'advanced', 'intermediate', 'intermediate',
+      'intermediate', 'intermediate', 'intermediate', 'advanced', 'advanced',
+      'advanced', 'intermediate', 'intermediate', 'intermediate', 'intermediate',
+      'intermediate', 'intermediate', 'intermediate', 'advanced', 'intermediate'][i],
     estimatedTime: [90, 110, 130, 120, 115, 140, 180, 160, 125, 135,
       155, 170, 180, 150, 160, 175, 145, 200, 190, 165,
-      210, 155, 140, 195, 175][i],
+      210, 155, 140, 195, 175, 100, 105, 145, 150, 200,
+      185, 210, 240, 190, 155, 165, 170, 160, 175, 180,
+      195, 170, 185, 155, 165, 175, 160, 150, 200, 175][i],
     tags: [
       ['python', 'variables', 'data-types'],
       ['python', 'control-flow', 'loops', 'conditionals'],
@@ -137,7 +184,32 @@ const allTutorials = [
       ['python', 'visualization', 'matplotlib', 'charts'],
       ['python', 'files', 'csv', 'json', 'processing'],
       ['python', 'design-patterns', 'architecture'],
-      ['python', 'performance', 'optimization', 'profiling']
+      ['python', 'performance', 'optimization', 'profiling'],
+      ['python', 'venv', 'virtualenv', 'environment'],
+      ['python', 'pip', 'packages', 'dependencies'],
+      ['python', 'type-hints', 'mypy', 'typing'],
+      ['python', 'context-managers', 'with', 'resources'],
+      ['python', 'metaclasses', 'advanced', 'meta'],
+      ['python', 'async', 'await', 'asyncio'],
+      ['python', 'sqlalchemy', 'orm', 'database'],
+      ['python', 'django', 'framework', 'web'],
+      ['python', 'flask', 'rest', 'api'],
+      ['python', 'numpy', 'arrays', 'numerical'],
+      ['python', 'pandas', 'dataframes', 'data'],
+      ['python', 'selenium', 'automation', 'web'],
+      ['python', 'pytest', 'testing', 'advanced'],
+      ['python', 'profiling', 'cprofile', 'optimization'],
+      ['python', 'memory', 'gc', 'management'],
+      ['python', 'multiprocessing', 'parallel', 'processes'],
+      ['python', 'networking', 'sockets', 'tcp'],
+      ['python', 'graphql', 'api', 'schema'],
+      ['python', 'docker', 'containers', 'deployment'],
+      ['python', 'ci-cd', 'github-actions', 'automation'],
+      ['python', 'security', 'cryptography', 'encryption'],
+      ['python', 'logging', 'monitoring', 'observability'],
+      ['python', 'pydantic', 'validation', 'models'],
+      ['python', 'celery', 'tasks', 'queues'],
+      ['python', 'websockets', 'real-time', 'socketio']
     ][i],
     rating: { average: 4.5 + Math.random() * 0.4, count: 50 + Math.floor(Math.random() * 200) },
     stats: {
@@ -147,8 +219,8 @@ const allTutorials = [
     }
   })),
 
-  // ==================== JAVASCRIPT TUTORIALS (25 tutorials) ====================
-  ...Array.from({ length: 25 }, (_, i) => createTutorial({
+  // ==================== JAVASCRIPT TUTORIALS (50 tutorials) ====================
+  ...Array.from({ length: 50 }, (_, i) => createTutorial({
     title: `JavaScript Tutorial ${i + 1}: ${[
       'Variables and Data Types', 'Functions and Scope', 'Arrays and Objects', 'DOM Manipulation', 'Event Handling',
       'Promises and Async', 'ES6+ Features', 'Modules', 'Error Handling', 'Closures',
