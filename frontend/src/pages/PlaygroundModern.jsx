@@ -170,15 +170,15 @@ const PlaygroundModern = () => {
             </div>
 
             {/* Settings */}
-            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6">
-              <h3 className="text-sm font-semibold text-gray-300 mb-4">Editor Settings</h3>
-              <div className="space-y-4">
+            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-4 min-h-fit">
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">Editor Settings</h3>
+              <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-gray-400 mb-2 block">Theme</label>
+                  <label className="text-xs text-gray-400 mb-1.5 block">Theme</label>
                   <select
                     value={editorTheme}
                     onChange={(e) => setEditorTheme(e.target.value)}
-                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm"
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-1.5 text-sm"
                   >
                     <option value="vs-dark">Dark</option>
                     <option value="light">Light</option>
@@ -186,7 +186,7 @@ const PlaygroundModern = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 mb-2 block">Font Size: {fontSize}px</label>
+                  <label className="text-xs text-gray-400 mb-1.5 block">Font Size: {fontSize}px</label>
                   <input
                     type="range"
                     min="12"
@@ -200,8 +200,8 @@ const PlaygroundModern = () => {
             </div>
 
             {/* Stats */}
-            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6">
-              <h3 className="text-sm font-semibold text-gray-300 mb-4">Code Stats</h3>
+            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-4 min-h-fit">
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">Code Stats</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Lines</span>
