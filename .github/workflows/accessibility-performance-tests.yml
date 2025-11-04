@@ -44,41 +44,75 @@ jobs:
       run: |
         cd backend
         npm start &
-        sleep 10
+        # Wait for server to be ready (up to 30 seconds)
+        echo "Waiting for backend server to start..."
+        for i in {1..30}; do
+          if curl -f http://localhost:5001/api/v1/health > /dev/null 2>&1; then
+            echo "✅ Backend server is ready!"
+            break
+          fi
+          echo "Waiting for server... ($i/30)"
+          sleep 1
+        done
+        # Final health check
+        curl -f http://localhost:5001/api/v1/health || (echo "❌ Backend server failed to start" && exit 1)
       env:
         NODE_ENV: test
         PORT: 5001
+        MONGODB_URI: ${{ secrets.MONGODB_URI || 'mongodb://localhost:27017/seek-test' }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-secret-key' }}
+        FRONTEND_URL: http://localhost:3000
     
     - name: Build frontend
       run: |
         cd frontend
         npm run build
+      env:
+        CI: true
+        REACT_APP_API_URL: http://localhost:5001/api/v1
+        GENERATE_SOURCEMAP: false
+
+    - name: Start frontend (for E2E tests)
+      run: |
+        cd frontend
+        npx serve -s build -l 3000 &
+        # Wait for frontend to be ready
+        echo "Waiting for frontend server to start..."
+        for i in {1..20}; do
+          if curl -f http://localhost:3000 > /dev/null 2>&1; then
+            echo "✅ Frontend server is ready!"
+            break
+          fi
+          echo "Waiting for frontend... ($i/20)"
+          sleep 1
+        done
+      continue-on-error: false
 
     - name: Run accessibility tests
       run: |
         cd frontend
         if grep -q "test:accessibility" package.json; then
-          npm run test:accessibility || echo "Accessibility tests completed with warnings"
+          echo "Running accessibility tests..."
+          npm run test:accessibility
         else
-          echo "Skipping accessibility tests - script not found"
+          echo "⚠️  Skipping accessibility tests - script not found"
         fi
       continue-on-error: true
+      env:
+        CI: true
 
     - name: Run performance tests
       run: |
         cd frontend
         if grep -q "test:performance" package.json; then
-          npm run test:performance || echo "Performance tests completed with warnings"
+          echo "Running performance tests..."
+          npm run test:performance
         else
-          echo "Skipping performance tests - script not found"
+          echo "⚠️  Skipping performance tests - script not found"
         fi
       continue-on-error: true
-
-    - name: Run all available tests
-      run: |
-        cd frontend
-        npm run test:ci || echo "Tests completed with warnings"
-      continue-on-error: true
+      env:
+        CI: true
     
     - name: Upload test reports
       uses: actions/upload-artifact@v4
