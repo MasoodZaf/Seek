@@ -388,12 +388,12 @@ const EnhancedPlayground = () => {
   const currentLanguage = getLanguageById(language);
   const executableLanguages = getExecutableLanguages();
   
-  const containerClasses = isFullscreen 
-    ? "fixed inset-0 z-50 bg-white" 
-    : "min-h-screen";
-    
-  const bgClasses = isDarkMode 
-    ? "bg-gray-900 text-white" 
+  const containerClasses = isFullscreen
+    ? "fixed inset-0 z-50 bg-white"
+    : "min-h-screen pb-32";
+
+  const bgClasses = isDarkMode
+    ? "bg-gray-900 text-white"
     : "bg-gray-50 text-gray-900";
 
   return (
