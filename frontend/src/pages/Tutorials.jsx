@@ -213,81 +213,231 @@ const Tutorials = () => {
     );
   };
   
-  const FilterSection = () => (
-    <Card className={`p-6 mb-8 transition-colors duration-300 ${
-      isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    }`}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className={`text-lg font-semibold ${
-          isDarkMode ? 'text-gray-100' : 'text-secondary-900'
-        }`}>
-          Find Your Perfect Tutorial
-        </h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setFilters({ search: '', language: '', difficulty: '', category: '' })}
-        >
-          Clear All
-        </Button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Input
-          type="text"
-          placeholder="Search tutorials..."
-          value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          leftIcon={MagnifyingGlassIcon}
-        />
-        
-        <select
-          className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
-            isDarkMode
-              ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-purple-500'
-              : 'bg-white border-gray-300 text-gray-900 focus:border-primary-500'
-          } focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
-          value={filters.language}
-          onChange={(e) => setFilters({ ...filters, language: e.target.value })}
-        >
-          <option value="">All Languages</option>
-          {languages.map(lang => (
-            <option key={lang.id} value={lang.id}>{lang.name}</option>
-          ))}
-        </select>
+  const FilterSection = () => {
+    const getLanguageIcon = (langId) => {
+      const icons = {
+        javascript: '📜',
+        python: '🐍',
+        typescript: '💎',
+        java: '☕',
+      };
+      return icons[langId] || '💻';
+    };
 
-        <select
-          className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
-            isDarkMode
-              ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-purple-500'
-              : 'bg-white border-gray-300 text-gray-900 focus:border-primary-500'
-          } focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
-          value={filters.difficulty}
-          onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
-        >
-          <option value="">All Difficulties</option>
-          {difficulties.map(diff => (
-            <option key={diff.id} value={diff.id}>{diff.name}</option>
-          ))}
-        </select>
+    const getDifficultyIcon = (diffId) => {
+      const icons = {
+        beginner: '🌱',
+        intermediate: '🚀',
+        advanced: '⚡',
+      };
+      return icons[diffId] || '📚';
+    };
 
-        <select
-          className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
-            isDarkMode
-              ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-purple-500'
-              : 'bg-white border-gray-300 text-gray-900 focus:border-primary-500'
-          } focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
-          value={filters.category}
-          onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-        >
-          <option value="">All Categories</option>
-          {categories.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
-          ))}
-        </select>
+    const getCategoryIcon = (catId) => {
+      const icons = {
+        fundamentals: '🎯',
+        'web-development': '🌐',
+        'data-structures': '🔗',
+        algorithms: '🧮',
+        frameworks: '🏗️',
+      };
+      return icons[catId] || '📖';
+    };
+
+    return (
+      <div className="mb-4 space-y-2">
+        {/* Search Bar */}
+        <div className="max-w-2xl mx-auto">
+          <Input
+            type="text"
+            placeholder="Search tutorials..."
+            value={filters.search}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            leftIcon={MagnifyingGlassIcon}
+            className="text-lg"
+          />
+        </div>
+
+        {/* Filter Cards Section - Very Compact */}
+        <div className="space-y-2">
+          {/* Languages */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className={`text-[10px] font-semibold uppercase tracking-wider ${
+                isDarkMode ? 'text-gray-400' : 'text-secondary-600'
+              }`}>
+                Languages
+              </h3>
+              {filters.language && (
+                <button
+                  onClick={() => setFilters({ ...filters, language: '' })}
+                  className={`text-[10px] ${
+                    isDarkMode ? 'text-purple-400 hover:text-purple-300' : 'text-primary-600 hover:text-primary-700'
+                  }`}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+              {languages.map((lang) => (
+                <motion.button
+                  key={lang.id}
+                  whileHover={{ scale: 1.01, y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setFilters({
+                    ...filters,
+                    language: filters.language === lang.id ? '' : lang.id
+                  })}
+                  className={`relative p-2 rounded-lg transition-all duration-300 ${
+                    filters.language === lang.id
+                      ? isDarkMode
+                        ? 'bg-gradient-to-br from-purple-600 to-purple-800 shadow-md shadow-purple-500/50'
+                        : 'bg-gradient-to-br from-primary-500 to-primary-700 shadow-md shadow-primary-500/50'
+                      : isDarkMode
+                        ? 'bg-gray-800 border border-gray-700 hover:border-purple-500/50'
+                        : 'bg-white border border-gray-200 hover:border-primary-500/50 shadow-sm hover:shadow'
+                  }`}
+                >
+                  <div className="text-xl mb-0.5">{getLanguageIcon(lang.id)}</div>
+                  <div className={`text-[10px] font-semibold ${
+                    filters.language === lang.id
+                      ? 'text-white'
+                      : isDarkMode
+                        ? 'text-gray-200'
+                        : 'text-secondary-900'
+                  }`}>
+                    {lang.name}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Difficulties */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className={`text-[10px] font-semibold uppercase tracking-wider ${
+                isDarkMode ? 'text-gray-400' : 'text-secondary-600'
+              }`}>
+                Difficulty
+              </h3>
+              {filters.difficulty && (
+                <button
+                  onClick={() => setFilters({ ...filters, difficulty: '' })}
+                  className={`text-[10px] ${
+                    isDarkMode ? 'text-purple-400 hover:text-purple-300' : 'text-primary-600 hover:text-primary-700'
+                  }`}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {difficulties.map((diff) => (
+                <motion.button
+                  key={diff.id}
+                  whileHover={{ scale: 1.01, y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setFilters({
+                    ...filters,
+                    difficulty: filters.difficulty === diff.id ? '' : diff.id
+                  })}
+                  className={`relative p-2 rounded-lg transition-all duration-300 ${
+                    filters.difficulty === diff.id
+                      ? isDarkMode
+                        ? 'bg-gradient-to-br from-purple-600 to-purple-800 shadow-md shadow-purple-500/50'
+                        : 'bg-gradient-to-br from-primary-500 to-primary-700 shadow-md shadow-primary-500/50'
+                      : isDarkMode
+                        ? 'bg-gray-800 border border-gray-700 hover:border-purple-500/50'
+                        : 'bg-white border border-gray-200 hover:border-primary-500/50 shadow-sm hover:shadow'
+                  }`}
+                >
+                  <div className="text-lg mb-0.5">{getDifficultyIcon(diff.id)}</div>
+                  <div className={`text-[10px] font-semibold ${
+                    filters.difficulty === diff.id
+                      ? 'text-white'
+                      : isDarkMode
+                        ? 'text-gray-200'
+                        : 'text-secondary-900'
+                  }`}>
+                    {diff.name}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className={`text-[10px] font-semibold uppercase tracking-wider ${
+                isDarkMode ? 'text-gray-400' : 'text-secondary-600'
+              }`}>
+                Categories
+              </h3>
+              {filters.category && (
+                <button
+                  onClick={() => setFilters({ ...filters, category: '' })}
+                  className={`text-[10px] ${
+                    isDarkMode ? 'text-purple-400 hover:text-purple-300' : 'text-primary-600 hover:text-primary-700'
+                  }`}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-1.5">
+              {categories.map((cat) => (
+                <motion.button
+                  key={cat.id}
+                  whileHover={{ scale: 1.01, y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setFilters({
+                    ...filters,
+                    category: filters.category === cat.id ? '' : cat.id
+                  })}
+                  className={`relative p-2 rounded-lg transition-all duration-300 ${
+                    filters.category === cat.id
+                      ? isDarkMode
+                        ? 'bg-gradient-to-br from-purple-600 to-purple-800 shadow-md shadow-purple-500/50'
+                        : 'bg-gradient-to-br from-primary-500 to-primary-700 shadow-md shadow-primary-500/50'
+                      : isDarkMode
+                        ? 'bg-gray-800 border border-gray-700 hover:border-purple-500/50'
+                        : 'bg-white border border-gray-200 hover:border-primary-500/50 shadow-sm hover:shadow'
+                  }`}
+                >
+                  <div className="text-lg mb-0.5">{getCategoryIcon(cat.id)}</div>
+                  <div className={`text-[10px] font-semibold leading-tight ${
+                    filters.category === cat.id
+                      ? 'text-white'
+                      : isDarkMode
+                        ? 'text-gray-200'
+                        : 'text-secondary-900'
+                  }`}>
+                    {cat.name}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Clear All Button - Only show when filters are active */}
+          {(filters.language || filters.difficulty || filters.category) && (
+            <div className="flex justify-center pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFilters({ search: filters.search, language: '', difficulty: '', category: '' })}
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
-    </Card>
-  );
+    );
+  };
   
   if (loading) {
     return (

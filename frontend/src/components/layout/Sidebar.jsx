@@ -18,6 +18,9 @@ import {
   FireIcon,
   PuzzlePieceIcon,
   CircleStackIcon,
+  ChatBubbleLeftRightIcon,
+  BugAntIcon,
+  ChartPieIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
@@ -41,17 +44,26 @@ const navigationSections = [
       { name: 'Code Translator', href: '/translator', iconType: 'language', badge: 'Beta' },
       { name: 'Achievements', href: '/achievements', iconType: 'trophy', badge: null },
     ]
+  },
+  {
+    title: 'Support',
+    items: [
+      { name: 'Send Feedback', href: '/feedback', iconType: 'feedback', badge: null },
+      { name: 'Report a Bug', href: '/report-bug', iconType: 'bug', badge: null },
+    ]
   }
-];
-
-const bottomNavigation = [
-  { name: 'Profile', href: '/profile', iconType: 'user' },
-  { name: 'Settings', href: '/settings', iconType: 'cog' },
 ];
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const [collapsedSections, setCollapsedSections] = useState({});
+
+  // Dynamic bottom navigation based on user role
+  const bottomNavigation = [
+    ...(user?.role === 'admin' ? [{ name: 'Admin Dashboard', href: '/admin/dashboard', iconType: 'admin' }] : []),
+    { name: 'Profile', href: '/profile', iconType: 'user' },
+    { name: 'Settings', href: '/settings', iconType: 'cog' },
+  ];
 
   // Icon mapping function to prevent object rendering
   const getIconComponent = (iconType) => {
@@ -67,6 +79,9 @@ const Sidebar = ({ isOpen, onClose }) => {
       trophy: TrophyIcon,
       user: UserIcon,
       cog: CogIcon,
+      feedback: ChatBubbleLeftRightIcon,
+      bug: BugAntIcon,
+      admin: ChartPieIcon,
     };
     return iconMap[iconType] || HomeIcon;
   };

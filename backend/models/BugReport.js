@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize');
+const { sequelize } = require('../config/sqlite');
 
 const BugReport = sequelize.define('BugReport', {
   id: {
@@ -136,17 +136,8 @@ const BugReport = sequelize.define('BugReport', {
   }
 }, {
   tableName: 'bug_reports',
-  timestamps: true,
-  indexes: [
-    { fields: ['userId'] },
-    { fields: ['email'] },
-    { fields: ['severity'] },
-    { fields: ['bugType'] },
-    { fields: ['status'] },
-    { fields: ['priority'] },
-    { fields: ['assignedTo'] },
-    { fields: ['createdAt'] }
-  ]
+  timestamps: true
+  // Indexes removed to avoid conflicts with existing table
 });
 
 module.exports = BugReport;

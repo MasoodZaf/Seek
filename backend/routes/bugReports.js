@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const BugReport = require('../models/BugReport');
-const { authenticate, authorize } = require('../middleware/auth');
-const sequelize = require('../config/sequelize');
+const { protect, authorize } = require('../middleware/auth');
+const { sequelize } = require('../config/sqlite');
 
 // @route   POST /api/v1/bug-reports
 // @desc    Submit bug report
@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Get user info from token if authenticated
+    // Get user info from token if protectd
     const userId = req.user ? req.user.id : null;
 
     // Get client info
@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
 // @route   GET /api/v1/bug-reports
 // @desc    Get all bug reports (Admin only)
 // @access  Private/Admin
-router.get('/', authenticate, authorize('admin'), async (req, res) => {
+router.get('/', protect, authorize('admin'), async (req, res) => {
   try {
     const {
       page = 1,
@@ -140,7 +140,7 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
 // @route   GET /api/v1/bug-reports/stats
 // @desc    Get bug report statistics (Admin only)
 // @access  Private/Admin
-router.get('/stats', authenticate, authorize('admin'), async (req, res) => {
+router.get('/stats', protect, authorize('admin'), async (req, res) => {
   try {
     const total = await BugReport.count();
 
@@ -211,7 +211,7 @@ router.get('/stats', authenticate, authorize('admin'), async (req, res) => {
 // @route   GET /api/v1/bug-reports/:id
 // @desc    Get single bug report (Admin only)
 // @access  Private/Admin
-router.get('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.get('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const bugReport = await BugReport.findByPk(req.params.id);
 
@@ -239,7 +239,7 @@ router.get('/:id', authenticate, authorize('admin'), async (req, res) => {
 // @route   PUT /api/v1/bug-reports/:id
 // @desc    Update bug report (Admin only)
 // @access  Private/Admin
-router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.put('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const bugReport = await BugReport.findByPk(req.params.id);
 
@@ -291,7 +291,7 @@ router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
 // @route   DELETE /api/v1/bug-reports/:id
 // @desc    Delete bug report (Admin only)
 // @access  Private/Admin
-router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const bugReport = await BugReport.findByPk(req.params.id);
 

@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize');
+const { sequelize } = require('../config/sqlite');
 
 const Feedback = sequelize.define('Feedback', {
   id: {
@@ -95,15 +95,8 @@ const Feedback = sequelize.define('Feedback', {
   }
 }, {
   tableName: 'feedbacks',
-  timestamps: true,
-  indexes: [
-    { fields: ['userId'] },
-    { fields: ['email'] },
-    { fields: ['type'] },
-    { fields: ['status'] },
-    { fields: ['priority'] },
-    { fields: ['createdAt'] }
-  ]
+  timestamps: true
+  // Indexes removed to avoid conflicts with existing table
 });
 
 module.exports = Feedback;

@@ -29,6 +29,7 @@ router.use('/game-sessions', gameSessionRoutes);
 router.use('/challenges', challengesRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/bug-reports', bugReportsRoutes);
+// Temporarily disabled
 // router.use('/ai-tutor', aiTutorRoutes);
 
 router.get('/', (req, res) => {

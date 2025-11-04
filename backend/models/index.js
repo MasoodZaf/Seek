@@ -5,6 +5,8 @@ const UserProgress = require('./UserProgress');
 const CodeExecution = require('./CodeExecution');
 const CodeShare = require('./CodeShare');
 const CollaborationSession = require('./CollaborationSession');
+const Feedback = require('./Feedback');
+const BugReport = require('./BugReport');
 
 // Define associations
 User.hasMany(Tutorial, { foreignKey: 'authorId', as: 'tutorials' });
@@ -28,6 +30,13 @@ CodeExecution.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 Tutorial.hasMany(CodeExecution, { foreignKey: 'tutorialId', as: 'executions' });
 CodeExecution.belongsTo(Tutorial, { foreignKey: 'tutorialId', as: 'tutorial' });
 
+// Feedback and BugReport associations with User
+User.hasMany(Feedback, { foreignKey: 'userId', as: 'feedbacks' });
+Feedback.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+User.hasMany(BugReport, { foreignKey: 'userId', as: 'bugReports' });
+BugReport.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
@@ -35,5 +44,7 @@ module.exports = {
   UserProgress,
   CodeExecution,
   CodeShare,
-  CollaborationSession
+  CollaborationSession,
+  Feedback,
+  BugReport
 };

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Feedback = require('../models/Feedback');
-const { authenticate, authorize } = require('../middleware/auth');
-const sequelize = require('../config/sequelize');
+const { protect, authorize } = require('../middleware/auth');
+const { sequelize } = require('../config/sqlite');
 
 // @route   POST /api/v1/feedback
 // @desc    Submit feedback
@@ -72,7 +72,7 @@ router.post('/', async (req, res) => {
 // @route   GET /api/v1/feedback
 // @desc    Get all feedback (Admin only)
 // @access  Private/Admin
-router.get('/', authenticate, authorize('admin'), async (req, res) => {
+router.get('/', protect, authorize('admin'), async (req, res) => {
   try {
     const {
       page = 1,
@@ -122,7 +122,7 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
 // @route   GET /api/v1/feedback/stats
 // @desc    Get feedback statistics (Admin only)
 // @access  Private/Admin
-router.get('/stats', authenticate, authorize('admin'), async (req, res) => {
+router.get('/stats', protect, authorize('admin'), async (req, res) => {
   try {
     const total = await Feedback.count();
 
@@ -189,7 +189,7 @@ router.get('/stats', authenticate, authorize('admin'), async (req, res) => {
 // @route   GET /api/v1/feedback/:id
 // @desc    Get single feedback (Admin only)
 // @access  Private/Admin
-router.get('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.get('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const feedback = await Feedback.findByPk(req.params.id);
 
@@ -217,7 +217,7 @@ router.get('/:id', authenticate, authorize('admin'), async (req, res) => {
 // @route   PUT /api/v1/feedback/:id
 // @desc    Update feedback (Admin only)
 // @access  Private/Admin
-router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.put('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const feedback = await Feedback.findByPk(req.params.id);
 
@@ -259,7 +259,7 @@ router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
 // @route   DELETE /api/v1/feedback/:id
 // @desc    Delete feedback (Admin only)
 // @access  Private/Admin
-router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const feedback = await Feedback.findByPk(req.params.id);
 

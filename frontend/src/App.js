@@ -40,6 +40,11 @@ const Achievements = React.lazy(() => import('./pages/Achievements'));
 const ComponentsDemo = React.lazy(() => import('./pages/ComponentsDemo'));
 const Challenges = React.lazy(() => import('./pages/Challenges'));
 const ChallengeDetail = React.lazy(() => import('./pages/ChallengeDetailEnhanced'));
+const FeedbackForm = React.lazy(() => import('./components/Feedback/FeedbackForm'));
+const BugReportForm = React.lazy(() => import('./components/BugReport/BugReportForm'));
+const AdminDashboard = React.lazy(() => import('./components/Admin/AdminDashboard'));
+const AdminFeedback = React.lazy(() => import('./components/Admin/AdminFeedback'));
+const AdminBugReports = React.lazy(() => import('./components/Admin/AdminBugReports'));
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -249,6 +254,36 @@ function App() {
                               <TutorialLearn />
                             </Suspense>
                           } />
+
+                          {/* Feedback and Bug Report routes */}
+                          <Route path="feedback" element={
+                            <Suspense fallback={<LoadingPage text="Loading feedback form..." />}>
+                              <FeedbackForm />
+                            </Suspense>
+                          } />
+                          <Route path="report-bug" element={
+                            <Suspense fallback={<LoadingPage text="Loading bug report form..." />}>
+                              <BugReportForm />
+                            </Suspense>
+                          } />
+
+                          {/* Admin routes */}
+                          <Route path="admin/dashboard" element={
+                            <Suspense fallback={<LoadingPage text="Loading admin dashboard..." />}>
+                              <AdminDashboard />
+                            </Suspense>
+                          } />
+                          <Route path="admin/feedback" element={
+                            <Suspense fallback={<LoadingPage text="Loading feedback management..." />}>
+                              <AdminFeedback />
+                            </Suspense>
+                          } />
+                          <Route path="admin/bug-reports" element={
+                            <Suspense fallback={<LoadingPage text="Loading bug reports management..." />}>
+                              <AdminBugReports />
+                            </Suspense>
+                          } />
+
                           <Route path="progress" element={<div>Progress Page (Coming Soon)</div>} />
                         </Route>
                         
