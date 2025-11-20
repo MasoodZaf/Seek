@@ -58,10 +58,11 @@ const DatabaseTutorials = () => {
   const fetchTutorials = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/database-tutorials', {
+      const response = await api.get('/mongo-tutorials', {
         params: {
           page: 1,
-          limit: 50,
+          limit: 200,
+          category: 'Database',
           ...(filters.search && { search: filters.search }),
           ...(filters.language && { language: filters.language }),
           ...(filters.difficulty && { difficulty: filters.difficulty }),
@@ -69,26 +70,37 @@ const DatabaseTutorials = () => {
       });
 
       if (response.data.success) {
-        let dbTutorials = response.data.data || [];
+        let dbTutorials = response.data.data?.tutorials || [];
 
         // Filter by database type if selected
         if (filters.database) {
-          // Map filter values to specific tag patterns
-          const databaseTagMap = {
-            'MongoDB': ['mongodb', 'mongo'],
-            'SQL': ['sql', 'mysql'],
-            'PostgreSQL': ['postgresql', 'postgres'],
-            'Redis': ['redis']
-          };
-
-          const tagsToMatch = databaseTagMap[filters.database] || [filters.database.toLowerCase()];
-
           dbTutorials = dbTutorials.filter(tutorial => {
             if (!tutorial.tags || !Array.isArray(tutorial.tags)) return false;
-            // Check if any tag exactly matches one of our mapped tags
-            return tutorial.tags.some(tag =>
-              tagsToMatch.some(matchTag => tag.toLowerCase() === matchTag)
-            );
+
+            const lowerTags = tutorial.tags.map(tag => tag.toLowerCase());
+
+            // Filter logic for each database type
+            switch(filters.database) {
+              case 'MongoDB':
+                // Must have mongodb/mongo tag
+                return lowerTags.some(tag => tag === 'mongodb' || tag === 'mongo');
+
+              case 'SQL':
+                // Must have mysql tag OR (sql tag but NOT postgresql tag)
+                return lowerTags.includes('mysql') ||
+                       (lowerTags.includes('sql') && !lowerTags.includes('postgresql'));
+
+              case 'PostgreSQL':
+                // Must have postgresql or postgres tag
+                return lowerTags.some(tag => tag === 'postgresql' || tag === 'postgres');
+
+              case 'Redis':
+                // Must have redis tag
+                return lowerTags.includes('redis');
+
+              default:
+                return true;
+            }
           });
         }
 
@@ -355,7 +367,7 @@ const DatabaseTutorials = () => {
         <p className={`max-w-2xl mx-auto ${
           isDarkMode ? 'text-gray-400' : 'text-secondary-600'
         }`}>
-          Master MongoDB, SQL, PostgreSQL, Redis, and more. Learn database fundamentals, advanced queries, optimization, and best practices.
+          Master MongoDB, SQL/MySQL, PostgreSQL, and Redis with comprehensive tutorials. Learn database fundamentals, advanced queries, optimization techniques, and production best practices.
         </p>
       </div>
       

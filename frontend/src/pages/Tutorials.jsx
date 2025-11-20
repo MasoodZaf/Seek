@@ -36,6 +36,8 @@ const Tutorials = () => {
     { id: 'python', name: 'Python', color: 'bg-blue-500' },
     { id: 'typescript', name: 'TypeScript', color: 'bg-blue-600' },
     { id: 'java', name: 'Java', color: 'bg-red-500' },
+    { id: 'c', name: 'C', color: 'bg-purple-500' },
+    { id: 'cpp', name: 'C++', color: 'bg-purple-600' },
   ];
   
   const difficulties = [
@@ -220,6 +222,8 @@ const Tutorials = () => {
         python: '🐍',
         typescript: '💎',
         java: '☕',
+        c: '⚙️',
+        cpp: '⚡',
       };
       return icons[langId] || '💻';
     };

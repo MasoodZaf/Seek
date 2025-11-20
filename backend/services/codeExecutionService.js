@@ -4,6 +4,7 @@ const { CodeExecution } = require('../models');
 const logger = require('../config/logger');
 const dockerExecutionService = require('./dockerExecutionService');
 const nativeExecutionService = require('./nativeExecutionService');
+const DatabaseSyntaxValidator = require('./databaseSyntaxValidator');
 
 class CodeExecutionService {
   constructor() {
@@ -82,6 +83,15 @@ class CodeExecutionService {
           break;
         case 'gml':
           result = await this.executeGML(code, input);
+          break;
+        case 'sql':
+        case 'mysql':
+        case 'postgresql':
+        case 'postgres':
+        case 'mongodb':
+        case 'mongo':
+        case 'redis':
+          result = await this.validateDatabaseSyntax(code, language);
           break;
         default:
           throw new Error(`Unsupported language: ${language}`);
@@ -633,6 +643,77 @@ class CodeExecutionService {
         });
       }, 5000);
     });
+  }
+
+  async validateDatabaseSyntax(code, language) {
+    const startTime = Date.now();
+
+    try {
+      // Use the DatabaseSyntaxValidator to check syntax
+      const validation = DatabaseSyntaxValidator.validate(code, language);
+
+      // Format output message
+      let output = '';
+
+      if (validation.valid) {
+        output += '✅ Syntax Validation: PASSED\n\n';
+        output += `Your ${language.toUpperCase()} code has valid syntax!\n\n`;
+      } else {
+        output += '❌ Syntax Validation: FAILED\n\n';
+      }
+
+      // Add errors if any
+      if (validation.errors && validation.errors.length > 0) {
+        output += '🔴 Errors:\n';
+        validation.errors.forEach((error, index) => {
+          output += `  ${index + 1}. ${error}\n`;
+        });
+        output += '\n';
+      }
+
+      // Add warnings if any
+      if (validation.warnings && validation.warnings.length > 0) {
+        output += '⚠️  Warnings:\n';
+        validation.warnings.forEach((warning, index) => {
+          output += `  ${index + 1}. ${warning}\n`;
+        });
+        output += '\n';
+      }
+
+      // Add suggestions if any
+      if (validation.suggestions && validation.suggestions.length > 0) {
+        output += '💡 Suggestions:\n';
+        validation.suggestions.forEach((suggestion, index) => {
+          output += `  ${index + 1}. ${suggestion}\n`;
+        });
+        output += '\n';
+      }
+
+      // Add statement count for SQL
+      if (validation.statementCount) {
+        output += `📊 Statement count: ${validation.statementCount}\n`;
+      }
+
+      // Add note about execution
+      output += '\n---\n';
+      output += 'ℹ️  Note: This is a syntax check only. Code is not executed against a real database.\n';
+      output += `To run this ${language.toUpperCase()} code, use a local database environment or online tool.\n`;
+
+      const executionTime = Date.now() - startTime;
+
+      return {
+        output,
+        executionTime,
+        memoryUsage: 0
+      };
+    } catch (error) {
+      logger.error('Database syntax validation error:', error);
+      return {
+        output: `❌ Validation Error: ${error.message}`,
+        executionTime: Date.now() - startTime,
+        memoryUsage: 0
+      };
+    }
   }
 
   validateCode(code, language) {

@@ -1,0 +1,76 @@
+# Robots.txt for Seek Learning Platform
+# https://seek-platform.com
+
+# Allow all crawlers by default
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://seek-platform.com/sitemap.xml
+
+# Disallow private/sensitive routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /settings
+Disallow: /profile
+
+# Disallow authentication pages (no SEO value)
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+
+# Allow important pages
+Allow: /
+Allow: /dashboard
+Allow: /tutorials
+Allow: /database-tutorials
+Allow: /challenges
+Allow: /playground
+Allow: /translator
+Allow: /database-translator
+Allow: /games
+Allow: /achievements
+
+# Crawl delay (be respectful to servers)
+Crawl-delay: 1
+
+# Specific bot instructions
+# Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Googlebot-Image
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Facebook
+User-agent: Facebot
+Allow: /
+
+# Twitter
+User-agent: Twitterbot
+Allow: /
+
+# LinkedIn
+User-agent: LinkedInBot
+Allow: /
+
+# Disallow bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+# Prevent scraping of user data
+User-agent: *
+Disallow: /api/users/
+Disallow: /api/auth/

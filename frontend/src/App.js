@@ -9,6 +9,7 @@ import performanceMonitor from './utils/performanceMonitoring';
 import { serviceWorkerManager } from './utils/serviceWorker';
 import { initializeBrowserSupport } from './utils/browserDetection';
 import performanceOptimizer from './utils/performanceOptimization';
+import { initializeAnalytics, trackPageView } from './utils/analytics';
 
 // Import browser compatibility styles
 import './styles/browser-compatibility.css';
@@ -22,6 +23,8 @@ import { PerformanceMonitorToggle } from './components/ui/PerformanceMonitor';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { SEOProvider } from './context/SEOContext';
+import PageViewTracker from './components/analytics/PageViewTracker';
 
 // Lazy load pages for code splitting
 const Login = React.lazy(() => import('./pages/auth/Login'));
@@ -91,10 +94,13 @@ function App() {
   useEffect(() => {
     // Initialize browser detection and compatibility features
     const browserInfo = initializeBrowserSupport();
-    
+
     // Initialize performance optimization and monitoring
     performanceOptimizer.init();
-    
+
+    // Initialize Google Analytics
+    initializeAnalytics();
+
     // Initialize performance monitoring
     if (process.env.NODE_ENV === 'production') {
       console.log('Performance monitoring initialized');
@@ -145,11 +151,13 @@ function App() {
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <Router>
-            <ThemeProvider>
-              <ToastProvider>
-                <AuthProvider>
-                  <SocketProvider>
-                    <div className="App">
+            <SEOProvider>
+              <PageViewTracker />
+              <ThemeProvider>
+                <ToastProvider>
+                  <AuthProvider>
+                    <SocketProvider>
+                      <div className="App">
                       <Routes>
                         {/* Public routes */}
                         <Route 
@@ -300,11 +308,12 @@ function App() {
                       {/* Performance Monitor (Development only) */}
                       <PerformanceMonitorToggle />
                     </div>
-                  </SocketProvider>
-                </AuthProvider>
-              </ToastProvider>
-          </ThemeProvider>
-        </Router>
+                    </SocketProvider>
+                  </AuthProvider>
+                </ToastProvider>
+              </ThemeProvider>
+            </SEOProvider>
+          </Router>
       </QueryClientProvider>
     </HelmetProvider>
     </ErrorBoundary>

@@ -16,11 +16,14 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, Button, Progress } from '../components/ui';
 import { useTheme } from '../context/ThemeContext';
+import { useSEO } from '../context/SEOContext';
+import { generateTutorialSEO } from '../utils/seo';
 import api from '../utils/api';
 import EnhancedCodeEditor from '../components/CodeEditor/EnhancedCodeEditor';
 
 const TutorialLearn = () => {
   const { id } = useParams();
+  const { updateSEO } = useSEO();
   const [tutorial, setTutorial] = useState(null);
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [currentStep, setCurrentStep] = useState('content'); // content, exercise, quiz
@@ -41,6 +44,22 @@ const TutorialLearn = () => {
     fetchTutorial();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Update SEO when tutorial loads
+  useEffect(() => {
+    if (tutorial) {
+      const seoConfig = generateTutorialSEO({
+        id: tutorial._id,
+        title: tutorial.title,
+        description: tutorial.description,
+        category: tutorial.category,
+        difficulty: tutorial.difficulty,
+        tags: tutorial.tags,
+        slug: tutorial.slug || tutorial._id
+      });
+      updateSEO(seoConfig);
+    }
+  }, [tutorial, updateSEO]);
 
   useEffect(() => {
     if (tutorial && currentLessonIndex >= 0) {
