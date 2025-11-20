@@ -12,23 +12,34 @@ on:
 jobs:
   accessibility-performance-tests:
     runs-on: ubuntu-latest
-    
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        cache-dependency-path: |
-          frontend/package-lock.json
-          backend/package-lock.json
+
+    - name: Install root dependencies
+      run: npm ci
 
     - name: Install frontend dependencies
       run: |
@@ -47,7 +58,7 @@ jobs:
         # Wait for server to be ready (up to 30 seconds)
         echo "Waiting for backend server to start..."
         for i in {1..30}; do
-          if curl -f http://localhost:5001/api/v1/health > /dev/null 2>&1; then
+          if curl -f http://localhost:5001/health > /dev/null 2>&1; then
             echo "✅ Backend server is ready!"
             break
           fi
@@ -55,13 +66,14 @@ jobs:
           sleep 1
         done
         # Final health check
-        curl -f http://localhost:5001/api/v1/health || (echo "❌ Backend server failed to start" && exit 1)
+        curl -f http://localhost:5001/health || (echo "❌ Backend server failed to start" && exit 1)
       env:
         NODE_ENV: test
         PORT: 5001
-        MONGODB_URI: ${{ secrets.MONGODB_URI || 'mongodb://localhost:27017/seek-test' }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-secret-key' }}
+        MONGODB_URI: mongodb://localhost:27017/seek-test
+        JWT_SECRET: test-secret-key-for-github-actions
         FRONTEND_URL: http://localhost:3000
+        DISABLE_DOCKER_EXEC: true
     
     - name: Build frontend
       run: |
