@@ -329,36 +329,49 @@ const TutorialLearn = () => {
                 Lessons
               </h3>
               <div className="space-y-2">
-                {(tutorial.steps || tutorial.lessons || []).map((lesson, index) => (
-                  <button
-                    key={lesson.id}
-                    onClick={() => {
-                      setCurrentLessonIndex(index);
-                      setCurrentStep('content');
-                    }}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
-                      index === currentLessonIndex
-                        ? isDarkMode 
-                          ? 'bg-blue-900 text-blue-200 border border-blue-800'
-                          : 'bg-primary-100 text-primary-900 border border-primary-200'
-                        : isDarkMode
-                          ? 'hover:bg-gray-700 text-gray-300'
-                          : 'hover:bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{lesson.title}</p>
-                        <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                          {lesson.duration || '15'}min
-                        </p>
+                {(tutorial.steps || tutorial.lessons || []).map((lesson, index) => {
+                  // Determine phase based on step title
+                  let phase = 'learn';
+                  if (lesson.title?.toLowerCase().includes('practice')) {
+                    phase = 'practice';
+                  } else if (lesson.title?.toLowerCase().includes('challenge')) {
+                    phase = 'challenge';
+                  }
+
+                  const isActive = currentLessonIndex === index;
+
+                  return (
+                    <button
+                      key={lesson.id || index}
+                      onClick={() => {
+                        setCurrentLessonIndex(index); // Set to the clicked step index
+                        setCurrentPhase(phase); // Set the phase based on which step was clicked
+                        setCurrentStep('content');
+                      }}
+                      className={`w-full text-left p-3 rounded-lg transition-colors ${
+                        isActive
+                          ? isDarkMode
+                            ? 'bg-blue-900 text-blue-200 border border-blue-800'
+                            : 'bg-primary-100 text-primary-900 border border-primary-200'
+                          : isDarkMode
+                            ? 'hover:bg-gray-700 text-gray-300'
+                            : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">{lesson.title}</p>
+                          <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                            {lesson.duration || '15'}min
+                          </p>
+                        </div>
+                        {lessonProgress[lesson.id] && (
+                          <CheckCircleIcon className="h-4 w-4 text-green-500" />
+                        )}
                       </div>
-                      {lessonProgress[lesson.id] && (
-                        <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                      )}
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             </Card>
           </div>
@@ -379,7 +392,10 @@ const TutorialLearn = () => {
                 <div className="flex justify-center mt-6">
                   <div className="flex space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
                     <button
-                      onClick={() => setCurrentPhase('learn')}
+                      onClick={() => {
+                        setCurrentPhase('learn');
+                        setCurrentLessonIndex(0); // Step 1 is Learn
+                      }}
                       className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
                         currentPhase === 'learn'
                           ? isDarkMode
@@ -394,7 +410,10 @@ const TutorialLearn = () => {
                       📚 Learn
                     </button>
                     <button
-                      onClick={() => setCurrentPhase('practice')}
+                      onClick={() => {
+                        setCurrentPhase('practice');
+                        setCurrentLessonIndex(1); // Step 2 is Practice
+                      }}
                       className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
                         currentPhase === 'practice'
                           ? isDarkMode
@@ -409,7 +428,10 @@ const TutorialLearn = () => {
                       💻 Practice
                     </button>
                     <button
-                      onClick={() => setCurrentPhase('challenge')}
+                      onClick={() => {
+                        setCurrentPhase('challenge');
+                        setCurrentLessonIndex(2); // Step 3 is Challenge
+                      }}
                       className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
                         currentPhase === 'challenge'
                           ? isDarkMode

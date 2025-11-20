@@ -33,6 +33,7 @@ const TutorialDetail = React.lazy(() => import('./pages/TutorialDetail'));
 const TutorialLearn = React.lazy(() => import('./pages/TutorialLearn'));
 const PlaygroundNew = React.lazy(() => import('./pages/PlaygroundModern'));
 const CodeTranslator = React.lazy(() => import('./pages/CodeTranslator'));
+const DatabaseTranslator = React.lazy(() => import('./pages/DatabaseTranslator'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const Practice = React.lazy(() => import('./pages/Practice'));
@@ -205,6 +206,11 @@ function App() {
                           <Route path="translator" element={
                             <Suspense fallback={<LoadingPage text="Loading translator..." />}>
                               <CodeTranslator />
+                            </Suspense>
+                          } />
+                          <Route path="database-translator" element={
+                            <Suspense fallback={<LoadingPage text="Loading database translator..." />}>
+                              <DatabaseTranslator />
                             </Suspense>
                           } />
                           <Route path="practice" element={

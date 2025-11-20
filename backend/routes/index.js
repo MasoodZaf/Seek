@@ -14,6 +14,7 @@ const gameSessionRoutes = require('./gameSessions');
 const challengesRoutes = require('./challenges');
 const feedbackRoutes = require('./feedback');
 const bugReportsRoutes = require('./bugReports');
+const databaseTranslationRoutes = require('./databaseTranslation');
 // Temporarily comment out AI Tutor routes to start server
 // const aiTutorRoutes = require('./aiTutor');
 
@@ -29,6 +30,7 @@ router.use('/game-sessions', gameSessionRoutes);
 router.use('/challenges', challengesRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/bug-reports', bugReportsRoutes);
+router.use('/database-translation', databaseTranslationRoutes);
 // Temporarily disabled
 // router.use('/ai-tutor', aiTutorRoutes);
 
@@ -46,6 +48,7 @@ router.get('/', (req, res) => {
       'Game Session Management',
       'Code Execution',
       'Code Translation',
+      'Database Query Translation',
       'AI-Powered Tutoring',
       'Intelligent Code Review',
       'Personalized Learning',
@@ -61,6 +64,7 @@ router.get('/', (req, res) => {
       challenges: '/api/v1/challenges',
       codeExecution: '/api/v1/code',
       codeTranslation: '/api/v1/translation',
+      databaseTranslation: '/api/v1/database-translation',
       aiTutor: '/api/v1/ai-tutor',
       progress: '/api/v1/progress',
       feedback: '/api/v1/feedback',

@@ -42,6 +42,7 @@ const navigationSections = [
     items: [
       { name: 'Code Playground', href: '/playground', iconType: 'code', badge: null },
       { name: 'Code Translator', href: '/translator', iconType: 'language', badge: 'Beta' },
+      { name: 'Database Translator', href: '/database-translator', iconType: 'database', badge: 'New' },
       { name: 'Achievements', href: '/achievements', iconType: 'trophy', badge: null },
     ]
   },
