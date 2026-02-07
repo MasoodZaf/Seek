@@ -539,7 +539,7 @@ export const addFocusVisiblePolyfill = () => {
   const style = document.createElement('style');
   style.textContent = `
     [data-focus-visible] {
-      outline: 2px solid #3b82f6;
+      outline: 2px solid #2CB5E3;
       outline-offset: 2px;
     }
     

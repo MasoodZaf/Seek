@@ -28,7 +28,7 @@ const ProgressRing = ({
   };
   
   const variants = {
-    primary: '#3b82f6',
+    primary: '#2CB5E3',
     success: '#22c55e',
     warning: '#f59e0b',
     error: '#ef4444',
@@ -51,7 +51,7 @@ const ProgressRing = ({
       >
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="0%" stopColor="#1B2A6B" />
             <stop offset="50%" stopColor="#8b5cf6" />
             <stop offset="100%" stopColor="#ec4899" />
           </linearGradient>

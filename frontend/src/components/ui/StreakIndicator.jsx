@@ -151,7 +151,7 @@ const StreakIndicator = ({
           style={{
             background: streakLevel === 'legendary' ? '#ffd700' :
                        streakLevel === 'epic' ? '#9d4edd' :
-                       streakLevel === 'rare' ? '#3b82f6' : '#22c55e'
+                       streakLevel === 'rare' ? '#2CB5E3' : '#22c55e'
           }}
           initial={showAnimation ? { scale: 0, rotate: -90 } : {}}
           animate={showAnimation ? { scale: 1, rotate: 0 } : {}}

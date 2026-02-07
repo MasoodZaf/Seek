@@ -119,15 +119,15 @@ const TutorialDetail = () => {
         className="mb-6"
       >
         <Link
-          to="/tutorials"
+          to={tutorial.category === 'Database' ? '/database-tutorials' : '/tutorials'}
           className={`inline-flex items-center transition-colors ${
-            isDarkMode 
-              ? 'text-primary-400 hover:text-primary-300' 
+            isDarkMode
+              ? 'text-primary-400 hover:text-primary-300'
               : 'text-primary-600 hover:text-primary-500'
           }`}
         >
           <ChevronLeftIcon className="h-5 w-5 mr-1" />
-          Back to Tutorials
+          Back to {tutorial.category === 'Database' ? 'Database Tutorials' : 'Tutorials'}
         </Link>
       </motion.div>
 

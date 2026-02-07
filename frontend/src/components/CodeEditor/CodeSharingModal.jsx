@@ -113,7 +113,7 @@ const CodeSharingModal = ({
     ctx.fillText(title, 30, 35);
     
     // Language badge
-    ctx.fillStyle = '#3b82f6';
+    ctx.fillStyle = '#2CB5E3';
     ctx.fillRect(30, 45, 120, 25);
     ctx.fillStyle = '#ffffff';
     ctx.font = '14px Inter, sans-serif';

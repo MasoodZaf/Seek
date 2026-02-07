@@ -26,7 +26,7 @@ const Spinner = ({ size = 'md', variant = 'primary', className }) => {
       <motion.div
         className={clsx(sizes[size], 'rounded-full', className)}
         style={{
-          background: 'conic-gradient(from 0deg, transparent, #3b82f6, transparent)',
+          background: 'conic-gradient(from 0deg, transparent, #2CB5E3, transparent)',
         }}
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}

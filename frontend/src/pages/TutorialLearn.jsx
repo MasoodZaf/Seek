@@ -34,6 +34,8 @@ const TutorialLearn = () => {
   const [exerciseResults, setExerciseResults] = useState(null);
   const [challengeCode, setChallengeCode] = useState('');
   const [challengeOutput, setChallengeOutput] = useState(null);
+  const [practiceCode, setPracticeCode] = useState('');
+  const [practiceOutput, setPracticeOutput] = useState(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizResults, setQuizResults] = useState({});
@@ -67,6 +69,9 @@ const TutorialLearn = () => {
       if (lesson?.exercises?.[0]) {
         setExerciseCode(lesson.exercises[0].starterCode || '');
       }
+      // Initialize practice code from practicePhase starterCode
+      setPracticeCode(lesson?.practicePhase?.starterCode || lesson?.codeExamples?.[0]?.code || '// Start coding here');
+      setPracticeOutput(null);
     }
   }, [tutorial, currentLessonIndex]);
 
@@ -190,6 +195,43 @@ const TutorialLearn = () => {
       }
     } catch (error) {
       setChallengeOutput({
+        success: false,
+        error: error.response?.data?.error || error.message || 'Failed to execute code'
+      });
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  const runPracticeCode = async () => {
+    if (!practiceCode.trim()) {
+      setPracticeOutput({ success: false, error: 'Please enter some code first!' });
+      return;
+    }
+
+    setIsExecuting(true);
+    setPracticeOutput(null);
+
+    try {
+      const response = await api.post('/code/execute', {
+        code: practiceCode,
+        language: tutorial.language || 'javascript'
+      });
+
+      if (response.data.success) {
+        setPracticeOutput({
+          success: true,
+          output: response.data.data.output,
+          executionTime: response.data.data.executionTime
+        });
+      } else {
+        setPracticeOutput({
+          success: false,
+          error: response.data.error || 'Execution failed'
+        });
+      }
+    } catch (error) {
+      setPracticeOutput({
         success: false,
         error: error.response?.data?.error || error.message || 'Failed to execute code'
       });
@@ -411,10 +453,7 @@ const TutorialLearn = () => {
                 <div className="flex justify-center mt-6">
                   <div className="flex space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
                     <button
-                      onClick={() => {
-                        setCurrentPhase('learn');
-                        setCurrentLessonIndex(0); // Step 1 is Learn
-                      }}
+                      onClick={() => setCurrentPhase('learn')}
                       className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
                         currentPhase === 'learn'
                           ? isDarkMode
@@ -429,10 +468,7 @@ const TutorialLearn = () => {
                       📚 Learn
                     </button>
                     <button
-                      onClick={() => {
-                        setCurrentPhase('practice');
-                        setCurrentLessonIndex(1); // Step 2 is Practice
-                      }}
+                      onClick={() => setCurrentPhase('practice')}
                       className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
                         currentPhase === 'practice'
                           ? isDarkMode
@@ -447,10 +483,7 @@ const TutorialLearn = () => {
                       💻 Practice
                     </button>
                     <button
-                      onClick={() => {
-                        setCurrentPhase('challenge');
-                        setCurrentLessonIndex(2); // Step 3 is Challenge
-                      }}
+                      onClick={() => setCurrentPhase('challenge')}
                       className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
                         currentPhase === 'challenge'
                           ? isDarkMode
@@ -513,7 +546,7 @@ const TutorialLearn = () => {
               {/* Content */}
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={`${currentLessonIndex}-${currentStep}`}
+                  key={`${currentLessonIndex}-${currentStep}-${currentPhase}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -664,17 +697,93 @@ const TutorialLearn = () => {
                             </div>
                           )}
 
-                          {/* Starter Code */}
-                          <div>
-                            <h3 className={`font-semibold mb-3 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                          {/* Code Editor */}
+                          <div className="mt-8">
+                            <h3 className={`font-semibold mb-4 flex items-center ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                              <CodeBracketIcon className="h-5 w-5 mr-2 text-purple-500" />
                               Your Code
                             </h3>
-                            <div className="rounded-lg overflow-hidden">
-                              <div className="bg-gray-900 p-4">
-                                <pre className="text-green-400 text-sm font-mono whitespace-pre-wrap">
-                                  <code>{currentLesson.practicePhase?.starterCode || currentLesson.codeExamples?.[0]?.code || '// Start coding here'}</code>
-                                </pre>
+
+                            <div className={`rounded-xl overflow-hidden border-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                              <div className={isDarkMode ? 'bg-gray-800' : 'bg-white'}>
+                                <EnhancedCodeEditor
+                                  code={practiceCode}
+                                  onChange={setPracticeCode}
+                                  language={tutorial?.language || 'javascript'}
+                                  placeholder={`// Write your practice code here...\n// Click "Run Code" to test`}
+                                  isDark={isDarkMode}
+                                  showLineNumbers={true}
+                                  className="min-h-[300px]"
+                                />
                               </div>
+
+                              {/* Run Button */}
+                              <div className={`p-4 border-t-2 ${isDarkMode ? 'bg-gray-750 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                                <Button
+                                  onClick={runPracticeCode}
+                                  disabled={isExecuting || !practiceCode.trim()}
+                                  variant="primary"
+                                  className="w-full sm:w-auto"
+                                >
+                                  {isExecuting ? (
+                                    <>
+                                      <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                      </svg>
+                                      Running...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <PlayIcon className="h-4 w-4 mr-2" />
+                                      Run Code
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+
+                              {/* Output Panel */}
+                              {practiceOutput && (
+                                <div className={`p-4 border-t-2 ${
+                                  isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                                }`}>
+                                  <h4 className={`font-semibold mb-2 flex items-center ${
+                                    practiceOutput.success
+                                      ? 'text-green-600 dark:text-green-400'
+                                      : 'text-red-600 dark:text-red-400'
+                                  }`}>
+                                    {practiceOutput.success ? (
+                                      <>
+                                        <CheckCircleIcon className="h-5 w-5 mr-2" />
+                                        Success
+                                      </>
+                                    ) : (
+                                      <>
+                                        <XCircleIcon className="h-5 w-5 mr-2" />
+                                        Error
+                                      </>
+                                    )}
+                                  </h4>
+                                  <div className={`font-mono text-sm p-4 rounded-lg ${
+                                    isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-100 text-gray-900'
+                                  }`}>
+                                    {practiceOutput.success ? (
+                                      <>
+                                        <pre className="whitespace-pre-wrap">{practiceOutput.output}</pre>
+                                        {practiceOutput.executionTime && (
+                                          <p className="mt-2 text-xs text-gray-500">
+                                            Execution time: {practiceOutput.executionTime}ms
+                                          </p>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <pre className="whitespace-pre-wrap text-red-600 dark:text-red-400">
+                                        {practiceOutput.error}
+                                      </pre>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
 

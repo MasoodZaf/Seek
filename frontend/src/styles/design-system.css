@@ -1,45 +1,50 @@
 /* Professional Design System - CSS Custom Properties */
 
 :root {
-  /* Enhanced Color System */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  --color-primary-950: #172554;
+  /* Aurmak Brand Color System */
+  --color-primary-50: #f0f1f8;
+  --color-primary-100: #d9dcef;
+  --color-primary-200: #b3b9df;
+  --color-primary-300: #8d96cf;
+  --color-primary-400: #6773bf;
+  --color-primary-500: #4150af;
+  --color-primary-600: #344098;
+  --color-primary-700: #283182;
+  --color-primary-800: #1B2A6B;
+  --color-primary-900: #121c4a;
+  --color-primary-950: #0a1030;
+
+  /* Aurmak Brand Accent */
+  --color-accent-500: #2CB5E3;
+  --color-accent-600: #1f96c2;
+  --color-accent-700: #17729a;
 
   /* Semantic Colors */
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --color-info: #2CB5E3;
 
   /* Background Colors */
   --color-background: #ffffff;
-  --color-background-secondary: #f8fafc;
-  --color-background-tertiary: #f1f5f9;
-  
+  --color-background-secondary: #F4F6F8;
+  --color-background-tertiary: #e8ecf0;
+
   /* Foreground Colors */
-  --color-foreground: #0f172a;
-  --color-foreground-secondary: #475569;
-  --color-foreground-tertiary: #64748b;
+  --color-foreground: #2D3748;
+  --color-foreground-secondary: #4A5568;
+  --color-foreground-tertiary: #8494a5;
 
   /* Border Colors */
-  --color-border: #e2e8f0;
-  --color-border-light: #f1f5f9;
+  --color-border: #d1d9e0;
+  --color-border-light: #F4F6F8;
 
-  /* Professional Gradients */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Aurmak Brand Gradients */
+  --gradient-primary: linear-gradient(135deg, #1B2A6B 0%, #2CB5E3 100%);
   --gradient-success: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
   --gradient-warning: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
   --gradient-error: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
-  --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  --gradient-hero: linear-gradient(135deg, #1B2A6B 0%, #2CB5E3 50%, #6dccec 100%);
   --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
 
   /* Shadow System */
@@ -48,8 +53,8 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.3);
-  --shadow-glow-lg: 0 0 40px rgba(59, 130, 246, 0.4);
+  --shadow-glow: 0 0 20px rgba(44, 181, 227, 0.3);
+  --shadow-glow-lg: 0 0 40px rgba(44, 181, 227, 0.4);
   --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
   --shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   --shadow-elevation-3: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
@@ -112,18 +117,18 @@
 /* Dark Theme Variables */
 [data-theme="dark"] {
   /* Background Colors */
-  --color-background: #0f172a;
-  --color-background-secondary: #1e293b;
-  --color-background-tertiary: #334155;
-  
+  --color-background: #141b28;
+  --color-background-secondary: #1f2736;
+  --color-background-tertiary: #2D3748;
+
   /* Foreground Colors */
   --color-foreground: #ffffff;
-  --color-foreground-secondary: #f1f5f9;
-  --color-foreground-tertiary: #e2e8f0;
+  --color-foreground-secondary: #F4F6F8;
+  --color-foreground-tertiary: #d1d9e0;
 
   /* Border Colors */
-  --color-border: #334155;
-  --color-border-light: #475569;
+  --color-border: #2D3748;
+  --color-border-light: #4A5568;
 
   /* Dark Theme Gradients */
   --gradient-glass: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
@@ -218,7 +223,7 @@
 }
 
 .text-shadow-glow {
-  text-shadow: 0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
+  text-shadow: 0 0 10px rgba(44, 181, 227, 0.5), 0 0 20px rgba(44, 181, 227, 0.3);
 }
 
 /* Utility Classes for Design System */
@@ -363,7 +368,7 @@
 
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 3px rgba(44, 181, 227, 0.3);
 }
 
 .focus-ring-success:focus {
@@ -520,10 +525,10 @@
 
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px rgba(44, 181, 227, 0.3);
   }
   50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 40px rgba(44, 181, 227, 0.6);
   }
 }
 

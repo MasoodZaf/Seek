@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  FunnelIcon,
   MagnifyingGlassIcon,
   ClockIcon,
   UserGroupIcon,
@@ -13,7 +12,6 @@ import {
   Card,
   Button,
   Badge,
-  Input,
   Progress,
   LoadingCard
 } from '../components/ui';
@@ -215,233 +213,115 @@ const Tutorials = () => {
     );
   };
   
-  const FilterSection = () => {
-    const getLanguageIcon = (langId) => {
-      const icons = {
-        javascript: '📜',
-        python: '🐍',
-        typescript: '💎',
-        java: '☕',
-        c: '⚙️',
-        cpp: '⚡',
-      };
-      return icons[langId] || '💻';
-    };
+  const hasActiveFilters = filters.language || filters.difficulty || filters.category;
 
-    const getDifficultyIcon = (diffId) => {
-      const icons = {
-        beginner: '🌱',
-        intermediate: '🚀',
-        advanced: '⚡',
-      };
-      return icons[diffId] || '📚';
-    };
+  const FilterChip = ({ label, active, onClick }) => (
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+        active
+          ? 'bg-gradient-to-r from-primary-800 to-accent-500 text-white shadow-sm'
+          : isDarkMode
+            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+            : 'bg-white text-secondary-600 hover:text-secondary-900 hover:border-accent-400 border border-secondary-200'
+      }`}
+    >
+      {label}
+    </motion.button>
+  );
 
-    const getCategoryIcon = (catId) => {
-      const icons = {
-        fundamentals: '🎯',
-        'web-development': '🌐',
-        'data-structures': '🔗',
-        algorithms: '🧮',
-        frameworks: '🏗️',
-      };
-      return icons[catId] || '📖';
-    };
+  const FilterSection = () => (
+    <div className={`rounded-xl p-4 ${
+      isDarkMode ? 'bg-gray-800/50' : 'bg-white border border-secondary-100 shadow-sm'
+    }`}>
+      {/* Search */}
+      <div className="relative mb-4">
+        <MagnifyingGlassIcon className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${
+          isDarkMode ? 'text-gray-500' : 'text-secondary-400'
+        }`} />
+        <input
+          type="text"
+          placeholder="Search tutorials..."
+          value={filters.search}
+          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+          className={`w-full pl-10 pr-4 py-2.5 rounded-lg text-sm transition-colors ${
+            isDarkMode
+              ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-accent-500'
+              : 'bg-secondary-50 border-secondary-200 text-secondary-900 placeholder-secondary-400 focus:border-accent-500'
+          } border focus:outline-none focus:ring-1 focus:ring-accent-500/30`}
+        />
+      </div>
 
-    return (
-      <div className="mb-4 space-y-2">
-        {/* Search Bar */}
-        <div className="max-w-2xl mx-auto">
-          <Input
-            type="text"
-            placeholder="Search tutorials..."
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            leftIcon={MagnifyingGlassIcon}
-            className="text-lg"
-          />
+      {/* Filter rows */}
+      <div className="space-y-3">
+        {/* Languages */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-xs font-semibold uppercase tracking-wider min-w-[70px] ${
+            isDarkMode ? 'text-gray-500' : 'text-secondary-400'
+          }`}>Language</span>
+          <div className="flex gap-1.5 flex-wrap">
+            {languages.map((lang) => (
+              <FilterChip
+                key={lang.id}
+                label={lang.name}
+                active={filters.language === lang.id}
+                onClick={() => setFilters({ ...filters, language: filters.language === lang.id ? '' : lang.id })}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Filter Cards Section - Very Compact */}
-        <div className="space-y-2">
-          {/* Languages */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <h3 className={`text-[10px] font-semibold uppercase tracking-wider ${
-                isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-              }`}>
-                Languages
-              </h3>
-              {filters.language && (
-                <button
-                  onClick={() => setFilters({ ...filters, language: '' })}
-                  className={`text-[10px] ${
-                    isDarkMode ? 'text-purple-400 hover:text-purple-300' : 'text-primary-600 hover:text-primary-700'
-                  }`}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
-              {languages.map((lang) => (
-                <motion.button
-                  key={lang.id}
-                  whileHover={{ scale: 1.01, y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setFilters({
-                    ...filters,
-                    language: filters.language === lang.id ? '' : lang.id
-                  })}
-                  className={`relative p-2 rounded-lg transition-all duration-300 ${
-                    filters.language === lang.id
-                      ? isDarkMode
-                        ? 'bg-gradient-to-br from-purple-600 to-purple-800 shadow-md shadow-purple-500/50'
-                        : 'bg-gradient-to-br from-primary-500 to-primary-700 shadow-md shadow-primary-500/50'
-                      : isDarkMode
-                        ? 'bg-gray-800 border border-gray-700 hover:border-purple-500/50'
-                        : 'bg-white border border-gray-200 hover:border-primary-500/50 shadow-sm hover:shadow'
-                  }`}
-                >
-                  <div className="text-xl mb-0.5">{getLanguageIcon(lang.id)}</div>
-                  <div className={`text-[10px] font-semibold ${
-                    filters.language === lang.id
-                      ? 'text-white'
-                      : isDarkMode
-                        ? 'text-gray-200'
-                        : 'text-secondary-900'
-                  }`}>
-                    {lang.name}
-                  </div>
-                </motion.button>
-              ))}
-            </div>
+        {/* Difficulty */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-xs font-semibold uppercase tracking-wider min-w-[70px] ${
+            isDarkMode ? 'text-gray-500' : 'text-secondary-400'
+          }`}>Level</span>
+          <div className="flex gap-1.5 flex-wrap">
+            {difficulties.map((diff) => (
+              <FilterChip
+                key={diff.id}
+                label={diff.name}
+                active={filters.difficulty === diff.id}
+                onClick={() => setFilters({ ...filters, difficulty: filters.difficulty === diff.id ? '' : diff.id })}
+              />
+            ))}
           </div>
+        </div>
 
-          {/* Difficulties */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <h3 className={`text-[10px] font-semibold uppercase tracking-wider ${
-                isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-              }`}>
-                Difficulty
-              </h3>
-              {filters.difficulty && (
-                <button
-                  onClick={() => setFilters({ ...filters, difficulty: '' })}
-                  className={`text-[10px] ${
-                    isDarkMode ? 'text-purple-400 hover:text-purple-300' : 'text-primary-600 hover:text-primary-700'
-                  }`}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <div className="grid grid-cols-3 gap-1.5">
-              {difficulties.map((diff) => (
-                <motion.button
-                  key={diff.id}
-                  whileHover={{ scale: 1.01, y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setFilters({
-                    ...filters,
-                    difficulty: filters.difficulty === diff.id ? '' : diff.id
-                  })}
-                  className={`relative p-2 rounded-lg transition-all duration-300 ${
-                    filters.difficulty === diff.id
-                      ? isDarkMode
-                        ? 'bg-gradient-to-br from-purple-600 to-purple-800 shadow-md shadow-purple-500/50'
-                        : 'bg-gradient-to-br from-primary-500 to-primary-700 shadow-md shadow-primary-500/50'
-                      : isDarkMode
-                        ? 'bg-gray-800 border border-gray-700 hover:border-purple-500/50'
-                        : 'bg-white border border-gray-200 hover:border-primary-500/50 shadow-sm hover:shadow'
-                  }`}
-                >
-                  <div className="text-lg mb-0.5">{getDifficultyIcon(diff.id)}</div>
-                  <div className={`text-[10px] font-semibold ${
-                    filters.difficulty === diff.id
-                      ? 'text-white'
-                      : isDarkMode
-                        ? 'text-gray-200'
-                        : 'text-secondary-900'
-                  }`}>
-                    {diff.name}
-                  </div>
-                </motion.button>
-              ))}
-            </div>
+        {/* Categories */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-xs font-semibold uppercase tracking-wider min-w-[70px] ${
+            isDarkMode ? 'text-gray-500' : 'text-secondary-400'
+          }`}>Topic</span>
+          <div className="flex gap-1.5 flex-wrap">
+            {categories.map((cat) => (
+              <FilterChip
+                key={cat.id}
+                label={cat.name}
+                active={filters.category === cat.id}
+                onClick={() => setFilters({ ...filters, category: filters.category === cat.id ? '' : cat.id })}
+              />
+            ))}
           </div>
-
-          {/* Categories */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <h3 className={`text-[10px] font-semibold uppercase tracking-wider ${
-                isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-              }`}>
-                Categories
-              </h3>
-              {filters.category && (
-                <button
-                  onClick={() => setFilters({ ...filters, category: '' })}
-                  className={`text-[10px] ${
-                    isDarkMode ? 'text-purple-400 hover:text-purple-300' : 'text-primary-600 hover:text-primary-700'
-                  }`}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-1.5">
-              {categories.map((cat) => (
-                <motion.button
-                  key={cat.id}
-                  whileHover={{ scale: 1.01, y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setFilters({
-                    ...filters,
-                    category: filters.category === cat.id ? '' : cat.id
-                  })}
-                  className={`relative p-2 rounded-lg transition-all duration-300 ${
-                    filters.category === cat.id
-                      ? isDarkMode
-                        ? 'bg-gradient-to-br from-purple-600 to-purple-800 shadow-md shadow-purple-500/50'
-                        : 'bg-gradient-to-br from-primary-500 to-primary-700 shadow-md shadow-primary-500/50'
-                      : isDarkMode
-                        ? 'bg-gray-800 border border-gray-700 hover:border-purple-500/50'
-                        : 'bg-white border border-gray-200 hover:border-primary-500/50 shadow-sm hover:shadow'
-                  }`}
-                >
-                  <div className="text-lg mb-0.5">{getCategoryIcon(cat.id)}</div>
-                  <div className={`text-[10px] font-semibold leading-tight ${
-                    filters.category === cat.id
-                      ? 'text-white'
-                      : isDarkMode
-                        ? 'text-gray-200'
-                        : 'text-secondary-900'
-                  }`}>
-                    {cat.name}
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
-          {/* Clear All Button - Only show when filters are active */}
-          {(filters.language || filters.difficulty || filters.category) && (
-            <div className="flex justify-center pt-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFilters({ search: filters.search, language: '', difficulty: '', category: '' })}
-              >
-                Clear All Filters
-              </Button>
-            </div>
-          )}
         </div>
       </div>
-    );
-  };
+
+      {/* Clear all */}
+      {hasActiveFilters && (
+        <div className="mt-3 pt-3 border-t border-secondary-100 flex justify-end">
+          <button
+            onClick={() => setFilters({ search: filters.search, language: '', difficulty: '', category: '' })}
+            className={`text-xs font-medium ${
+              isDarkMode ? 'text-accent-400 hover:text-accent-300' : 'text-accent-600 hover:text-accent-700'
+            } transition-colors`}
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
+    </div>
+  );
   
   if (loading) {
     return (
@@ -457,41 +337,42 @@ const Tutorials = () => {
   }
   
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="text-center">
-        <h1 className={`text-3xl font-bold mb-4 ${
-          isDarkMode ? 'text-gray-100' : 'text-secondary-900'
-        }`}>
-          Explore Tutorials
-        </h1>
-        <p className={`max-w-2xl mx-auto ${
-          isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-        }`}>
-          Discover our comprehensive collection of programming tutorials designed to take you from beginner to expert.
-        </p>
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className={`text-2xl font-bold ${
+            isDarkMode ? 'text-gray-100' : 'text-secondary-900'
+          }`}>
+            Explore Tutorials
+          </h1>
+          <p className={`text-sm mt-1 ${
+            isDarkMode ? 'text-gray-400' : 'text-secondary-500'
+          }`}>
+            From beginner to expert — find your next lesson.
+          </p>
+        </div>
       </div>
-      
+
       {/* Filters */}
       <FilterSection />
       
       {/* Results */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-secondary-900">
-            {filteredTutorials.length} Tutorial{filteredTutorials.length !== 1 ? 's' : ''} Found
-          </h2>
-          
-          <div className="flex items-center space-x-2">
-            <FunnelIcon className="h-5 w-5 text-secondary-400" />
-            <select className="text-sm border-0 bg-transparent focus:ring-0 text-secondary-600">
-              <option>Most Popular</option>
-              <option>Newest</option>
-              <option>Highest Rated</option>
-              <option>Shortest</option>
-              <option>Longest</option>
-            </select>
-          </div>
+        <div className="flex items-center justify-between mb-4">
+          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-secondary-500'}`}>
+            <span className="font-semibold">{filteredTutorials.length}</span> tutorial{filteredTutorials.length !== 1 ? 's' : ''}
+          </p>
+
+          <select className={`text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-accent-500/30 ${
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-300' : 'bg-white border-secondary-200 text-secondary-600'
+          }`}>
+            <option>Most Popular</option>
+            <option>Newest</option>
+            <option>Highest Rated</option>
+            <option>Shortest</option>
+            <option>Longest</option>
+          </select>
         </div>
         
         

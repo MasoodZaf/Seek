@@ -59,7 +59,7 @@ const AchievementUnlock = ({
         gradient: 'from-blue-400 to-blue-600',
         glow: 'shadow-blue-500/50',
         particles: 25,
-        colors: ['#60a5fa', '#3b82f6', '#2563eb'],
+        colors: ['#6dccec', '#2CB5E3', '#1f96c2'],
       },
       epic: {
         gradient: 'from-purple-400 to-pink-600',

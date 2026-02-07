@@ -17,7 +17,7 @@ process.stdin.on('end', () => {
     fs.writeFileSync(tempFile, code);
 
     // Execute TypeScript using ts-node with transpile-only and CommonJS module
-    exec(`ts-node --transpile-only --compiler-options '{"module":"commonjs","target":"es2020"}' ${tempFile}`, { timeout: 5000 }, (execError, execStdout, execStderr) => {
+    exec(`ts-node --transpile-only --compiler-options='{"module":"commonjs","target":"es2020"}' "${tempFile}"`, { timeout: 5000 }, (execError, execStdout, execStderr) => {
       const result = {
         success: !execError,
         stdout: execStdout,

@@ -6,33 +6,47 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Enhanced Primary Palette
+        // Aurmak Brand - Deep Royal Navy
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
+          50: '#f0f1f8',
+          100: '#d9dcef',
+          200: '#b3b9df',
+          300: '#8d96cf',
+          400: '#6773bf',
+          500: '#4150af',
+          600: '#344098',
+          700: '#283182',
+          800: '#1B2A6B',
+          900: '#121c4a',
+          950: '#0a1030',
         },
-        // Professional Secondary/Neutral Palette
+        // Aurmak Brand - Bright Cyan Accent
+        accent: {
+          50: '#ecf8fd',
+          100: '#ceeef9',
+          200: '#9eddf3',
+          300: '#6dccec',
+          400: '#3dbbe6',
+          500: '#2CB5E3',
+          600: '#1f96c2',
+          700: '#17729a',
+          800: '#104e6e',
+          900: '#082a3c',
+          950: '#041520',
+        },
+        // Aurmak Brand - Neutral Palette
         secondary: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
+          50: '#F4F6F8',
+          100: '#e8ecf0',
+          200: '#d1d9e0',
+          300: '#b0bcc8',
+          400: '#8494a5',
+          500: '#4A5568',
+          600: '#3d4759',
+          700: '#2D3748',
+          800: '#1f2736',
+          900: '#141b28',
+          950: '#0a0f18',
         },
         // Enhanced Success Palette
         success: {
@@ -130,38 +144,38 @@ module.exports = {
           900: '#1e3a8a',
           950: '#172554',
         },
-        // Enhanced Border and Background Colors
+        // Aurmak Brand Border and Background Colors
         border: {
-          DEFAULT: '#e2e8f0',
-          light: '#f1f5f9',
-          dark: '#334155',
+          DEFAULT: '#d1d9e0',
+          light: '#F4F6F8',
+          dark: '#2D3748',
         },
         background: {
           DEFAULT: '#ffffff',
-          secondary: '#f8fafc',
-          tertiary: '#f1f5f9',
-          dark: '#0f172a',
-          'dark-secondary': '#1e293b',
-          'dark-tertiary': '#334155',
+          secondary: '#F4F6F8',
+          tertiary: '#e8ecf0',
+          dark: '#141b28',
+          'dark-secondary': '#1f2736',
+          'dark-tertiary': '#2D3748',
         },
         foreground: {
-          DEFAULT: '#0f172a',
-          secondary: '#475569',
-          tertiary: '#64748b',
+          DEFAULT: '#2D3748',
+          secondary: '#4A5568',
+          tertiary: '#8494a5',
           light: '#ffffff',
-          'light-secondary': '#f1f5f9',
-          'light-tertiary': '#e2e8f0',
+          'light-secondary': '#F4F6F8',
+          'light-tertiary': '#d1d9e0',
         },
       },
-      // Professional Gradient System
+      // Aurmak Brand Gradient System
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'gradient-primary': 'linear-gradient(135deg, #1B2A6B 0%, #2CB5E3 100%)',
         'gradient-success': 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
         'gradient-warning': 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
         'gradient-error': 'linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%)',
-        'gradient-hero': 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-        'gradient-purple': 'linear-gradient(135deg, #a855f7 0%, #3b82f6 100%)',
-        'gradient-teal': 'linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)',
+        'gradient-hero': 'linear-gradient(135deg, #1B2A6B 0%, #2CB5E3 50%, #6dccec 100%)',
+        'gradient-purple': 'linear-gradient(135deg, #a855f7 0%, #2CB5E3 100%)',
+        'gradient-teal': 'linear-gradient(135deg, #14b8a6 0%, #2CB5E3 100%)',
         'gradient-orange': 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)',
         'gradient-glass': 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
         'gradient-dark-glass': 'linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%)',
@@ -342,8 +356,8 @@ module.exports = {
         
         // Pulse Glow Keyframe
         pulseGlow: {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)' },
-          '50%': { boxShadow: '0 0 40px rgba(59, 130, 246, 0.6)' },
+          '0%, 100%': { boxShadow: '0 0 20px rgba(44, 181, 227, 0.3)' },
+          '50%': { boxShadow: '0 0 40px rgba(44, 181, 227, 0.6)' },
         },
         
         // Shake Keyframe
@@ -395,10 +409,10 @@ module.exports = {
       backdropBlur: {
         xs: '2px',
       },
-      // Professional Shadow System
+      // Aurmak Brand Shadow System
       boxShadow: {
-        'glow': '0 0 20px rgba(59, 130, 246, 0.3)',
-        'glow-lg': '0 0 40px rgba(59, 130, 246, 0.4)',
+        'glow': '0 0 20px rgba(44, 181, 227, 0.3)',
+        'glow-lg': '0 0 40px rgba(44, 181, 227, 0.4)',
         'glow-success': '0 0 20px rgba(34, 197, 94, 0.3)',
         'glow-warning': '0 0 20px rgba(245, 158, 11, 0.3)',
         'glow-error': '0 0 20px rgba(239, 68, 68, 0.3)',

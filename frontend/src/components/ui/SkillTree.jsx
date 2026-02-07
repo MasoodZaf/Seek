@@ -32,7 +32,7 @@ const SkillTree = ({ skills = [], className, onNodeClick, ...props }) => {
                 y1={`${prereq.position.y}%`}
                 x2={`${skill.position.x}%`}
                 y2={`${skill.position.y}%`}
-                stroke={skill.unlocked ? '#3b82f6' : '#d1d5db'}
+                stroke={skill.unlocked ? '#2CB5E3' : '#d1d5db'}
                 strokeWidth="2"
                 strokeDasharray={skill.unlocked ? '0' : '5,5'}
                 initial={{ pathLength: 0, opacity: 0 }}

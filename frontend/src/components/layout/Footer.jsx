@@ -18,10 +18,17 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           {/* Copyright */}
-          <div className="text-sm">
-            <span className="font-medium">© {currentYear} Seek Learning Platform</span>
-            <span className="mx-2">•</span>
-            <span>All rights reserved</span>
+          <div className="text-sm flex items-center gap-2">
+            <img
+              src="/footer-icon.png"
+              alt="Seek logo"
+              className="h-8 w-auto"
+            />
+            <div>
+              <span className="font-medium">© {currentYear} Seek Learning Platform</span>
+              <span className="mx-2">•</span>
+              <span>All rights reserved</span>
+            </div>
           </div>
 
           {/* Developers Credit */}

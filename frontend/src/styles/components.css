@@ -63,15 +63,15 @@
 
 /* Enhanced Gradient Button Variants */
 .btn-primary-gradient {
-  @apply text-white shadow-lg hover:shadow-xl focus:ring-primary-500;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  @apply text-white shadow-lg hover:shadow-xl focus:ring-accent-500;
+  background: linear-gradient(135deg, #1B2A6B 0%, #2CB5E3 100%);
   background-size: 200% 200%;
   animation: gradient-shift 3s ease-in-out infinite;
 }
 
 .btn-primary-gradient:hover {
-  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-  box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4), 0 10px 10px -5px rgba(102, 126, 234, 0.1);
+  background: linear-gradient(135deg, #121c4a 0%, #1f96c2 100%);
+  box-shadow: 0 10px 25px -5px rgba(44, 181, 227, 0.4), 0 10px 10px -5px rgba(44, 181, 227, 0.1);
   transform: translateY(-2px);
 }
 
@@ -129,7 +129,7 @@
 }
 
 .btn-primary:focus-visible {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 3px rgba(44, 181, 227, 0.3);
 }
 
 .btn-success:focus-visible {
@@ -145,11 +145,11 @@
 }
 
 .btn-secondary:focus-visible {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 3px rgba(44, 181, 227, 0.3);
 }
 
 .btn-ghost:focus-visible {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 3px rgba(44, 181, 227, 0.3);
 }
 
 /* Enhanced Card Styles */
@@ -184,13 +184,13 @@
 .card-premium {
   @apply bg-white rounded-xl shadow-elevation-2 border transition-all duration-300;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-image: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%) 1;
+  border-image: linear-gradient(135deg, rgba(27, 42, 107, 0.2) 0%, rgba(44, 181, 227, 0.2) 100%) 1;
 }
 
 .card-premium:hover {
   @apply shadow-elevation-3;
   background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-  border-image: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(147, 51, 234, 0.3) 100%) 1;
+  border-image: linear-gradient(135deg, rgba(27, 42, 107, 0.3) 0%, rgba(44, 181, 227, 0.3) 100%) 1;
 }
 
 .card-dark {
@@ -260,7 +260,7 @@
 
 .input-default:focus {
   border-color: theme('colors.primary.500');
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(44, 181, 227, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .input-success {
@@ -328,7 +328,7 @@
 
 .dark .input:focus {
   border-color: theme('colors.primary.400');
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 3px rgba(44, 181, 227, 0.2), 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 }
 
 .dark .input:hover:not(:focus) {
