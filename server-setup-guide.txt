@@ -1,0 +1,127 @@
+============================================================
+  HOSTING SEEK ON UBUNTU 24.04 (ALONGSIDE N8N)
+============================================================
+
+SERVER IP: 88.208.255.166
+OS: Ubuntu 24.04 (IONOS)
+
+Since you already have N8N running, this guide ensures "Seek" runs 
+peacefully alongside it without breaking anything.
+
+We will use Docker Compose to run Seek in its own isolated containers.
+
+------------------------------------------------------------
+PART 1: CONNECT & PREPARE
+------------------------------------------------------------
+
+1.  Open Terminal on your Mac and connect:
+    ssh root@88.208.255.166
+
+2.  Check if Docker is already installed (likely yes for N8N):
+    docker --version
+    
+    *If it returns a version (e.g., 24.x or 26.x), SKIP Step 3.*
+
+3.  (Only if Docker is missing) Install Docker:
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+    rm get-docker.sh
+
+4.  Check for Port Conflicts:
+    Seek needs ports: 3000 (Frontend), 5001 (Backend), 27017 (Mongo).
+    Run this to see what's currently used:
+    
+    ss -tulpn | grep -E ':(3000|5001|27017)'
+    
+    *If this command returns nothing, you are clear to proceed!*
+    *If it returns lines, changing ports in docker-compose.yml will be needed.*
+
+------------------------------------------------------------
+PART 2: DEPLOY SEEK
+------------------------------------------------------------
+
+1.  Create a folder for Seek:
+    mkdir -p /opt/seek
+    cd /opt/seek
+
+2.  Clone the repository:
+    git clone https://github.com/MasoodZaf/Seek.git .
+    (Using '.' clones into data directly into standard folder)
+
+3.  Setup Environment Variables:
+    
+    Backend:
+    cp backend/.env.example backend/.env
+    nano backend/.env
+    # CHANGE: MONGODB_URI=mongodb://mongo:27017/seek
+    # (Press Ctrl+O then Enter to Save, Ctrl+X to Exit)
+
+    Frontend:
+    cp frontend/.env.example frontend/.env
+    nano frontend/.env
+    # For testing by IP, set this EXACTLY:
+    
+    REACT_APP_API_URL=http://88.208.255.166:5001/api/v1
+    
+    *(IMPORTANT: Since you are testing by IP, you must use the IP address)*
+    # (Press Ctrl+O then Enter to Save, Ctrl+X to Exit)
+
+4.  Start the App:
+    docker compose up -d --build
+
+    Wait for "seek-backend", "seek-frontend", and "seek-mongo" to start.
+    (This might take 5-10 minutes)
+
+------------------------------------------------------------
+PART 3: ACCESSING THE APP
+------------------------------------------------------------
+
+1.  Open the Firewall (Ubuntu UFW):
+    If N8N is running, you likely have a firewall (UFW) active. Allow Seek's ports:
+    
+    ufw allow 3000/tcp
+    ufw allow 5001/tcp
+    ufw reload
+
+2.  Test in Browser:
+    Frontend: http://88.208.255.166:3000
+    Backend Health: http://88.208.255.166:5001/api/v1/health
+
+------------------------------------------------------------
+PART 4: (OPTIONAL) DOMAIN SETUP WITH NGINX
+------------------------------------------------------------
+Only do this if you have a domain (e.g., seek.example.com) and want to remove the port numbers.
+
+1.  Install Nginx (if not present):
+    apt install -y nginx
+
+2.  Create Config:
+    nano /etc/nginx/sites-available/seek
+
+    server {
+        listen 80;
+        server_name YOUR_DOMAIN.com;
+
+        location / {
+            proxy_pass http://localhost:3000;
+        }
+
+        location /api/ {
+            proxy_pass http://localhost:5001;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+        }
+
+        location /socket.io/ {
+            proxy_pass http://localhost:5001;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+        }
+    }
+
+3.  Enable:
+    ln -s /etc/nginx/sites-available/seek /etc/nginx/sites-enabled/
+    nginx -t
+    systemctl reload nginx

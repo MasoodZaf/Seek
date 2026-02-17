@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:6.0
+    container_name: seek-mongo
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017" # Exposed to host for backup/tools if needed
+    networks:
+      - seek-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: seek-backend
+    restart: always
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override the local connection string to use Docker networking
+      - MONGODB_URI=mongodb://mongo:27017/seek
+    volumes:
+      # CRITICAL: Allows the backend to spawn child containers for the Code Playground
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - mongo
+    networks:
+      - seek-network
+
+  # Frontend Static Site (Served via internal Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: seek-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - seek-network
+
+volumes:
+  mongo_data:
+
+
+networks:
+  seek-network:
+    driver: bridge

@@ -3,10 +3,10 @@ FROM node:18-alpine
 
 # Install build dependencies and Docker CLI
 RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    docker-cli
+  python3 \
+  make \
+  g++ \
+  docker-cli
 
 # Create app directory
 WORKDIR /app
