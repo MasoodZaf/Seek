@@ -9,6 +9,7 @@ import { LoadingPage } from '../ui';
 import { RouteTransition } from '../ui/PageTransition';
 import SkipNavigation from '../ui/SkipNavigation';
 import KeyboardShortcutsHelp from '../ui/KeyboardShortcutsHelp';
+import MobileNavigation from '../mobile/MobileNavigation';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { keyboardShortcutManager } from '../../utils/keyboardNavigation';
@@ -87,14 +88,18 @@ const Layout = () => {
       </AnimatePresence>
       
       <div className="flex flex-col w-0 flex-1 overflow-x-hidden">
-        <Header
-          id="navigation"
-          onMenuClick={() => setSidebarOpen(true)}
-        />
+        <div className="hidden md:block">
+          <Header
+            id="navigation"
+            onMenuClick={() => setSidebarOpen(true)}
+          />
+        </div>
+        
+        <MobileNavigation />
         
         <main
           id="main-content"
-          className="flex-1 relative overflow-y-auto focus:outline-none"
+          className="flex-1 relative overflow-y-auto focus:outline-none pb-16 md:pb-0"
           tabIndex="-1"
           role="main"
           aria-label="Main content"

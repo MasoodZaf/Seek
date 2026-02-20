@@ -49,7 +49,7 @@ const DatabaseTutorials = () => {
     { id: 'PostgreSQL', name: 'PostgreSQL', icon: '🐘' },
     { id: 'Redis', name: 'Redis', icon: '⚡' },
   ];
-  
+
   useEffect(() => {
     fetchTutorials();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,11 +58,10 @@ const DatabaseTutorials = () => {
   const fetchTutorials = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/mongo-tutorials', {
+      const response = await api.get('/database-tutorials', {
         params: {
           page: 1,
           limit: 200,
-          category: 'Database',
           ...(filters.search && { search: filters.search }),
           ...(filters.language && { language: filters.language }),
           ...(filters.difficulty && { difficulty: filters.difficulty }),
@@ -70,7 +69,7 @@ const DatabaseTutorials = () => {
       });
 
       if (response.data.success) {
-        let dbTutorials = response.data.data?.tutorials || [];
+        let dbTutorials = Array.isArray(response.data.data) ? response.data.data : (response.data.data?.tutorials || []);
 
         // Filter by database type if selected
         if (filters.database) {
@@ -80,7 +79,7 @@ const DatabaseTutorials = () => {
             const lowerTags = tutorial.tags.map(tag => tag.toLowerCase());
 
             // Filter logic for each database type
-            switch(filters.database) {
+            switch (filters.database) {
               case 'MongoDB':
                 // Must have mongodb/mongo tag
                 return lowerTags.some(tag => tag === 'mongodb' || tag === 'mongo');
@@ -88,7 +87,7 @@ const DatabaseTutorials = () => {
               case 'SQL':
                 // Must have mysql tag OR (sql tag but NOT postgresql tag)
                 return lowerTags.includes('mysql') ||
-                       (lowerTags.includes('sql') && !lowerTags.includes('postgresql'));
+                  (lowerTags.includes('sql') && !lowerTags.includes('postgresql'));
 
               case 'PostgreSQL':
                 // Must have postgresql or postgres tag
@@ -115,27 +114,27 @@ const DatabaseTutorials = () => {
       setLoading(false);
     }
   };
-  
+
   // The API handles filtering now, so we just use the returned tutorials
   const filteredTutorials = tutorials;
-  
-  
+
+
   const TutorialCard = ({ tutorial }) => {
-    
+
     // Safe lookups with fallbacks
-    const language = languages.find(l => l.id === tutorial.language) || { 
-      id: tutorial.language, 
-      name: tutorial.language || 'Unknown', 
-      color: 'bg-gray-400' 
+    const language = languages.find(l => l.id === tutorial.language) || {
+      id: tutorial.language,
+      name: tutorial.language || 'Unknown',
+      color: 'bg-gray-400'
     };
-    
-    const difficulty = difficulties.find(d => d.id === tutorial.difficulty) || { 
-      id: tutorial.difficulty, 
-      name: tutorial.difficulty || 'Unknown', 
-      color: 'primary' 
+
+    const difficulty = difficulties.find(d => d.id === tutorial.difficulty) || {
+      id: tutorial.difficulty,
+      name: tutorial.difficulty || 'Unknown',
+      color: 'primary'
     };
-    
-    
+
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -143,9 +142,8 @@ const DatabaseTutorials = () => {
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2 }}
       >
-        <Card hover className={`p-6 h-full transition-colors duration-300 ${
-          isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200'
-        }`}>
+        <Card hover className={`p-6 h-full transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200'
+          }`}>
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
@@ -159,30 +157,28 @@ const DatabaseTutorials = () => {
                   </Badge>
                 )}
               </div>
-              
-              <h3 className={`text-lg font-semibold mb-2 ${
-                isDarkMode ? 'text-gray-100' : 'text-secondary-900'
-              }`}>
+
+              <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-secondary-900'
+                }`}>
                 {tutorial.title}
               </h3>
-              
-              <p className={`text-sm mb-4 line-clamp-2 ${
-                isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-              }`}>
+
+              <p className={`text-sm mb-4 line-clamp-2 ${isDarkMode ? 'text-gray-400' : 'text-secondary-600'
+                }`}>
                 {tutorial.description}
               </p>
             </div>
-            
+
             <Button variant="primary" size="sm">
               <PlayIcon className="h-4 w-4" />
             </Button>
           </div>
-          
+
           {tutorial.enrolled && tutorial.progress > 0 && (
             <div className="mb-4">
-              <Progress 
-                value={tutorial.progress} 
-                size="sm" 
+              <Progress
+                value={tutorial.progress}
+                size="sm"
                 showLabel={false}
               />
               <p className="text-xs text-secondary-600 mt-1">
@@ -190,10 +186,9 @@ const DatabaseTutorials = () => {
               </p>
             </div>
           )}
-          
-          <div className={`flex items-center justify-between text-sm mb-4 ${
-            isDarkMode ? 'text-gray-500' : 'text-secondary-500'
-          }`}>
+
+          <div className={`flex items-center justify-between text-sm mb-4 ${isDarkMode ? 'text-gray-500' : 'text-secondary-500'
+            }`}>
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
                 <ClockIcon className="h-4 w-4 mr-1" />
@@ -204,7 +199,7 @@ const DatabaseTutorials = () => {
                 <span>{tutorial.stats?.views || tutorial.stats?.enrollments || 0}</span>
               </div>
             </div>
-            
+
             <div className="flex items-center">
               <StarIcon className="h-4 w-4 text-yellow-400 fill-current mr-1" />
               <span>{tutorial.rating?.average || tutorial.stats?.averageRating || 0}</span>
@@ -213,7 +208,7 @@ const DatabaseTutorials = () => {
               </span>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -221,16 +216,14 @@ const DatabaseTutorials = () => {
                   {tutorial.author?.name?.split(' ').map(n => n[0]).join('') || 'ST'}
                 </span>
               </div>
-              <span className={`text-sm ${
-                isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-              }`}>
+              <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-secondary-600'
+                }`}>
                 {tutorial.author?.name || 'Seek Team'}
               </span>
             </div>
-            
-            <span className={`text-sm ${
-              isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-            }`}>
+
+            <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-secondary-600'
+              }`}>
               {tutorial.stepCount || (Array.isArray(tutorial.lessons) ? tutorial.lessons.length : (tutorial.lessonsCount || 3))} steps
             </span>
           </div>
@@ -238,110 +231,105 @@ const DatabaseTutorials = () => {
       </motion.div>
     );
   };
-  
+
   const FilterSection = () => {
     console.log('DatabaseTutorials - Databases:', databases);
     console.log('DatabaseTutorials - Difficulties:', difficulties);
     console.log('DatabaseTutorials - Languages:', languages);
 
     return (
-    <Card className={`p-6 mb-8 transition-colors duration-300 relative ${
-      isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    }`}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className={`text-lg font-semibold ${
-          isDarkMode ? 'text-gray-100' : 'text-secondary-900'
+      <Card className={`p-6 mb-8 transition-colors duration-300 relative ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         }`}>
-          Find Your Perfect Database Tutorial
-        </h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setFilters({ search: '', language: '', difficulty: '', database: '' })}
-        >
-          Clear All
-        </Button>
-      </div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-secondary-900'
+            }`}>
+            Find Your Perfect Database Tutorial
+          </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setFilters({ search: '', language: '', difficulty: '', database: '' })}
+          >
+            Clear All
+          </Button>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
-        <Input
-          type="text"
-          placeholder="Search database tutorials..."
-          value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          leftIcon={MagnifyingGlassIcon}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
+          <Input
+            type="text"
+            placeholder="Search database tutorials..."
+            value={filters.search}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            leftIcon={MagnifyingGlassIcon}
+          />
 
-        <select
-          className={`w-full px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-            isDarkMode
-              ? 'bg-gray-800 border-gray-600 text-gray-100 hover:border-purple-400 focus:border-purple-500'
-              : 'bg-white border-gray-300 text-gray-900 hover:border-primary-400 focus:border-primary-500'
-          } focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none`}
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-            backgroundPosition: 'right 0.5rem center',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '1.5em 1.5em',
-            paddingRight: '2.5rem'
-          }}
-          value={filters.database}
-          onChange={(e) => setFilters({ ...filters, database: e.target.value })}
-        >
-          <option value="">All Databases</option>
-          {databases.map(db => (
-            <option key={db.id} value={db.id}>{db.icon} {db.name}</option>
-          ))}
-        </select>
+          <select
+            className={`w-full px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${isDarkMode
+                ? 'bg-gray-800 border-gray-600 text-gray-100 hover:border-purple-400 focus:border-purple-500'
+                : 'bg-white border-gray-300 text-gray-900 hover:border-primary-400 focus:border-primary-500'
+              } focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none`}
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 0.5rem center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: '1.5em 1.5em',
+              paddingRight: '2.5rem'
+            }}
+            value={filters.database}
+            onChange={(e) => setFilters({ ...filters, database: e.target.value })}
+          >
+            <option value="">All Databases</option>
+            {databases.map(db => (
+              <option key={db.id} value={db.id}>{db.icon} {db.name}</option>
+            ))}
+          </select>
 
-        <select
-          className={`w-full px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-            isDarkMode
-              ? 'bg-gray-800 border-gray-600 text-gray-100 hover:border-purple-400 focus:border-purple-500'
-              : 'bg-white border-gray-300 text-gray-900 hover:border-primary-400 focus:border-primary-500'
-          } focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none`}
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-            backgroundPosition: 'right 0.5rem center',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '1.5em 1.5em',
-            paddingRight: '2.5rem'
-          }}
-          value={filters.difficulty}
-          onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
-        >
-          <option value="">All Difficulties</option>
-          {difficulties.map(diff => (
-            <option key={diff.id} value={diff.id}>{diff.name}</option>
-          ))}
-        </select>
+          <select
+            className={`w-full px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${isDarkMode
+                ? 'bg-gray-800 border-gray-600 text-gray-100 hover:border-purple-400 focus:border-purple-500'
+                : 'bg-white border-gray-300 text-gray-900 hover:border-primary-400 focus:border-primary-500'
+              } focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none`}
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 0.5rem center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: '1.5em 1.5em',
+              paddingRight: '2.5rem'
+            }}
+            value={filters.difficulty}
+            onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
+          >
+            <option value="">All Difficulties</option>
+            {difficulties.map(diff => (
+              <option key={diff.id} value={diff.id}>{diff.name}</option>
+            ))}
+          </select>
 
-        <select
-          className={`w-full px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-            isDarkMode
-              ? 'bg-gray-800 border-gray-600 text-gray-100 hover:border-purple-400 focus:border-purple-500'
-              : 'bg-white border-gray-300 text-gray-900 hover:border-primary-400 focus:border-primary-500'
-          } focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none`}
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-            backgroundPosition: 'right 0.5rem center',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '1.5em 1.5em',
-            paddingRight: '2.5rem'
-          }}
-          value={filters.language}
-          onChange={(e) => setFilters({ ...filters, language: e.target.value })}
-        >
-          <option value="">All Languages</option>
-          {languages.map(lang => (
-            <option key={lang.id} value={lang.id}>{lang.name}</option>
-          ))}
-        </select>
-      </div>
-    </Card>
-  );
+          <select
+            className={`w-full px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${isDarkMode
+                ? 'bg-gray-800 border-gray-600 text-gray-100 hover:border-purple-400 focus:border-purple-500'
+                : 'bg-white border-gray-300 text-gray-900 hover:border-primary-400 focus:border-primary-500'
+              } focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none`}
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 0.5rem center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: '1.5em 1.5em',
+              paddingRight: '2.5rem'
+            }}
+            value={filters.language}
+            onChange={(e) => setFilters({ ...filters, language: e.target.value })}
+          >
+            <option value="">All Languages</option>
+            {languages.map(lang => (
+              <option key={lang.id} value={lang.id}>{lang.name}</option>
+            ))}
+          </select>
+        </div>
+      </Card>
+    );
   };
-  
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -354,33 +342,31 @@ const DatabaseTutorials = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className={`text-3xl font-bold mb-4 ${
-          isDarkMode ? 'text-gray-100' : 'text-secondary-900'
-        }`}>
+        <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-secondary-900'
+          }`}>
           Database Tutorials
         </h1>
-        <p className={`max-w-2xl mx-auto ${
-          isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-        }`}>
+        <p className={`max-w-2xl mx-auto ${isDarkMode ? 'text-gray-400' : 'text-secondary-600'
+          }`}>
           Master MongoDB, SQL/MySQL, PostgreSQL, and Redis with comprehensive tutorials. Learn database fundamentals, advanced queries, optimization techniques, and production best practices.
         </p>
       </div>
-      
+
       {/* Filters */}
       <FilterSection />
-      
+
       {/* Results */}
       <div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-secondary-900">
             {filteredTutorials.length} Tutorial{filteredTutorials.length !== 1 ? 's' : ''} Found
           </h2>
-          
+
           <div className="flex items-center space-x-2">
             <FunnelIcon className="h-5 w-5 text-secondary-400" />
             <select className="text-sm border-0 bg-transparent focus:ring-0 text-secondary-600">
@@ -392,8 +378,8 @@ const DatabaseTutorials = () => {
             </select>
           </div>
         </div>
-        
-        
+
+
         {filteredTutorials.length === 0 ? (
           <Card className="p-12 text-center">
             <div className="text-secondary-400 mb-4">
@@ -415,15 +401,15 @@ const DatabaseTutorials = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTutorials.map((tutorial, index) => (
-                <Link key={tutorial._id || tutorial.id} to={`/tutorials/${tutorial.slug || tutorial.id}`}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <TutorialCard tutorial={tutorial} />
-                  </motion.div>
-                </Link>
+              <Link key={tutorial._id || tutorial.id} to={`/tutorials/${tutorial.slug || tutorial.id}`}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <TutorialCard tutorial={tutorial} />
+                </motion.div>
+              </Link>
             ))}
           </div>
         )}
