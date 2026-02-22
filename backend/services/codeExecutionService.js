@@ -1,4 +1,3 @@
-const ivm = require('isolated-vm');
 const { v4: uuidv4 } = require('uuid');
 const { CodeExecution } = require('../models');
 const logger = require('../config/logger');
@@ -124,77 +123,24 @@ class CodeExecutionService {
 
   async executeJavaScript(code, input = '') {
     const startTime = Date.now();
-    const output = { stdout: '', stderr: '', exitCode: 0 };
-    let isolate = null;
-    let context = null;
-
     try {
-      // Create a new isolate with memory limits
-      isolate = new ivm.Isolate({ memoryLimit: 32 });
-      context = await isolate.createContext();
-
       // Use native execution for JavaScript (Docker has stdin issues)
-      return await nativeExecutionService.executeCode(code, 'javascript', input);
-
-      // Set up global objects safely
-      await context.global.set('input', input);
-      await context.global.set('Math', ivm.Reference.from(Math));
-      await context.global.set('JSON', ivm.Reference.from(JSON));
-      await context.global.set('Date', ivm.Reference.from(Date));
-      await context.global.set('Array', ivm.Reference.from(Array));
-      await context.global.set('Object', ivm.Reference.from(Object));
-      await context.global.set('String', ivm.Reference.from(String));
-      await context.global.set('Number', ivm.Reference.from(Number));
-      await context.global.set('Boolean', ivm.Reference.from(Boolean));
-      await context.global.set('RegExp', ivm.Reference.from(RegExp));
-      await context.global.set('parseInt', ivm.Reference.from(parseInt));
-      await context.global.set('parseFloat', ivm.Reference.from(parseFloat));
-      await context.global.set('isNaN', ivm.Reference.from(isNaN));
-      await context.global.set('isFinite', ivm.Reference.from(isFinite));
-
-      const wrappedCode = `
-        try {
-          ${code}
-        } catch (error) {
-          console.error('Runtime Error: ' + error.message);
-        }
-      `;
-
-      // Execute the code with timeout
-      await context.eval(wrappedCode, { timeout: this.maxExecutionTime });
-
-      const executionTime = Date.now() - startTime;
-      const memoryUsage = isolate.getHeapStatisticsSync().used_heap_size;
-
+      const result = await nativeExecutionService.executeCode(code, 'javascript', input);
       return {
-        output,
-        executionTime,
-        memoryUsage
-      };
-    } catch (error) {
-      const executionTime = Date.now() - startTime;
-
-      if (error.message.includes('Script execution timed out')) {
-        output.stderr = `Execution timed out after ${this.maxExecutionTime}ms`;
-        output.exitCode = 124;
-      } else {
-        output.stderr = `Error: ${error.message}`;
-        output.exitCode = 1;
-      }
-
-      return {
-        output,
-        executionTime,
+        output: result.output || { stdout: '', stderr: '', exitCode: 0 },
+        executionTime: Date.now() - startTime,
         memoryUsage: process.memoryUsage().heapUsed
       };
-    } finally {
-      // Clean up resources
-      if (context) {
-        context.release();
-      }
-      if (isolate) {
-        isolate.dispose();
-      }
+    } catch (error) {
+      return {
+        output: {
+          stdout: '',
+          stderr: error.message || 'Execution error',
+          exitCode: 1
+        },
+        executionTime: Date.now() - startTime,
+        memoryUsage: process.memoryUsage().heapUsed
+      };
     }
   }
 
@@ -604,7 +550,7 @@ class CodeExecutionService {
   async executeNativePHP(code, input = '') {
     const { spawn } = require('child_process');
     const startTime = Date.now();
-    
+
     return new Promise((resolve) => {
       const php = spawn('php', ['-r', code]);
       let output = '';
@@ -632,7 +578,7 @@ class CodeExecutionService {
         php.stdin.write(input);
       }
       php.stdin.end();
-      
+
       // Timeout after 5 seconds
       setTimeout(() => {
         php.kill();
