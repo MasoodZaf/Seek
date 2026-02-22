@@ -16,16 +16,17 @@ process.stdin.on('end', () => {
     // Write TypeScript code to file
     fs.writeFileSync(tempFile, code);
 
-    // Execute TypeScript using ts-node with transpile-only and CommonJS module
-    exec(`ts-node --transpile-only --compiler-options='{"module":"commonjs","target":"es2020"}' "${tempFile}"`, { timeout: 5000 }, (execError, execStdout, execStderr) => {
+    // Execute TypeScript using ts-node with transpile-only and compatible compiler options
+    const compilerOptions = JSON.stringify({ module: "commonjs", moduleResolution: "node", target: "es2020" });
+    const env = { ...process.env, TS_NODE_COMPILER_OPTIONS: compilerOptions };
+
+    exec(`ts-node --transpile-only "${tempFile}"`, { timeout: 5000, env }, (execError, execStdout, execStderr) => {
       const result = {
         success: !execError,
         stdout: execStdout,
         stderr: execStderr,
         exit_code: execError ? (execError.code || 1) : 0
       };
-
-      console.log(JSON.stringify(result));
 
       // Cleanup
       try {
@@ -34,6 +35,7 @@ process.stdin.on('end', () => {
         // Ignore cleanup errors
       }
 
+      console.log(JSON.stringify(result));
       process.exit(0);
     });
   } catch (error) {

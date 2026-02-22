@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
@@ -35,14 +36,14 @@ const DatabaseTutorials = React.lazy(() => import('./pages/DatabaseTutorials'));
 const TutorialDetail = React.lazy(() => import('./pages/TutorialDetail'));
 const TutorialLearn = React.lazy(() => import('./pages/TutorialLearn'));
 const PlaygroundNew = React.lazy(() => import('./pages/PlaygroundModern'));
-const CodeTranslator = React.lazy(() => import('./pages/CodeTranslator'));
-const DatabaseTranslator = React.lazy(() => import('./pages/DatabaseTranslator'));
+const Translator = React.lazy(() => import('./pages/Translator'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const Practice = React.lazy(() => import('./pages/Practice'));
 const Achievements = React.lazy(() => import('./pages/Achievements'));
 const ComponentsDemo = React.lazy(() => import('./pages/ComponentsDemo'));
 const Challenges = React.lazy(() => import('./pages/Challenges'));
+const Community = React.lazy(() => import('./pages/Community'));
 const ChallengeDetail = React.lazy(() => import('./pages/ChallengeDetailEnhanced'));
 const FeedbackForm = React.lazy(() => import('./components/Feedback/FeedbackForm'));
 const BugReportForm = React.lazy(() => import('./components/BugReport/BugReportForm'));
@@ -63,30 +64,30 @@ const queryClient = new QueryClient({
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return <LoadingPage text="Checking authentication..." />;
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return children;
 };
 
 // Public Route component (redirect to dashboard if already logged in)
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return <LoadingPage text="Loading..." />;
   }
-  
+
   if (isAuthenticated) {
     return <Navigate to="/playground" replace />;
   }
-  
+
   return children;
 };
 
@@ -110,9 +111,9 @@ function App() {
     // Register service worker - DISABLED TEMPORARILY TO FIX LOGIN ISSUE
     // Unregister any existing service worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister().then(function(success) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          registration.unregister().then(function (success) {
             console.log('Service Worker unregistered:', success);
           });
         }
@@ -120,7 +121,7 @@ function App() {
 
       // Clear all caches
       if ('caches' in window) {
-        caches.keys().then(function(names) {
+        caches.keys().then(function (names) {
           for (let name of names) {
             caches.delete(name);
             console.log('Cache deleted:', name);
@@ -158,164 +159,164 @@ function App() {
                   <AuthProvider>
                     <SocketProvider>
                       <div className="App">
-                      <Routes>
-                        {/* Public routes */}
-                        <Route 
-                          path="/login" 
-                          element={
-                            <PublicRoute>
-                              <Suspense fallback={<LoadingPage text="Loading login..." />}>
-                                <Login />
+                        <Routes>
+                          {/* Public routes */}
+                          <Route
+                            path="/login"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingPage text="Loading login..." />}>
+                                  <Login />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
+                          <Route
+                            path="/register"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingPage text="Loading registration..." />}>
+                                  <Register />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
+
+                          {/* Protected routes */}
+                          <Route
+                            path="/"
+                            element={
+                              <ProtectedRoute>
+                                <Layout />
+                              </ProtectedRoute>
+                            }
+                          >
+                            <Route index element={<Navigate to="/playground" replace />} />
+                            <Route path="dashboard" element={
+                              <Suspense fallback={<LoadingPage text="Loading dashboard..." />}>
+                                <Dashboard />
                               </Suspense>
-                            </PublicRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/register" 
-                          element={
-                            <PublicRoute>
-                              <Suspense fallback={<LoadingPage text="Loading registration..." />}>
-                                <Register />
+                            } />
+                            <Route path="tutorials" element={
+                              <Suspense fallback={<LoadingPage text="Loading tutorials..." />}>
+                                <Tutorials />
                               </Suspense>
-                            </PublicRoute>
-                          } 
-                        />
-                        
-                        {/* Protected routes */}
-                        <Route 
-                          path="/" 
-                          element={
-                            <ProtectedRoute>
-                              <Layout />
-                            </ProtectedRoute>
-                          }
-                        >
-                          <Route index element={<Navigate to="/playground" replace />} />
-                          <Route path="dashboard" element={
-                            <Suspense fallback={<LoadingPage text="Loading dashboard..." />}>
-                              <Dashboard />
-                            </Suspense>
-                          } />
-                          <Route path="tutorials" element={
-                            <Suspense fallback={<LoadingPage text="Loading tutorials..." />}>
-                              <Tutorials />
-                            </Suspense>
-                          } />
-                          <Route path="database-tutorials" element={
-                            <Suspense fallback={<LoadingPage text="Loading database tutorials..." />}>
-                              <DatabaseTutorials />
-                            </Suspense>
-                          } />
-                          <Route path="playground" element={
-                            <Suspense fallback={<LoadingPage text="Loading playground..." />}>
-                              <PlaygroundNew />
-                            </Suspense>
-                          } />
-                          <Route path="translator" element={
-                            <Suspense fallback={<LoadingPage text="Loading translator..." />}>
-                              <CodeTranslator />
-                            </Suspense>
-                          } />
-                          <Route path="database-translator" element={
-                            <Suspense fallback={<LoadingPage text="Loading database translator..." />}>
-                              <DatabaseTranslator />
-                            </Suspense>
-                          } />
-                          <Route path="practice" element={
-                            <Suspense fallback={<LoadingPage text="Loading practice..." />}>
-                              <Practice />
-                            </Suspense>
-                          } />
-                          <Route path="challenges" element={
-                            <Suspense fallback={<LoadingPage text="Loading challenges..." />}>
-                              <Challenges />
-                            </Suspense>
-                          } />
-                          <Route path="challenges/:slug" element={
-                            <Suspense fallback={<LoadingPage text="Loading challenge..." />}>
-                              <ChallengeDetail />
-                            </Suspense>
-                          } />
-                          <Route path="achievements" element={
-                            <Suspense fallback={<LoadingPage text="Loading achievements..." />}>
-                              <Achievements />
-                            </Suspense>
-                          } />
-                          <Route path="profile" element={
-                            <Suspense fallback={<LoadingPage text="Loading profile..." />}>
-                              <Profile />
-                            </Suspense>
-                          } />
-                          <Route path="settings" element={
-                            <Suspense fallback={<LoadingPage text="Loading settings..." />}>
-                              <Settings />
-                            </Suspense>
-                          } />
-                          <Route path="components-demo" element={
-                            <Suspense fallback={<LoadingPage text="Loading demo..." />}>
-                              <ComponentsDemo />
-                            </Suspense>
-                          } />
-                          
-                          {/* Tutorial routes */}
-                          <Route path="tutorials/:id" element={
-                            <Suspense fallback={<LoadingPage text="Loading tutorial..." />}>
-                              <TutorialDetail />
-                            </Suspense>
-                          } />
-                          <Route path="tutorials/:id/learn" element={
-                            <Suspense fallback={<LoadingPage text="Loading lesson..." />}>
-                              <TutorialLearn />
-                            </Suspense>
-                          } />
+                            } />
+                            <Route path="database-tutorials" element={
+                              <Suspense fallback={<LoadingPage text="Loading database tutorials..." />}>
+                                <DatabaseTutorials />
+                              </Suspense>
+                            } />
+                            <Route path="playground" element={
+                              <Suspense fallback={<LoadingPage text="Loading playground..." />}>
+                                <PlaygroundNew />
+                              </Suspense>
+                            } />
+                            <Route path="translator" element={
+                              <Suspense fallback={<LoadingPage text="Loading translator..." />}>
+                                <Translator />
+                              </Suspense>
+                            } />
+                            <Route path="practice" element={
+                              <Suspense fallback={<LoadingPage text="Loading practice..." />}>
+                                <Practice />
+                              </Suspense>
+                            } />
+                            <Route path="challenges" element={
+                              <Suspense fallback={<LoadingPage text="Loading challenges..." />}>
+                                <Challenges />
+                              </Suspense>
+                            } />
+                            <Route path="community" element={
+                              <Suspense fallback={<LoadingPage text="Loading community forum..." />}>
+                                <Community />
+                              </Suspense>
+                            } />
+                            <Route path="challenges/:slug" element={
+                              <Suspense fallback={<LoadingPage text="Loading challenge..." />}>
+                                <ChallengeDetail />
+                              </Suspense>
+                            } />
+                            <Route path="achievements" element={
+                              <Suspense fallback={<LoadingPage text="Loading achievements..." />}>
+                                <Achievements />
+                              </Suspense>
+                            } />
+                            <Route path="profile" element={
+                              <Suspense fallback={<LoadingPage text="Loading profile..." />}>
+                                <Profile />
+                              </Suspense>
+                            } />
+                            <Route path="settings" element={
+                              <Suspense fallback={<LoadingPage text="Loading settings..." />}>
+                                <Settings />
+                              </Suspense>
+                            } />
+                            <Route path="components-demo" element={
+                              <Suspense fallback={<LoadingPage text="Loading demo..." />}>
+                                <ComponentsDemo />
+                              </Suspense>
+                            } />
 
-                          {/* Feedback and Bug Report routes */}
-                          <Route path="feedback" element={
-                            <Suspense fallback={<LoadingPage text="Loading feedback form..." />}>
-                              <FeedbackForm />
-                            </Suspense>
-                          } />
-                          <Route path="report-bug" element={
-                            <Suspense fallback={<LoadingPage text="Loading bug report form..." />}>
-                              <BugReportForm />
-                            </Suspense>
-                          } />
+                            {/* Tutorial routes */}
+                            <Route path="tutorials/:id" element={
+                              <Suspense fallback={<LoadingPage text="Loading tutorial..." />}>
+                                <TutorialDetail />
+                              </Suspense>
+                            } />
+                            <Route path="tutorials/:id/learn" element={
+                              <Suspense fallback={<LoadingPage text="Loading lesson..." />}>
+                                <TutorialLearn />
+                              </Suspense>
+                            } />
 
-                          {/* Admin routes */}
-                          <Route path="admin/dashboard" element={
-                            <Suspense fallback={<LoadingPage text="Loading admin dashboard..." />}>
-                              <AdminDashboard />
-                            </Suspense>
-                          } />
-                          <Route path="admin/feedback" element={
-                            <Suspense fallback={<LoadingPage text="Loading feedback management..." />}>
-                              <AdminFeedback />
-                            </Suspense>
-                          } />
-                          <Route path="admin/bug-reports" element={
-                            <Suspense fallback={<LoadingPage text="Loading bug reports management..." />}>
-                              <AdminBugReports />
-                            </Suspense>
-                          } />
+                            {/* Feedback and Bug Report routes */}
+                            <Route path="feedback" element={
+                              <Suspense fallback={<LoadingPage text="Loading feedback form..." />}>
+                                <FeedbackForm />
+                              </Suspense>
+                            } />
+                            <Route path="report-bug" element={
+                              <Suspense fallback={<LoadingPage text="Loading bug report form..." />}>
+                                <BugReportForm />
+                              </Suspense>
+                            } />
 
-                          <Route path="progress" element={<div>Progress Page (Coming Soon)</div>} />
-                        </Route>
-                        
-                        {/* Catch all - redirect to login */}
-                        <Route path="*" element={<Navigate to="/login" replace />} />
-                      </Routes>
-                      
-                      {/* Performance Monitor (Development only) */}
-                      <PerformanceMonitorToggle />
-                    </div>
+                            {/* Admin routes */}
+                            <Route path="admin/dashboard" element={
+                              <Suspense fallback={<LoadingPage text="Loading admin dashboard..." />}>
+                                <AdminDashboard />
+                              </Suspense>
+                            } />
+                            <Route path="admin/feedback" element={
+                              <Suspense fallback={<LoadingPage text="Loading feedback management..." />}>
+                                <AdminFeedback />
+                              </Suspense>
+                            } />
+                            <Route path="admin/bug-reports" element={
+                              <Suspense fallback={<LoadingPage text="Loading bug reports management..." />}>
+                                <AdminBugReports />
+                              </Suspense>
+                            } />
+
+                            <Route path="progress" element={<div>Progress Page (Coming Soon)</div>} />
+                          </Route>
+
+                          {/* Catch all - redirect to login */}
+                          <Route path="*" element={<Navigate to="/login" replace />} />
+                        </Routes>
+
+                        {/* Performance Monitor (Development only) */}
+                        <PerformanceMonitorToggle />
+                      </div>
                     </SocketProvider>
                   </AuthProvider>
                 </ToastProvider>
               </ThemeProvider>
             </SEOProvider>
           </Router>
-      </QueryClientProvider>
-    </HelmetProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

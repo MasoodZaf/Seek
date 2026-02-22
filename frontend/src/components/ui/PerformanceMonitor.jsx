@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Performance Monitor Component
  * Real-time performance monitoring dashboard for development

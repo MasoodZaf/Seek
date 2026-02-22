@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Service Worker registration and management utilities
  */

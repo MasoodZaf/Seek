@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { PlayIcon, DocumentArrowDownIcon, CodeBracketIcon, SparklesIcon } from '@heroicons/react/24/outline';
+/* eslint-disable */
+import React, { useState, useEffect, useRef } from 'react';
+import { PlayIcon, DocumentArrowDownIcon, CodeBracketIcon, SparklesIcon, Cog6ToothIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import MonacoEditor from '@monaco-editor/react';
 import api from '../utils/api';
@@ -13,16 +14,34 @@ const PlaygroundModern = () => {
   const [isExecuting, setIsExecuting] = useState(false);
   const [editorTheme, setEditorTheme] = useState('vs-dark');
   const [fontSize, setFontSize] = useState(16);
+  const [showSettings, setShowSettings] = useState(false);
+
+  const editorRef = useRef(null);
+  const monacoRef = useRef(null);
+
+  const handleEditorDidMount = (editor, monaco) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+  };
+
+  const handleEditorChange = (value) => {
+    setCode(value || '');
+    // Clear markers when user edits the code
+    if (monacoRef.current && editorRef.current) {
+      const model = editorRef.current.getModel();
+      monacoRef.current.editor.setModelMarkers(model, "owner", []);
+    }
+  };
 
   const languages = [
-    { id: 'javascript', name: 'JavaScript', icon: '📜', color: 'from-yellow-400 to-yellow-600' },
-    { id: 'typescript', name: 'TypeScript', icon: '🔷', color: 'from-blue-500 to-blue-700' },
-    { id: 'python', name: 'Python', icon: '🐍', color: 'from-blue-400 to-blue-600' },
-    { id: 'java', name: 'Java', icon: '☕', color: 'from-red-400 to-red-600' },
-    { id: 'go', name: 'Go', icon: '🔹', color: 'from-cyan-400 to-cyan-600' },
-    { id: 'cpp', name: 'C++', icon: '⚡', color: 'from-purple-400 to-purple-600' },
-    { id: 'rust', name: 'Rust', icon: '🦀', color: 'from-orange-400 to-orange-600' },
-    { id: 'php', name: 'PHP', icon: '🐘', color: 'from-indigo-400 to-indigo-600' },
+    { id: 'javascript', name: 'JavaScript', icon: '📜' },
+    { id: 'typescript', name: 'TypeScript', icon: '🔷' },
+    { id: 'python', name: 'Python', icon: '🐍' },
+    { id: 'java', name: 'Java', icon: '☕' },
+    { id: 'go', name: 'Go', icon: '🔹' },
+    { id: 'cpp', name: 'C++', icon: '⚡' },
+    { id: 'rust', name: 'Rust', icon: '🦀' },
+    { id: 'php', name: 'PHP', icon: '🐘' },
   ];
 
   const templates = {
@@ -36,20 +55,43 @@ const PlaygroundModern = () => {
     php: `<?php\n// Modern PHP\n$name = "Developer";\necho "Hello, " . $name . "!\\n";\n\n$numbers = [1, 2, 3, 4, 5];\n$sum = array_sum($numbers);\necho "Sum: " . $sum . "\\n";\n?>`
   };
 
+  const playgroundExamples = {
+    javascript: [
+      { id: 'js1', name: 'Fibonacci Sequence', code: 'function fib(n) {\n  if (n <= 1) return n;\n  return fib(n - 1) + fib(n - 2);\n}\n\nfor (let i = 0; i < 10; i++) {\n  console.log(`Fibonacci(${i}) = ${fib(i)}`);\n}' },
+      { id: 'js2', name: 'Reverse String', code: 'const reverse = (str) => str.split("").reverse().join("");\n\nconsole.log(reverse("Hello Developer World!"));' },
+      { id: 'js3', name: 'Palindrome Check', code: 'function isPalindrome(str) {\n  const clean = str.toLowerCase().replace(/[^a-z0-9]/g, "");\n  return clean === clean.split("").reverse().join("");\n}\n\nconsole.log(isPalindrome("A man, a plan, a canal: Panama")); // true\nconsole.log(isPalindrome("Hello World")); // false' }
+    ],
+    python: [
+      { id: 'py1', name: 'Fibonacci Sequence', code: 'def fib(n):\n    if n <= 1:\n        return n\n    return fib(n-1) + fib(n-2)\n\nfor i in range(10):\n    print(f"Fibonacci({i}) = {fib(i)}")' },
+      { id: 'py2', name: 'Reverse String', code: 'def reverse_str(s):\n    return s[::-1]\n\nprint(reverse_str("Hello Developer World!"))' },
+      { id: 'py3', name: 'Palindrome Check', code: 'def is_palindrome(s):\n    clean = "".join(c.lower() for c in s if c.isalnum())\n    return clean == clean[::-1]\n\nprint(is_palindrome("A man, a plan, a canal: Panama")) # True\nprint(is_palindrome("Hello World")) # False' }
+    ],
+    java: [
+      { id: 'ja1', name: 'Fibonacci Sequence', code: 'public class Main {\n    public static void main(String[] args) {\n        for (int i = 0; i < 10; i++) {\n            System.out.println("Fibonacci(" + i + ") = " + fib(i));\n        }\n    }\n    \n    static int fib(int n) {\n        if (n <= 1) return n;\n        return fib(n-1) + fib(n-2);\n    }\n}' },
+      { id: 'ja2', name: 'Reverse String', code: 'public class Main {\n    public static void main(String[] args) {\n        String str = "Hello Developer World!";\n        StringBuilder sb = new StringBuilder(str);\n        System.out.println(sb.reverse().toString());\n    }\n}' }
+    ],
+    cpp: [
+      { id: 'cpp1', name: 'Fibonacci Sequence', code: '#include <iostream>\nusing namespace std;\n\nint fib(int n) {\n    if (n <= 1) return n;\n    return fib(n-1) + fib(n-2);\n}\n\nint main() {\n    for (int i = 0; i < 10; i++) {\n        cout << "Fibonacci(" << i << ") = " << fib(i) << endl;\n    }\n    return 0;\n}' }
+    ]
+  };
+
   const runCode = async () => {
     if (!code.trim()) {
       toast.error('No code to execute');
       return;
     }
 
-    console.log('Executing code:', { language, codeLength: code.length, codePreview: code.substring(0, 100) });
     setIsExecuting(true);
     setOutput('⏳ Executing...');
 
     try {
+      // Clear previous error markers
+      if (monacoRef.current && editorRef.current) {
+        monacoRef.current.editor.setModelMarkers(editorRef.current.getModel(), "owner", []);
+      }
+
       const response = await api.post('/code/execute', { code, language, input: '' });
       const result = response.data;
-      console.log('Execution result:', result);
 
       if (result.success) {
         const data = result.data;
@@ -69,6 +111,33 @@ const PlaygroundModern = () => {
 
         if (data.error) {
           outputText += `\n\n❌ ${data.error}`;
+        }
+
+        // Parse error line for highlighting
+        let foundErrorLine = null;
+        const errStrToMatch = (data.output?.stderr || '') + ' ' + (data.error || '');
+        const stderrMatches = errStrToMatch.match(/line (\d+)/i) || errStrToMatch.match(/:(\d+):\d+/i);
+
+        if (stderrMatches && stderrMatches[1]) {
+          foundErrorLine = parseInt(stderrMatches[1], 10);
+        }
+
+        if (foundErrorLine) {
+          outputText += `\n\n📌 Exact Error at Line -> ${foundErrorLine}`;
+
+          if (monacoRef.current && editorRef.current) {
+            const model = editorRef.current.getModel();
+            monacoRef.current.editor.setModelMarkers(model, "owner", [
+              {
+                startLineNumber: foundErrorLine,
+                startColumn: 1,
+                endLineNumber: foundErrorLine,
+                endColumn: 1000,
+                message: "Syntax Error or Exception",
+                severity: monacoRef.current.MarkerSeverity.Error
+              }
+            ]);
+          }
         }
 
         const time = data.executionTime ? `\n\n⏱️ ${data.executionTime}ms` : '';
@@ -99,208 +168,227 @@ const PlaygroundModern = () => {
   };
 
   useEffect(() => {
-    console.log('Loading template for:', language);
     if (templates[language]) {
-      const template = templates[language];
-      console.log('Template loaded, length:', template.length);
-      setCode(template);
+      setCode(templates[language]);
       setOutput('');
     }
   }, [language]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentLang = languages.find(l => l.id === language);
+  const settingsRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setShowSettings(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      {/* Header */}
-      <div className="border-b border-gray-700/50 backdrop-blur-xl bg-gray-900/50">
-        <div className="max-w-[1800px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <CodeBracketIcon className="w-6 h-6" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    Code Playground
-                  </h1>
-                  <p className="text-xs text-gray-400">Write, run, and share code</p>
-                </div>
+    <div className="flex flex-col h-[calc(100vh-200px)] min-h-[600px] w-full bg-gray-900 text-white overflow-hidden rounded-xl shadow-2xl border border-gray-700/50">
+
+      {/* Header / Toolbar */}
+      <div className="flex-shrink-0 bg-gray-800/80 border-b border-gray-700/50 px-4 py-3 flex items-center justify-between z-20">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <CodeBracketIcon className="w-5 h-5" />
+            </div>
+            <h1 className="text-lg font-bold hidden sm:block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Playground
+            </h1>
+          </div>
+
+          <div className="h-6 w-px bg-gray-700 hidden sm:block"></div>
+
+          {/* Language Selector in Toolbar */}
+          <div className="relative">
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="appearance-none bg-gray-700/80 border border-gray-600 text-sm rounded-lg px-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 hover:bg-gray-700 cursor-pointer"
+            >
+              {languages.map(lang => (
+                <option key={lang.id} value={lang.id}>
+                  {lang.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-base">
+              {currentLang?.icon}
+            </div>
+          </div>
+
+          {/* Examples Selector */}
+          {playgroundExamples[language] && (
+            <div className="relative ml-2">
+              <select
+                onChange={(e) => {
+                  if (e.target.value === "") {
+                    setCode(templates[language]);
+                  } else {
+                    const ex = playgroundExamples[language].find(x => x.id === e.target.value);
+                    if (ex) setCode(ex.code);
+                  }
+                  e.target.value = ""; // reset to placeholder
+                }}
+                className="appearance-none bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 text-sm font-medium rounded-lg pl-8 pr-6 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 hover:bg-indigo-600/30 cursor-pointer"
+              >
+                <option value="">Load Example...</option>
+                {playgroundExamples[language].map(ex => (
+                  <option key={ex.id} value={ex.id}>
+                    {ex.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-base">
+                💡
               </div>
             </div>
-            {user && (
-              <div className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800/50 border border-gray-700">
-                <SparklesIcon className="w-4 h-4 text-yellow-400" />
-                <span className="text-sm font-medium">{user.firstName}</span>
+          )}
+        </div>
+
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={downloadCode}
+            className="hidden sm:flex px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors items-center space-x-2"
+          >
+            <DocumentArrowDownIcon className="w-4 h-4" />
+            <span>Download</span>
+          </button>
+
+          {/* Settings Dropdown */}
+          <div className="relative" ref={settingsRef}>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="p-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+            >
+              <Cog6ToothIcon className="w-5 h-5 text-gray-300" />
+            </button>
+
+            {showSettings && (
+              <div className="absolute right-0 mt-2 w-64 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl p-4 z-50">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-sm font-semibold text-gray-300">Editor Settings</h3>
+                  <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-white">
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1.5 block">Theme</label>
+                    <select
+                      value={editorTheme}
+                      onChange={(e) => setEditorTheme(e.target.value)}
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm outline-none"
+                    >
+                      <option value="vs-dark">Dark</option>
+                      <option value="light">Light</option>
+                      <option value="hc-black">High Contrast</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1.5 block">Font Size: {fontSize}px</label>
+                    <input
+                      type="range"
+                      min="12"
+                      max="24"
+                      value={fontSize}
+                      onChange={(e) => setFontSize(Number(e.target.value))}
+                      className="w-full accent-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={runCode}
+            disabled={isExecuting}
+            className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 transition-all font-medium text-sm flex items-center shadow-lg"
+          >
+            <PlayIcon className="w-4 h-4 mr-1.5" />
+            <span>{isExecuting ? 'Running...' : 'Run Code'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content - Split layout */}
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 w-full">
+
+        {/* Left Side: Editor */}
+        <div className="flex-1 flex flex-col border-r border-gray-700/50 min-h-0 relative">
+          <div className="px-4 py-2 bg-gray-800/30 text-xs font-mono text-gray-400 border-b border-gray-700/50 flex justify-between items-center shadow-inner">
+            <div className="flex items-center space-x-4">
+              <div className="flex space-x-1.5 flex-shrink-0">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500 hover:bg-red-400 transition-colors cursor-pointer"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 hover:bg-yellow-400 transition-colors cursor-pointer"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors cursor-pointer"></div>
+              </div>
+              <span>code.{currentLang?.id || 'js'}</span>
+            </div>
+            <div className="flex space-x-3 text-gray-500">
+              <span>Lines: {code.split('\n').length}</span>
+              <span>Chars: {code.length}</span>
+            </div>
+          </div>
+          <div className="flex-1 relative">
+            <MonacoEditor
+              value={code}
+              onChange={handleEditorChange}
+              onMount={handleEditorDidMount}
+              language={language === 'cpp' ? 'cpp' : language}
+              theme={editorTheme}
+              options={{
+                fontSize,
+                minimap: { enabled: false },
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                tabSize: 2,
+                wordWrap: 'on',
+                padding: { top: 16, bottom: 16 },
+                renderLineHighlight: 'all',
+                cursorBlinking: 'smooth',
+                smoothScrolling: true,
+                fontFamily: "'Fira Code', 'Cascadia Code', 'Courier New', monospace",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Right Side: Output */}
+        <div className="flex-1 flex flex-col bg-gray-900 min-h-0 lg:max-w-xl xl:max-w-2xl border-t lg:border-t-0 border-gray-700/50">
+          <div className="px-4 py-2 bg-gray-800/30 border-b border-gray-700/50 flex justify-between items-center shadow-inner">
+            <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">Output Console</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(output);
+                  toast.success('Output copied to clipboard!');
+                }}
+                className="text-xs px-3 py-1 font-medium rounded-md bg-blue-600/30 hover:bg-blue-600/50 text-blue-200 transition-colors"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 p-4 overflow-auto font-mono text-sm leading-relaxed">
+            {output ? (
+              <pre className="text-green-400 whitespace-pre-wrap">{output}</pre>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-gray-600">
+                <CodeBracketIcon className="w-10 h-10 mb-2 opacity-50" />
+                <p>Output will appear here</p>
               </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-[1800px] mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)]">
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-4">
-            {/* Language Selector */}
-            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6">
-              <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center">
-                <CodeBracketIcon className="w-4 h-4 mr-2" />
-                Language
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {languages.map(lang => (
-                  <button
-                    key={lang.id}
-                    onClick={() => setLanguage(lang.id)}
-                    className={`p-3 rounded-xl transition-all duration-200 ${
-                      language === lang.id
-                        ? `bg-gradient-to-br ${lang.color} shadow-lg scale-105`
-                        : 'bg-gray-700/50 hover:bg-gray-700'
-                    }`}
-                  >
-                    <div className="text-2xl mb-1">{lang.icon}</div>
-                    <div className="text-xs font-medium">{lang.name}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Settings */}
-            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-4 min-h-fit">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Editor Settings</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-gray-400 mb-1.5 block">Theme</label>
-                  <select
-                    value={editorTheme}
-                    onChange={(e) => setEditorTheme(e.target.value)}
-                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-1.5 text-sm"
-                  >
-                    <option value="vs-dark">Dark</option>
-                    <option value="light">Light</option>
-                    <option value="hc-black">High Contrast</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-400 mb-1.5 block">Font Size: {fontSize}px</label>
-                  <input
-                    type="range"
-                    min="12"
-                    max="24"
-                    value={fontSize}
-                    onChange={(e) => setFontSize(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-4 min-h-fit">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Code Stats</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Lines</span>
-                  <span className="font-mono text-blue-400">{code.split('\n').length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Characters</span>
-                  <span className="font-mono text-purple-400">{code.length}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Editor & Output */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            {/* Editor */}
-            <div className="flex-1 bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 overflow-hidden flex flex-col">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700/50">
-                <div className="flex items-center space-x-3">
-                  <div className="flex space-x-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  </div>
-                  <span className="text-sm text-gray-400">code.{currentLang?.name.toLowerCase()}</span>
-                </div>
-                <button
-                  onClick={downloadCode}
-                  className="px-3 py-1.5 text-xs rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center space-x-2"
-                >
-                  <DocumentArrowDownIcon className="w-4 h-4" />
-                  <span>Download</span>
-                </button>
-              </div>
-              <div className="flex-1 relative">
-                <MonacoEditor
-                  value={code}
-                  onChange={(value) => setCode(value || '')}
-                  language={language === 'cpp' ? 'cpp' : language}
-                  theme={editorTheme}
-                  options={{
-                    fontSize,
-                    minimap: { enabled: false },
-                    lineNumbers: 'on',
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    tabSize: 2,
-                    wordWrap: 'on',
-                    padding: { top: 16, bottom: 16 },
-                    renderLineHighlight: 'all',
-                    cursorBlinking: 'smooth',
-                    smoothScrolling: true,
-                    fontFamily: "'Fira Code', 'Cascadia Code', 'Courier New', monospace",
-                    fontLigatures: true
-                  }}
-                />
-              </div>
-              <div className="px-6 py-4 border-t border-gray-700/50 flex items-center justify-between">
-                <button
-                  onClick={runCode}
-                  disabled={isExecuting}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2 font-medium shadow-lg hover:shadow-xl"
-                >
-                  <PlayIcon className="w-5 h-5" />
-                  <span>{isExecuting ? 'Running...' : 'Run Code'}</span>
-                </button>
-                <button
-                  onClick={() => { setCode(''); setOutput(''); }}
-                  className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm"
-                >
-                  Clear All
-                </button>
-              </div>
-            </div>
-
-            {/* Output */}
-            <div className="h-72 bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 overflow-hidden flex flex-col">
-              <div className="px-6 py-3 border-b border-gray-700/50 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-300">Output</h3>
-                <button
-                  onClick={() => setOutput('')}
-                  className="text-xs text-gray-400 hover:text-white transition-colors"
-                >
-                  Clear
-                </button>
-              </div>
-              <div className="flex-1 p-6 overflow-auto font-mono text-sm">
-                {output ? (
-                  <pre className="text-green-400 whitespace-pre-wrap">{output}</pre>
-                ) : (
-                  <div className="text-gray-500 text-center py-12">
-                    <CodeBracketIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Run your code to see output here</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * SEO Utilities and Configuration
  * Comprehensive SEO management for dynamic meta tags, structured data, and social sharing

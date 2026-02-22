@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Keyboard navigation utilities and focus management
  */

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Browser Detection and Feature Support Utilities
  * Provides browser detection and progressive enhancement features

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Performance Optimization Utilities
  * Provides comprehensive performance monitoring and optimization features

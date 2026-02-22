@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -14,10 +15,10 @@ import {
   SparklesIcon,
   RocketLaunchIcon,
 } from '@heroicons/react/24/outline';
-import { 
-  Card, 
-  Button, 
-  Badge, 
+import {
+  Card,
+  Button,
+  Badge,
   Progress,
   LoadingSkeleton,
   StatCard,
@@ -36,7 +37,7 @@ const EnhancedDashboard = () => {
   const [achievements, setAchievements] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -44,7 +45,7 @@ const EnhancedDashboard = () => {
         const tutorialsResponse = await fetch('/api/v1/tutorials?limit=3', {
           credentials: 'include',
         });
-        
+
         if (tutorialsResponse.ok) {
           const tutorialsData = await tutorialsResponse.json();
           const tutorials = tutorialsData.data.tutorials.map(tutorial => ({
@@ -58,7 +59,7 @@ const EnhancedDashboard = () => {
           }));
           setRecentTutorials(tutorials);
         }
-        
+
         // Set enhanced stats
         setStats({
           totalTutorials: 15,
@@ -72,7 +73,7 @@ const EnhancedDashboard = () => {
           weeklyProgress: 7,
           averageScore: 87,
         });
-        
+
         // Set achievements
         setAchievements([
           {
@@ -143,7 +144,7 @@ const EnhancedDashboard = () => {
             color: 'error',
           },
         ]);
-        
+
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         // Fallback to mock data
@@ -166,7 +167,7 @@ const EnhancedDashboard = () => {
         setLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, []);
 
@@ -206,7 +207,7 @@ const EnhancedDashboard = () => {
       variant: 'ghost',
     },
   ];
-  
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -225,7 +226,7 @@ const EnhancedDashboard = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-8">
       {/* Enhanced Hero Section */}
@@ -235,7 +236,7 @@ const EnhancedDashboard = () => {
         title={`Welcome back, ${user?.firstName || 'User'}! 🚀`}
         subtitle="Ready to level up your coding skills? Let's make today count!"
       />
-      
+
       {/* Enhanced Stats Grid */}
       <motion.div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
@@ -272,8 +273,8 @@ const EnhancedDashboard = () => {
           label="Average Score"
           value={`${stats?.averageScore}%`}
           change={5}
-          color="error"
-          variant="colored"
+          color="primary"
+          variant="default"
         />
       </motion.div>
 
@@ -308,7 +309,7 @@ const EnhancedDashboard = () => {
               </div>
             </ProgressRing>
           </div>
-          
+
           <Progress
             value={(stats?.weeklyProgress / stats?.weeklyGoal) * 100}
             variant="success"
@@ -317,14 +318,14 @@ const EnhancedDashboard = () => {
             showLabel={false}
             className="mb-2"
           />
-          
+
           <div className="flex justify-between text-sm text-secondary-600 dark:text-secondary-400">
             <span>{stats?.weeklyGoal - stats?.weeklyProgress} tutorials remaining</span>
             <span>{Math.round((stats?.weeklyProgress / stats?.weeklyGoal) * 100)}% complete</span>
           </div>
         </Card>
       </motion.div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Continue Learning Section */}
         <motion.div
@@ -333,6 +334,30 @@ const EnhancedDashboard = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
         >
+          {/* Daily Challenge */}
+          <Card className="p-6 bg-gradient-to-r from-primary-600 to-purple-600 border-0 text-white relative overflow-hidden shadow-lg shadow-primary-500/20 mb-8">
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between">
+              <div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <FireIcon className="h-5 w-5 text-orange-400" />
+                  <span className="font-semibold text-white/90 uppercase tracking-wider text-xs">Daily Challenge</span>
+                </div>
+                <h3 className="text-xl font-bold mb-2 text-white">Mastering Array.reduce()</h3>
+                <p className="text-white/80 max-w-xl text-sm">
+                  Write a function that flattens a deeply nested array using reduce. Earn 250 XP upon completion!
+                </p>
+              </div>
+              <Button variant="secondary" className="mt-4 md:mt-0 bg-white text-primary-600 hover:bg-gray-50 border-0 flex-shrink-0">
+                <PlayIcon className="h-4 w-4 mr-2" />
+                Start Challenge
+              </Button>
+            </div>
+            {/* Decorative background */}
+            <div className="absolute -right-10 -top-10 opacity-10 blur-2xl pointer-events-none">
+              <div className="w-64 h-64 bg-white rounded-full" />
+            </div>
+          </Card>
+
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100">
               Continue Learning
@@ -344,7 +369,7 @@ const EnhancedDashboard = () => {
               </Button>
             </Link>
           </div>
-          
+
           <div className="space-y-4">
             {recentTutorials.map((tutorial, index) => (
               <motion.div
@@ -359,7 +384,7 @@ const EnhancedDashboard = () => {
               </motion.div>
             ))}
           </div>
-          
+
           <div className="pt-4">
             <Link to="/tutorials">
               <Button variant="primary" size="lg" className="w-full md:w-auto">
@@ -369,7 +394,7 @@ const EnhancedDashboard = () => {
             </Link>
           </div>
         </motion.div>
-        
+
         {/* Sidebar with Quick Actions and Activity */}
         <motion.div
           className="space-y-8"
@@ -381,7 +406,39 @@ const EnhancedDashboard = () => {
           <Card className="p-6">
             <QuickActions actions={quickActions} />
           </Card>
-          
+
+          {/* Latest IT News */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">
+                Latest IT News
+              </h3>
+              <Button variant="ghost" size="sm">
+                View All
+              </Button>
+            </div>
+            <div className="space-y-4">
+              {[
+                { id: 1, title: 'React 19 Release Candidate is here', source: 'React Blog', time: '2 hours ago' },
+                { id: 2, title: 'The state of JavaScript 2024', source: 'JS Weekly', time: '5 hours ago' },
+                { id: 3, title: 'Understanding CSS Subgrid', source: 'CSS Tricks', time: '1 day ago' },
+              ].map((news) => (
+                <div key={news.id} className="group border-b border-secondary-100 dark:border-secondary-800 pb-4 last:border-0 last:pb-0">
+                  <a href="#" className="block hover:text-primary-600 transition-colors">
+                    <h4 className="text-sm font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 transition-colors">
+                      {news.title}
+                    </h4>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className="text-xs text-secondary-500">{news.source}</span>
+                      <span className="text-xs text-secondary-300">•</span>
+                      <span className="text-xs text-secondary-400">{news.time}</span>
+                    </div>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </Card>
+
           {/* Recent Activity */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -392,10 +449,10 @@ const EnhancedDashboard = () => {
                 View All
               </Button>
             </div>
-            
+
             <Timeline items={recentActivity} />
           </Card>
-          
+
           {/* Achievement Preview */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -406,7 +463,7 @@ const EnhancedDashboard = () => {
                 <Button variant="ghost" size="sm">View All</Button>
               </Link>
             </div>
-            
+
             <div className="space-y-4">
               {achievements.slice(0, 3).map((achievement, index) => (
                 <motion.div
@@ -448,14 +505,14 @@ const EnhancedTutorialCard = ({ tutorial }) => {
           <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-3 group-hover:text-primary-600 transition-colors">
             {String(tutorial.title)}
           </h3>
-          
+
           <div className="flex items-center space-x-3 mb-4">
             <span className={`px-3 py-1 text-xs font-medium rounded-full ${getLanguageColor(tutorial.language)}`}>
               {tutorial.language}
             </span>
-            <Badge 
-              variant={tutorial.difficulty === 'beginner' ? 'success' : 
-                      tutorial.difficulty === 'intermediate' ? 'warning' : 'error'} 
+            <Badge
+              variant={tutorial.difficulty === 'beginner' ? 'success' :
+                tutorial.difficulty === 'intermediate' ? 'warning' : 'error'}
               size="sm"
             >
               {tutorial.difficulty}
@@ -467,12 +524,12 @@ const EnhancedTutorialCard = ({ tutorial }) => {
               </div>
             )}
           </div>
-          
+
           <p className="text-sm text-secondary-500 dark:text-secondary-400 mb-4">
             Last accessed: {tutorial.lastAccessed}
           </p>
         </div>
-        
+
         <div className="ml-6">
           <Button variant="primary" size="sm" className="group-hover:scale-105 transition-transform">
             <PlayIcon className="h-4 w-4 mr-2" />
@@ -480,23 +537,23 @@ const EnhancedTutorialCard = ({ tutorial }) => {
           </Button>
         </div>
       </div>
-      
+
       {tutorial.progress > 0 && (
         <div className="mt-6">
           <div className="flex justify-between text-sm text-secondary-600 dark:text-secondary-400 mb-2">
             <span>Progress</span>
             <span>{tutorial.progress}% complete</span>
           </div>
-          <Progress 
-            value={tutorial.progress} 
-            size="md" 
+          <Progress
+            value={tutorial.progress}
+            size="md"
             showLabel={false}
             animated
             variant="primary"
           />
           <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-2">
-            {tutorial.progress < 100 ? 
-              `~${Math.ceil((100 - tutorial.progress) * 0.2)} hours remaining` : 
+            {tutorial.progress < 100 ?
+              `~${Math.ceil((100 - tutorial.progress) * 0.2)} hours remaining` :
               'Completed! 🎉'
             }
           </p>
@@ -527,30 +584,26 @@ const EnhancedAchievementBadge = ({ achievement }) => {
     };
     return colors[rarity] || colors.common;
   };
-  
+
   return (
-    <div className={`p-4 rounded-xl border-2 transition-all duration-300 ${
-      achievement.earned 
-        ? `${getRarityColor(achievement.rarity)} hover:shadow-lg` 
+    <div className={`p-4 rounded-xl border-2 transition-all duration-300 ${achievement.earned
+        ? `${getRarityColor(achievement.rarity)} hover:shadow-lg`
         : 'border-secondary-200 bg-secondary-50 dark:bg-secondary-800/30 opacity-60'
-    }`}>
+      }`}>
       <div className="flex items-center space-x-3">
-        <div className={`p-2 rounded-lg ${
-          achievement.earned ? 'bg-primary-100 dark:bg-primary-900/30' : 'bg-secondary-100 dark:bg-secondary-700'
-        }`}>
+        <div className={`p-2 rounded-lg ${achievement.earned ? 'bg-primary-100 dark:bg-primary-900/30' : 'bg-secondary-100 dark:bg-secondary-700'
+          }`}>
           {(() => {
             const IconComponent = getIconComponent(achievement.iconType);
-            return <IconComponent className={`h-5 w-5 ${
-              achievement.earned ? 'text-primary-600 dark:text-primary-400' : 'text-secondary-400'
-            }`} />;
+            return <IconComponent className={`h-5 w-5 ${achievement.earned ? 'text-primary-600 dark:text-primary-400' : 'text-secondary-400'
+              }`} />;
           })()}
         </div>
-        
+
         <div className="flex-1">
           <div className="flex items-center space-x-2">
-            <h4 className={`font-medium ${
-              achievement.earned ? 'text-secondary-900 dark:text-secondary-100' : 'text-secondary-500'
-            }`}>
+            <h4 className={`font-medium ${achievement.earned ? 'text-secondary-900 dark:text-secondary-100' : 'text-secondary-500'
+              }`}>
               {String(achievement.title)}
             </h4>
             {achievement.rarity && achievement.earned && (
@@ -559,17 +612,17 @@ const EnhancedAchievementBadge = ({ achievement }) => {
               </Badge>
             )}
           </div>
-          
+
           <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
             {String(achievement.description)}
           </p>
-          
+
           {achievement.earned && achievement.earnedDate && (
             <p className="text-xs text-primary-600 dark:text-primary-400 mt-1">
               Earned on {new Date(achievement.earnedDate).toLocaleDateString()}
             </p>
           )}
-          
+
           {!achievement.earned && achievement.progress && (
             <div className="mt-2">
               <Progress

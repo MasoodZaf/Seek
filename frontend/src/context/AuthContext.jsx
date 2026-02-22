@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';

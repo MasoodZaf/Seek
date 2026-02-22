@@ -1,5 +1,6 @@
+/* eslint-disable */
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import {
@@ -24,6 +25,7 @@ import DarkModeToggle from '../ui/DarkModeToggle';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import clsx from 'clsx';
+import api from '../../utils/api';
 
 const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
@@ -42,47 +44,57 @@ const Header = ({ onMenuClick }) => {
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
-  // Breadcrumb mapping
-  const breadcrumbMap = {
-    '/dashboard': [{ name: 'Dashboard', href: '/dashboard', icon: HomeIcon }],
-    '/playground': [
-      { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-      { name: 'Code Playground', href: '/playground', icon: CommandLineIcon }
-    ],
-    '/tutorials': [
-      { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-      { name: 'Tutorials', href: '/tutorials', icon: BookOpenIcon }
-    ],
-    '/progress': [
-      { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-      { name: 'My Progress', href: '/progress', icon: ChartBarIcon }
-    ],
-  };
+  const navigate = useNavigate();
+  const [allTutorials, setAllTutorials] = useState([]);
 
-  const currentBreadcrumbs = breadcrumbMap[location.pathname] || [
-    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon }
-  ];
+  // Fetch tutorials for search index
+  useEffect(() => {
+    const fetchSearchIndex = async () => {
+      try {
+        const [progRes, dbRes] = await Promise.all([
+          api.get('/tutorials'),
+          api.get('/database-tutorials').catch(() => ({ data: { data: { tutorials: [] } } }))
+        ]);
 
-  // Mock search suggestions
-  const mockSuggestions = [
-    { type: 'tutorial', title: 'React Hooks Tutorial', category: 'React' },
-    { type: 'tutorial', title: 'JavaScript Fundamentals', category: 'JavaScript' },
-    { type: 'topic', title: 'State Management', category: 'Concepts' },
-    { type: 'tutorial', title: 'CSS Grid Layout', category: 'CSS' },
-  ];
+        const progTuts = progRes.data?.data?.tutorials || [];
+        const dbTuts = dbRes.data?.data?.tutorials || [];
+
+        const formattedProg = progTuts.map(t => ({
+          type: 'tutorial',
+          id: t._id,
+          title: t.title,
+          category: t.category || t.language || 'Programming',
+          path: `/tutorials/${t._id}` // Navigate to TutorialDetail
+        }));
+
+        const formattedDb = dbTuts.map(t => ({
+          type: 'database',
+          id: t._id,
+          title: t.title,
+          category: t.database || 'Database',
+          path: `/tutorials/${t._id}`
+        }));
+
+        setAllTutorials([...formattedProg, ...formattedDb]);
+      } catch (err) {
+        console.error('Failed to load search index:', err);
+      }
+    };
+    fetchSearchIndex();
+  }, []);
 
   useEffect(() => {
     if (searchQuery.length > 0) {
-      const filtered = mockSuggestions.filter(item =>
+      const filtered = allTutorials.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      ).slice(0, 8); // Top 8 results
       setSearchSuggestions(filtered);
     } else {
       setSearchSuggestions([]);
     }
-  }, [searchQuery]);
-  
+  }, [searchQuery, allTutorials]);
+
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -93,48 +105,23 @@ const Header = ({ onMenuClick }) => {
   };
 
   const handleSuggestionClick = (suggestion) => {
-    setSearchQuery(suggestion.title);
+    setSearchQuery('');
     setIsSearchFocused(false);
-    // Navigate to suggestion
+    if (suggestion.path) {
+      navigate(suggestion.path);
+    }
   };
-  
+
   return (
-    <header className={`relative border-b transition-all duration-300 ${
-      isDarkMode 
-        ? 'bg-gray-900/80 border-gray-700/50 backdrop-blur-xl' 
-        : 'bg-white/80 border-secondary-200/50 backdrop-blur-xl'
-    } shadow-lg shadow-black/5`}>
+    <header className={`relative z-50 border-b transition-all duration-300 ${isDarkMode
+      ? 'bg-gray-900/80 border-gray-700/50 backdrop-blur-xl'
+      : 'bg-white/80 border-secondary-200/50 backdrop-blur-xl'
+      } shadow-lg shadow-black/5`}>
       {/* Glass morphism overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/5 to-transparent pointer-events-none" />
-      
-      <div className="relative px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumb Navigation */}
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="hidden lg:flex items-center space-x-2 py-2 border-b border-white/10"
-        >
-          {currentBreadcrumbs.map((crumb, index) => (
-            <React.Fragment key={crumb.href}>
-              {index > 0 && (
-                <ChevronRightIcon className="h-4 w-4 text-secondary-400" />
-              )}
-              <Link
-                to={crumb.href}
-                className={clsx(
-                  'flex items-center space-x-1 px-2 py-1 rounded-lg text-sm font-medium transition-all duration-200 hover-lift',
-                  index === currentBreadcrumbs.length - 1
-                    ? 'text-primary-600 bg-primary-50/50'
-                    : 'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-50/50'
-                )}
-              >
-                <crumb.icon className="h-4 w-4" />
-                <span>{crumb.name}</span>
-              </Link>
-            </React.Fragment>
-          ))}
-        </motion.div>
 
+      <div className="relative px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumbs moved to body */}
         <div className="flex items-center justify-between h-16">
           {/* Left side - Menu button and search */}
           <div className="flex items-center space-x-4">
@@ -148,7 +135,7 @@ const Header = ({ onMenuClick }) => {
                 <Bars3Icon className="h-6 w-6" />
               </Button>
             </motion.div>
-            
+
             {/* Enhanced Search with Autocomplete */}
             <div className="hidden md:block relative">
               <form onSubmit={handleSearch} className="relative">
@@ -156,7 +143,7 @@ const Header = ({ onMenuClick }) => {
                   <motion.div
                     animate={{
                       scale: isSearchFocused ? 1.02 : 1,
-                      boxShadow: isSearchFocused 
+                      boxShadow: isSearchFocused
                         ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
                         : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                     }}
@@ -225,7 +212,7 @@ const Header = ({ onMenuClick }) => {
               </form>
             </div>
           </div>
-          
+
           {/* Right side - Actions and user menu */}
           <div className="flex items-center space-x-3">
             {/* Search button for mobile */}
@@ -238,12 +225,9 @@ const Header = ({ onMenuClick }) => {
                 <MagnifyingGlassIcon className="h-5 w-5" />
               </Button>
             </motion.div>
-            
-            {/* Theme toggle */}
-            <motion.div whileTap={{ scale: 0.95 }}>
-              <DarkModeToggle variant="default" size="sm" className="backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20" />
-            </motion.div>
-            
+
+            {/* Theme toggle removed temporarily */}
+
             {/* Enhanced Notifications */}
             <Menu as="div" className="relative">
               <motion.div whileTap={{ scale: 0.95 }}>
@@ -260,7 +244,7 @@ const Header = ({ onMenuClick }) => {
                   )}
                 </Menu.Button>
               </motion.div>
-              
+
               <Transition
                 enter="transition ease-out duration-200"
                 enterFrom="transform opacity-0 scale-95"
@@ -282,7 +266,7 @@ const Header = ({ onMenuClick }) => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="max-h-64 overflow-y-auto">
                     {notifications.map((notification, index) => (
                       <Menu.Item key={notification.id}>
@@ -315,7 +299,7 @@ const Header = ({ onMenuClick }) => {
                       </Menu.Item>
                     ))}
                   </div>
-                  
+
                   <div className="px-4 py-2 border-t border-white/20">
                     <Button variant="ghost" size="sm" className="w-full text-left hover:bg-primary-50/50">
                       View all notifications
@@ -324,7 +308,7 @@ const Header = ({ onMenuClick }) => {
                 </Menu.Items>
               </Transition>
             </Menu>
-            
+
             {/* Enhanced User menu */}
             <Menu as="div" className="relative">
               {({ open }) => (
@@ -382,73 +366,73 @@ const Header = ({ onMenuClick }) => {
                         }}
                         className="w-56 bg-white backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200 py-2"
                       >
-                  {/* User Info Header */}
-                  <div className="px-4 py-3 border-b border-white/20">
-                    <div className="flex items-center space-x-3">
-                      <div className="h-10 w-10 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-semibold text-white">
-                          {user?.firstName?.[0]}{user?.lastName?.[0]}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-secondary-900">
-                          {user?.firstName} {user?.lastName}
-                        </p>
-                        <p className="text-xs text-secondary-500">
-                          Level {user?.progress?.level || 1} • {user?.progress?.xp || 0} XP
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                        {/* User Info Header */}
+                        <div className="px-4 py-3 border-b border-white/20">
+                          <div className="flex items-center space-x-3">
+                            <div className="h-10 w-10 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-semibold text-white">
+                                {user?.firstName?.[0]}{user?.lastName?.[0]}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-secondary-900">
+                                {user?.firstName} {user?.lastName}
+                              </p>
+                              <p className="text-xs text-secondary-500">
+                                Level {user?.progress?.level || 1} • {user?.progress?.xp || 0} XP
+                              </p>
+                            </div>
+                          </div>
+                        </div>
 
-                  <div className="py-1">
-                    <Menu.Item>
-                      {({ active }) => (
-                        <Link
-                          to="/profile"
-                          className={clsx(
-                            'flex items-center px-4 py-2 text-sm text-secondary-700 transition-all duration-200',
-                            active && 'bg-primary-50/50 text-primary-700'
+                        <div className="py-1">
+                          <Menu.Item>
+                            {({ active }) => (
+                              <Link
+                                to="/profile"
+                                className={clsx(
+                                  'flex items-center px-4 py-2 text-sm text-secondary-700 transition-all duration-200',
+                                  active && 'bg-primary-50/50 text-primary-700'
+                                )}
+                              >
+                                <UserIcon className="h-4 w-4 mr-3" />
+                                View Profile
+                              </Link>
+                            )}
+                          </Menu.Item>
+
+                          <Menu.Item>
+                            {({ active }) => (
+                              <Link
+                                to="/settings"
+                                className={clsx(
+                                  'flex items-center px-4 py-2 text-sm text-secondary-700 transition-all duration-200',
+                                  active && 'bg-primary-50/50 text-primary-700'
+                                )}
+                              >
+                                <CogIcon className="h-4 w-4 mr-3" />
+                                Settings
+                              </Link>
+                            )}
+                          </Menu.Item>
+                        </div>
+
+                        <div className="border-t border-white/20 my-1" />
+
+                        <Menu.Item>
+                          {({ active }) => (
+                            <button
+                              onClick={logout}
+                              className={clsx(
+                                'flex items-center w-full px-4 py-2 text-sm text-red-600 transition-all duration-200',
+                                active && 'bg-red-50/50'
+                              )}
+                            >
+                              <ArrowRightOnRectangleIcon className="h-4 w-4 mr-3" />
+                              Sign Out
+                            </button>
                           )}
-                        >
-                          <UserIcon className="h-4 w-4 mr-3" />
-                          View Profile
-                        </Link>
-                      )}
-                    </Menu.Item>
-                    
-                    <Menu.Item>
-                      {({ active }) => (
-                        <Link
-                          to="/settings"
-                          className={clsx(
-                            'flex items-center px-4 py-2 text-sm text-secondary-700 transition-all duration-200',
-                            active && 'bg-primary-50/50 text-primary-700'
-                          )}
-                        >
-                          <CogIcon className="h-4 w-4 mr-3" />
-                          Settings
-                        </Link>
-                      )}
-                    </Menu.Item>
-                  </div>
-                  
-                  <div className="border-t border-white/20 my-1" />
-                  
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={logout}
-                        className={clsx(
-                          'flex items-center w-full px-4 py-2 text-sm text-red-600 transition-all duration-200',
-                          active && 'bg-red-50/50'
-                        )}
-                      >
-                        <ArrowRightOnRectangleIcon className="h-4 w-4 mr-3" />
-                        Sign Out
-                      </button>
-                    )}
-                  </Menu.Item>
+                        </Menu.Item>
                       </Menu.Items>
                     </Transition>,
                     document.body

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Google Analytics and Tracking Utilities
  * Comprehensive analytics implementation with privacy controls

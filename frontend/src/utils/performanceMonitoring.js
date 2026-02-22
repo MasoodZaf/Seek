@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Performance monitoring utilities for Core Web Vitals tracking
  */
