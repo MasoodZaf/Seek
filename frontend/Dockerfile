@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
+# Fix react-scripts ajv bug caused by missing root workspace lockfile
+RUN npm install ajv@^6.12.6 ajv-keywords@^3.5.2 --legacy-peer-deps
+
 # Copy source code
 COPY . .
 
