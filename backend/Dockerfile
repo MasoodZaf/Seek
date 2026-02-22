@@ -1,12 +1,13 @@
 # Backend Dockerfile for Render.com deployment
-FROM node:18-alpine
+FROM node:18-slim
 
 # Install build dependencies and Docker CLI
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
   python3 \
   make \
   g++ \
-  docker-cli
+  docker.io \
+  && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /app
