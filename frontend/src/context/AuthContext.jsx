@@ -67,7 +67,7 @@ const authReducer = (state, action) => {
 
 // Create axios instance with custom config
 // Hardcoded for now since .env not loading properly
-const API_BASE_URL = 'http://localhost:5001/api/v1';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://88.208.255.166:5001/api/v1';
 
 console.log('🔧 AuthContext API Configuration:');
 console.log('  REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
