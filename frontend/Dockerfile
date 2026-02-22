@@ -16,8 +16,8 @@ RUN npm install ajv@^6.12.6 ajv-keywords@^3.5.2 --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the application (PUBLIC_URL=/ ensures relative asset paths regardless of env files)
+RUN PUBLIC_URL=/ npm run build
 
 # Stage 2: Serve with nginx
 FROM nginx:alpine
