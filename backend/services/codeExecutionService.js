@@ -193,12 +193,8 @@ class CodeExecutionService {
     const startTime = Date.now();
 
     try {
-      // Try native execution first
-      const result = await nativeExecutionService.executeCode(code, 'java', input);
-
-      // Extract stdout from the nested output object
+      const result = await dockerExecutionService.executeCode(code, 'java', input);
       const output = result.output.stdout || result.output;
-
       return {
         output: output,
         executionTime: result.executionTime,
@@ -206,12 +202,10 @@ class CodeExecutionService {
       };
     } catch (error) {
       logger.error('Java execution error:', error);
-
-      // Fallback response when native execution fails
       return {
         output: {
-          stdout: `❌ Java Execution Error:\n${error.message}\n\n📋 Your Code:\n${code}\n\n💡 Make sure Java JDK is installed and javac/java are in PATH.`,
-          stderr: error.message,
+          stdout: '',
+          stderr: `Java compilation error: ${error.message}`,
           exitCode: 1
         },
         executionTime: Date.now() - startTime,
@@ -224,8 +218,7 @@ class CodeExecutionService {
     const startTime = Date.now();
 
     try {
-      // Try native execution first
-      const result = await nativeExecutionService.executeCode(code, 'cpp', input);
+      const result = await dockerExecutionService.executeCode(code, 'cpp', input);
 
       // Extract stdout from the nested output object
       const output = result.output.stdout || result.output;
@@ -266,8 +259,7 @@ class CodeExecutionService {
     const startTime = Date.now();
 
     try {
-      // Try native execution first
-      const result = await nativeExecutionService.executeCode(code, 'c', input);
+      const result = await dockerExecutionService.executeCode(code, 'c', input);
 
       // Extract stdout from the nested output object
       const output = result.output.stdout || result.output;
