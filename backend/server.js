@@ -34,7 +34,7 @@ const logger = require('./config/logger');
 const { specs, swaggerUi, swaggerOptions } = require('./config/swagger');
 const routes = require('./routes');
 const SocketService = require('./services/socketService');
-const dockerExecutionService = require('./services/dockerExecutionService');
+const pistonExecutionService = require('./services/pistonExecutionService');
 const { createDefaultUsers } = require('./scripts/createDefaultUsers');
 const { createTutorials } = require('./scripts/populateTutorials');
 
@@ -163,6 +163,33 @@ app.get('/health', async (req, res) => {
     health.status = 'degraded';
   }
 
+  // Check Piston execution service (quick ping)
+  try {
+    const pistonResult = await Promise.race([
+      pistonExecutionService.healthCheck(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+    ]);
+    health.services.codeExecution = pistonResult.available
+      ? `operational (${pistonResult.runtimeCount} runtimes)`
+      : 'starting up';
+  } catch (error) {
+    health.services.codeExecution = error.message === 'timeout' ? 'starting up' : 'degraded';
+  }
+
+  // Report seeded content counts
+  try {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState === 1) {
+      const CodingChallenge = require('./models/CodingChallenge');
+      const MongoTutorial = require('./models/MongoTutorial');
+      const [challengeCount, tutorialCount] = await Promise.all([
+        CodingChallenge.countDocuments(),
+        MongoTutorial.countDocuments()
+      ]);
+      health.data = { challenges: challengeCount, tutorials: tutorialCount };
+    }
+  } catch (_e) { /* non-fatal */ }
+
   const statusCode = health.status === 'healthy' ? 200 : 503;
   res.status(statusCode).json(health);
 });
@@ -271,21 +298,27 @@ const startServer = async () => {
       logger.warn('Failed to seed MongoDB tutorials:', err.message);
     }
 
+    // Auto-seed coding challenges if needed (self-healing DB)
+    try {
+      const { autoSeedChallenges } = require('./seeds/challengeAutoSeed');
+      await autoSeedChallenges();
+    } catch (err) {
+      logger.warn('Failed to auto-seed challenges:', err.message);
+    }
+
     // Initialize Socket.IO service
     const socketService = new SocketService(io);
 
     // Make socket service available to routes
     app.locals.socketService = socketService;
 
-    // Initialize Docker execution service (build images)
-    try {
-      logger.info('🐳 Initializing Docker execution service...');
-      await dockerExecutionService.init();
-      logger.info('🐳 Docker execution service initialized successfully');
-    } catch (error) {
-      logger.warn('🐳 Docker execution service failed to initialize:', error.message);
-      logger.warn('🐳 Code execution will fall back to native execution where available');
-    }
+    // Set up Piston language packages in the background (non-blocking)
+    // This ensures all language runtimes are installed before first use
+    setImmediate(() => {
+      require('./seeds/pistonSetup').setupPistonPackages().catch((err) => {
+        logger.warn('Piston background setup error:', err.message);
+      });
+    });
 
     // Start HTTP server
     server.listen(PORT, () => {

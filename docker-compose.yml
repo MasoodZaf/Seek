@@ -37,6 +37,29 @@ services:
     networks:
       - seek-network
 
+  # Code Execution Sandbox (Piston — self-hosted, no rate limits)
+  piston:
+    image: ghcr.io/engineer-man/piston
+    container_name: seek-piston
+    restart: always
+    privileged: true
+    expose:
+      - "2000"
+    networks:
+      - seek-network
+    tmpfs:
+      - /piston/jobs
+    volumes:
+      - piston_packages:/piston/packages
+    environment:
+      - PISTON_RUN_TIMEOUT=15000
+      - PISTON_RUN_CPU_TIME=15000
+      - PISTON_COMPILE_TIMEOUT=30000
+      - PISTON_COMPILE_CPU_TIME=30000
+      - PISTON_MAX_PROCESS_COUNT=256
+      - PISTON_MAX_OPEN_FILES=2048
+      - PISTON_MAX_FILE_SIZE=10000000
+
   # Frontend Static Site (Served via internal Nginx)
   frontend:
     build:
@@ -53,6 +76,7 @@ services:
 
 volumes:
   mongo_data:
+  piston_packages:
 
 
 networks:

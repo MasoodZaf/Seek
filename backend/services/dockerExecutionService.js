@@ -288,44 +288,42 @@ class DockerExecutionService {
         timestamps: false
       });
 
-      // Parse Docker logs - they use a special format with 8-byte headers for each line
-      // Docker log format: [STREAM_TYPE][RESERVED][SIZE] followed by data
-      let cleanOutput = '';
+      // Parse Docker logs — Docker multiplexes stdout(1) and stderr(2) with 8-byte headers.
+      // We MUST separate them: our execute scripts write one JSON line to stdout;
+      // any Node.js warnings/deprecations go to stderr. Mixing them breaks JSON.parse.
+      let stdoutOutput = '';
+      let stderrOutput = '';
       let offset = 0;
-      
+
       while (offset < logs.length) {
         if (offset + 8 > logs.length) {
-          // Not enough bytes for a header, treat as raw data
-          cleanOutput += logs.slice(offset).toString('utf8');
+          stdoutOutput += logs.slice(offset).toString('utf8');
           break;
         }
-        
-        // Read the header
         const streamType = logs[offset]; // 1=stdout, 2=stderr
-        const size = logs.readUInt32BE(offset + 4); // Big-endian 32-bit size
-        
+        const size = logs.readUInt32BE(offset + 4);
         if (size === 0 || offset + 8 + size > logs.length) {
-          // Invalid header or not enough data, treat as raw
-          cleanOutput += logs.slice(offset).toString('utf8');
+          stdoutOutput += logs.slice(offset).toString('utf8');
           break;
         }
-        
-        // Extract the data
         const data = logs.slice(offset + 8, offset + 8 + size).toString('utf8');
-        cleanOutput += data;
-        
-        // Move to next chunk
+        if (streamType === 2) stderrOutput += data;
+        else stdoutOutput += data;
         offset += 8 + size;
       }
-      
-      cleanOutput = cleanOutput.trim();
 
-      logger.info(`Raw Docker logs length: ${logs.length}, Clean output length: ${cleanOutput.length}`);
+      // If stdout has no JSON but stderr does (shouldn't happen but guard it)
+      const cleanOutput = stdoutOutput.trim() || stderrOutput.trim();
+      // Find the JSON object — execution scripts always emit one JSON line
+      const jsonMatch = cleanOutput.match(/\{[\s\S]*\}/);
+      const jsonStr = jsonMatch ? jsonMatch[0] : cleanOutput;
+
+      logger.info(`Docker logs — stdout: ${stdoutOutput.length}b, stderr: ${stderrOutput.length}b`);
       logger.info(`Clean output preview: ${cleanOutput.slice(0, 200)}`);
-      
+
       try {
         // Try to parse as JSON (from our execution scripts)
-        const parsedOutput = JSON.parse(cleanOutput);
+        const parsedOutput = JSON.parse(jsonStr);
         return {
           success: parsedOutput.success,
           output: {
@@ -344,8 +342,8 @@ class DockerExecutionService {
         return {
           success: result.StatusCode === 0,
           output: {
-            stdout: cleanOutput,
-            stderr: result.StatusCode !== 0 ? 'Non-zero exit code' : '',
+            stdout: stdoutOutput.trim(),
+            stderr: stderrOutput.trim() || (result.StatusCode !== 0 ? `Exit code ${result.StatusCode}` : ''),
             exitCode: result.StatusCode
           },
           executionTime: Date.now(),

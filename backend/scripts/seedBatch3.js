@@ -677,4 +677,8 @@ async function seed() {
   await mongoose.disconnect();
 }
 
-seed().catch(err => { console.error(err); process.exit(1); });
+if (require.main === module) {
+  seed().catch(err => { console.error(err); process.exit(1); });
+}
+
+module.exports = { challenges };

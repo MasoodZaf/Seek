@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const { CodeExecution } = require('../models');
 const logger = require('../config/logger');
-const dockerExecutionService = require('./dockerExecutionService');
+const pistonExecutionService = require('./pistonExecutionService');
 const nativeExecutionService = require('./nativeExecutionService');
 const DatabaseSyntaxValidator = require('./databaseSyntaxValidator');
 
@@ -124,7 +124,7 @@ class CodeExecutionService {
   async executeJavaScript(code, input = '') {
     const startTime = Date.now();
     try {
-      const result = await dockerExecutionService.executeCode(code, 'javascript', input);
+      const result = await pistonExecutionService.executeCode(code, 'javascript', input);
       return {
         output: result.output,
         executionTime: result.executionTime || (Date.now() - startTime),
@@ -143,7 +143,7 @@ class CodeExecutionService {
   async executePython(code, input = '') {
     const startTime = Date.now();
     try {
-      const result = await dockerExecutionService.executeCode(code, 'python', input);
+      const result = await pistonExecutionService.executeCode(code, 'python', input);
       return {
         output: result.output,
         executionTime: result.executionTime || (Date.now() - startTime),
@@ -161,12 +161,12 @@ class CodeExecutionService {
 
   async executeTypeScript(code, input = '') {
     try {
-      const result = await dockerExecutionService.executeCode(code, 'typescript', input);
+      const result = await pistonExecutionService.executeCode(code, 'typescript', input);
       return result;
     } catch (error) {
       logger.error('TypeScript execution error:', error);
       return {
-        output: `TypeScript code received successfully!\n\nCode:\n${code}\n\nNote: TypeScript execution requires Docker to be running. Please start Docker Desktop to execute TypeScript code.`,
+        output: { stdout: '', stderr: error.message || 'TypeScript execution failed', exitCode: 1 },
         executionTime: 0,
         memoryUsage: 0
       };
@@ -177,7 +177,7 @@ class CodeExecutionService {
     const startTime = Date.now();
 
     try {
-      const result = await dockerExecutionService.executeCode(code, 'java', input);
+      const result = await pistonExecutionService.executeCode(code, 'java', input);
       return {
         output: result.output,
         executionTime: result.executionTime,
@@ -201,7 +201,7 @@ class CodeExecutionService {
     const startTime = Date.now();
 
     try {
-      const result = await dockerExecutionService.executeCode(code, 'cpp', input);
+      const result = await pistonExecutionService.executeCode(code, 'cpp', input);
 
       return {
         output: result.output,
@@ -239,7 +239,7 @@ class CodeExecutionService {
     const startTime = Date.now();
 
     try {
-      const result = await dockerExecutionService.executeCode(code, 'c', input);
+      const result = await pistonExecutionService.executeCode(code, 'c', input);
 
       return {
         output: result.output,
@@ -413,13 +413,12 @@ class CodeExecutionService {
 
   async executeGo(code, input = '') {
     try {
-      const result = await dockerExecutionService.executeCode(code, 'go', input);
+      const result = await pistonExecutionService.executeCode(code, 'go', input);
       return result;
     } catch (error) {
       logger.error('Go execution error:', error);
-      // Fallback to native execution or return a helpful message
       return {
-        output: `Go code received successfully!\n\nCode:\n${code}\n\nNote: Go execution requires Docker to be running. Please start Docker Desktop to execute Go code.`,
+        output: { stdout: '', stderr: error.message || 'Go execution failed', exitCode: 1 },
         executionTime: 0,
         memoryUsage: 0
       };
@@ -428,12 +427,12 @@ class CodeExecutionService {
 
   async executeRust(code, input = '') {
     try {
-      const result = await dockerExecutionService.executeCode(code, 'rust', input);
+      const result = await pistonExecutionService.executeCode(code, 'rust', input);
       return result;
     } catch (error) {
       logger.error('Rust execution error:', error);
       return {
-        output: `Rust code received successfully!\n\nCode:\n${code}\n\nNote: Rust execution requires Docker to be running. Please start Docker Desktop to execute Rust code.`,
+        output: { stdout: '', stderr: error.message || 'Rust execution failed', exitCode: 1 },
         executionTime: 0,
         memoryUsage: 0
       };
@@ -442,12 +441,12 @@ class CodeExecutionService {
 
   async executeCSharp(code, input = '') {
     try {
-      const result = await dockerExecutionService.executeCode(code, 'csharp', input);
+      const result = await pistonExecutionService.executeCode(code, 'csharp', input);
       return result;
     } catch (error) {
       logger.error('C# execution error:', error);
       return {
-        output: `C# code received successfully!\n\nCode:\n${code}\n\nNote: C# execution requires Docker to be running. Please start Docker Desktop to execute C# code.`,
+        output: { stdout: '', stderr: error.message || 'C# execution failed', exitCode: 1 },
         executionTime: 0,
         memoryUsage: 0
       };
@@ -457,7 +456,7 @@ class CodeExecutionService {
   async executePHP(code, input = '') {
     try {
       // Try Docker first, fallback to native PHP if available
-      const result = await dockerExecutionService.executeCode(code, 'php', input);
+      const result = await pistonExecutionService.executeCode(code, 'php', input);
       return result;
     } catch (error) {
       logger.error('PHP execution error:', error);
@@ -466,7 +465,7 @@ class CodeExecutionService {
         return await this.executeNativePHP(code, input);
       } catch (nativeError) {
         return {
-          output: `PHP code received successfully!\n\nCode:\n${code}\n\nNote: PHP execution requires Docker to be running or PHP to be installed locally. Please start Docker Desktop or install PHP to execute PHP code.`,
+          output: { stdout: '', stderr: nativeError.message || 'PHP execution failed', exitCode: 1 },
           executionTime: 0,
           memoryUsage: 0
         };
@@ -476,12 +475,12 @@ class CodeExecutionService {
 
   async executeRuby(code, input = '') {
     try {
-      const result = await dockerExecutionService.executeCode(code, 'ruby', input);
+      const result = await pistonExecutionService.executeCode(code, 'ruby', input);
       return result;
     } catch (error) {
       logger.error('Ruby execution error:', error);
       return {
-        output: `Ruby code received successfully!\n\nCode:\n${code}\n\nNote: Ruby execution requires Docker to be running. Please start Docker Desktop to execute Ruby code.`,
+        output: { stdout: '', stderr: error.message || 'Ruby execution failed', exitCode: 1 },
         executionTime: 0,
         memoryUsage: 0
       };
@@ -490,12 +489,12 @@ class CodeExecutionService {
 
   async executeKotlin(code, input = '') {
     try {
-      const result = await dockerExecutionService.executeCode(code, 'kotlin', input);
+      const result = await pistonExecutionService.executeCode(code, 'kotlin', input);
       return result;
     } catch (error) {
       logger.error('Kotlin execution error:', error);
       return {
-        output: `Kotlin code received successfully!\n\nCode:\n${code}\n\nNote: Kotlin execution requires Docker to be running. Please start Docker Desktop to execute Kotlin code.`,
+        output: { stdout: '', stderr: error.message || 'Kotlin execution failed', exitCode: 1 },
         executionTime: 0,
         memoryUsage: 0
       };
@@ -504,12 +503,12 @@ class CodeExecutionService {
 
   async executeSwift(code, input = '') {
     try {
-      const result = await dockerExecutionService.executeCode(code, 'swift', input);
+      const result = await pistonExecutionService.executeCode(code, 'swift', input);
       return result;
     } catch (error) {
       logger.error('Swift execution error:', error);
       return {
-        output: `Swift code received successfully!\n\nCode:\n${code}\n\nNote: Swift execution requires Docker to be running. Please start Docker Desktop to execute Swift code.`,
+        output: { stdout: '', stderr: error.message || 'Swift execution failed', exitCode: 1 },
         executionTime: 0,
         memoryUsage: 0
       };
@@ -617,14 +616,14 @@ class CodeExecutionService {
       const executionTime = Date.now() - startTime;
 
       return {
-        output,
+        output: { stdout: output, stderr: '', exitCode: validation.valid ? 0 : 1 },
         executionTime,
         memoryUsage: 0
       };
     } catch (error) {
       logger.error('Database syntax validation error:', error);
       return {
-        output: `❌ Validation Error: ${error.message}`,
+        output: { stdout: '', stderr: `❌ Validation Error: ${error.message}`, exitCode: 1 },
         executionTime: Date.now() - startTime,
         memoryUsage: 0
       };

@@ -173,7 +173,17 @@ const TutorialLearn = () => {
         language: tutorial?.language || 'javascript',
       });
       if (res.data.success) {
-        setter({ success: true, output: res.data.data.output, time: res.data.data.executionTime });
+        const raw = res.data.data.output;
+        // output is always { stdout, stderr, exitCode } from backend
+        const stdout = typeof raw === 'object' ? (raw.stdout || '') : String(raw || '');
+        const stderr = typeof raw === 'object' ? (raw.stderr || '') : '';
+        const exitCode = typeof raw === 'object' ? (raw.exitCode ?? 0) : 0;
+        if (exitCode === 0 && !stderr) {
+          setter({ success: true, output: stdout || '(no output)', time: res.data.data.executionTime });
+        } else {
+          // Code ran but had errors — show stderr (or stdout if stderr empty)
+          setter({ success: false, error: stderr || stdout || 'Runtime error', time: res.data.data.executionTime });
+        }
       } else {
         setter({ success: false, error: res.data.error || 'Execution failed' });
       }

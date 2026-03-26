@@ -609,16 +609,20 @@ const challenges = [
   }
 ];
 
-mongoose.connect(mongoURI).then(async () => {
-  console.log('✅ Connected to MongoDB');
-  let added = 0, skipped = 0;
-  for (const ch of challenges) {
-    const exists = await CodingChallenge.findOne({ slug: ch.slug });
-    if (exists) { skipped++; console.log(`  ⏭  Skipped: ${ch.title}`); continue; }
-    await CodingChallenge.create({ ...ch, totalSubmissions: 0, totalAccepted: 0 });
-    added++;
-    console.log(`  ✓ Added #${ch.number}: ${ch.title}`);
-  }
-  console.log(`\n✅ Batch 1 done! Added: ${added}, Skipped: ${skipped}`);
-  mongoose.disconnect();
-}).catch(e => { console.error('❌', e.message); process.exit(1); });
+if (require.main === module) {
+  mongoose.connect(mongoURI).then(async () => {
+    console.log('✅ Connected to MongoDB');
+    let added = 0, skipped = 0;
+    for (const ch of challenges) {
+      const exists = await CodingChallenge.findOne({ slug: ch.slug });
+      if (exists) { skipped++; console.log(`  ⏭  Skipped: ${ch.title}`); continue; }
+      await CodingChallenge.create({ ...ch, totalSubmissions: 0, totalAccepted: 0 });
+      added++;
+      console.log(`  ✓ Added #${ch.number}: ${ch.title}`);
+    }
+    console.log(`\n✅ Batch 1 done! Added: ${added}, Skipped: ${skipped}`);
+    mongoose.disconnect();
+  }).catch(e => { console.error('❌', e.message); process.exit(1); });
+}
+
+module.exports = { challenges };
