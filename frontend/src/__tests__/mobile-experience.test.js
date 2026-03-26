@@ -2,7 +2,7 @@
  * Mobile Experience Test Suite
  * 
  * Comprehensive testing for mobile touch interactions, responsive design,
- * and mobile performance across the Seek platform.
+ * and mobile performance across the CodeArc platform.
  * 
  * Test Categories:
  * 1. Touch Interactions and Gestures

@@ -128,208 +128,187 @@ const Register = () => {
     exit: { opacity: 0, x: -50 }
   };
   
+  const S = {
+    page: {
+      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: '#111110', padding: '48px 16px',
+      fontFamily: "'DM Sans', system-ui, sans-serif",
+    },
+    wrap: { width: '100%', maxWidth: 420 },
+    logoWrap: {
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      marginBottom: 24,
+    },
+    logoMark: {
+      width: 80, height: 80, borderRadius: 20,
+      overflow: 'hidden', display: 'block',
+      boxShadow: '0 0 32px rgba(110,231,183,0.25), 0 8px 24px rgba(0,0,0,0.5)',
+      border: '1px solid rgba(110,231,183,0.2)',
+      marginBottom: 14,
+    },
+    logoBrand: {
+      fontSize: 26, fontWeight: 700, color: '#f5f0e8',
+      letterSpacing: '-0.02em', lineHeight: 1,
+    },
+    logoTagline: {
+      fontSize: 12, color: '#6b6565', fontWeight: 500,
+      textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4,
+    },
+    heading: {
+      fontFamily: "'Fraunces', Georgia, serif",
+      fontSize: 28, fontWeight: 600, color: '#f5f0e8',
+      textAlign: 'center', marginBottom: 6, letterSpacing: '-0.02em',
+    },
+    sub: { fontSize: 14, color: '#6b6565', textAlign: 'center', marginBottom: 32 },
+    card: {
+      background: '#17171a', border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 14, padding: 28,
+    },
+    steps: { display: 'flex', gap: 6, marginBottom: 24 },
+    stepBar: (active) => ({
+      flex: 1, height: 3, borderRadius: 2,
+      background: active ? '#6ee7b7' : 'rgba(255,255,255,0.1)',
+      transition: 'background 0.3s',
+    }),
+    label: { display: 'block', fontSize: 13, color: '#a09898', marginBottom: 6, fontWeight: 500 },
+    input: {
+      width: '100%', background: '#111110', border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: 8, padding: '10px 12px', fontSize: 14, color: '#f5f0e8',
+      outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+      transition: 'border-color 0.2s',
+    },
+    inputFocus: { borderColor: 'rgba(110,231,183,0.4)' },
+    fieldGroup: { marginBottom: 14 },
+    row2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 },
+    error: { fontSize: 12, color: '#fca5a5', marginTop: 4 },
+    helper: { fontSize: 12, color: '#6b6565', marginTop: 4 },
+    btnRow: { display: 'flex', gap: 10, marginTop: 20 },
+    btn: (primary) => ({
+      flex: 1, border: primary ? 'none' : '1px solid rgba(255,255,255,0.1)',
+      borderRadius: 8, padding: '11px 0', fontSize: 14, fontWeight: 600,
+      cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+      background: primary ? '#6ee7b7' : 'transparent',
+      color: primary ? '#111' : '#a09898',
+    }),
+    footer: { marginTop: 20, textAlign: 'center', fontSize: 13, color: '#6b6565' },
+    footerLink: { color: '#6ee7b7', textDecoration: 'none' },
+    legal: { marginTop: 24, textAlign: 'center', fontSize: 12, color: '#4a4545' },
+    legalLink: { color: '#6b6565', textDecoration: 'none' },
+  };
+
+  const [focusedField, setFocusedField] = useState(null);
+  const inputProps = (name) => ({
+    style: {
+      ...S.input,
+      ...(focusedField === name ? S.inputFocus : {}),
+      ...(errors[name] ? { borderColor: 'rgba(252,165,165,0.5)' } : {}),
+    },
+    onFocus: () => setFocusedField(name),
+    onBlur: () => setFocusedField(null),
+  });
+
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary-50 via-white to-secondary-50">
-      <div className="max-w-md w-full space-y-8">
+    <>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500;600&display=swap');`}</style>
+      <div style={S.page}>
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          style={S.wrap}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center"
+          transition={{ duration: 0.4 }}
         >
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-primary-600 to-purple-600 rounded-full flex items-center justify-center mb-6">
-            <AcademicCapIcon className="h-8 w-8 text-white" />
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <Link to="/" style={{ fontSize: 13, color: '#6b6565', textDecoration: 'none' }}>
+              ← Back to CodeArc
+            </Link>
           </div>
-          <h2 className="text-3xl font-bold text-secondary-900 mb-2">
-            Join Seek
-          </h2>
-          <p className="text-secondary-600">
-            Start your coding journey today
-          </p>
-          
-          {/* Progress indicator */}
-          <div className="flex items-center justify-center mt-6 space-x-2">
-            <div className={`w-8 h-1 rounded-full transition-colors ${
-              currentStep >= 1 ? 'bg-primary-600' : 'bg-secondary-300'
-            }`} />
-            <div className={`w-8 h-1 rounded-full transition-colors ${
-              currentStep >= 2 ? 'bg-primary-600' : 'bg-secondary-300'
-            }`} />
+
+          <div style={S.logoWrap}>
+            <img src="/logo512.png" alt="CodeArc" style={S.logoMark} />
+            <div style={S.logoBrand}>CodeArc</div>
+            <div style={S.logoTagline}>Learning Platform</div>
           </div>
-          <div className="flex justify-between text-xs text-secondary-500 mt-2 max-w-20 mx-auto">
-            <span>Info</span>
-            <span>Security</span>
-          </div>
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card className="p-8">
+          <h1 style={S.heading}>Create your account</h1>
+          <p style={S.sub}>Free forever. No credit card needed.</p>
+
+          <div style={S.card}>
+            {/* Step indicators */}
+            <div style={S.steps}>
+              <div style={S.stepBar(currentStep >= 1)} />
+              <div style={S.stepBar(currentStep >= 2)} />
+            </div>
+
             <form onSubmit={handleSubmit}>
               {currentStep === 1 && (
-                <motion.div
-                  key="step1"
-                  variants={stepVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  transition={{ duration: 0.3 }}
-                  className="space-y-6"
-                >
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      name="firstName"
-                      type="text"
-                      label="First Name"
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      error={errors.firstName}
-                      leftIcon={UserIcon}
-                    />
-                    
-                    <Input
-                      name="lastName"
-                      type="text"
-                      label="Last Name"
-                      placeholder="Doe"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      error={errors.lastName}
-                      leftIcon={UserIcon}
-                    />
+                <motion.div key="step1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}>
+                  <div style={S.row2}>
+                    <div>
+                      <label style={S.label}>First name</label>
+                      <input name="firstName" type="text" placeholder="Jane" value={formData.firstName} onChange={handleChange} {...inputProps('firstName')} />
+                      {errors.firstName && <div style={S.error}>{errors.firstName}</div>}
+                    </div>
+                    <div>
+                      <label style={S.label}>Last name</label>
+                      <input name="lastName" type="text" placeholder="Doe" value={formData.lastName} onChange={handleChange} {...inputProps('lastName')} />
+                      {errors.lastName && <div style={S.error}>{errors.lastName}</div>}
+                    </div>
                   </div>
-                  
-                  <Input
-                    name="username"
-                    type="text"
-                    label="Username"
-                    placeholder="johndoe"
-                    value={formData.username}
-                    onChange={handleChange}
-                    error={errors.username}
-                    helperText="This will be your unique identifier"
-                    leftIcon={UserIcon}
-                  />
-                  
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="lg"
-                    className="w-full"
-                    onClick={handleNext}
-                  >
-                    Continue
-                  </Button>
+                  <div style={S.fieldGroup}>
+                    <label style={S.label}>Username</label>
+                    <input name="username" type="text" placeholder="janedoe" value={formData.username} onChange={handleChange} {...inputProps('username')} />
+                    {errors.username && <div style={S.error}>{errors.username}</div>}
+                    {!errors.username && <div style={S.helper}>Your unique identifier on CodeArc</div>}
+                  </div>
+                  <motion.button type="button" style={S.btn(true)} whileHover={{ background: '#a7f3d0' }} onClick={handleNext}>
+                    Continue →
+                  </motion.button>
                 </motion.div>
               )}
-              
+
               {currentStep === 2 && (
-                <motion.div
-                  key="step2"
-                  variants={stepVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  transition={{ duration: 0.3 }}
-                  className="space-y-6"
-                >
-                  <Input
-                    name="email"
-                    type="email"
-                    label="Email address"
-                    placeholder="john@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    error={errors.email}
-                    leftIcon={EnvelopeIcon}
-                  />
-                  
-                  <Input
-                    name="password"
-                    type="password"
-                    label="Password"
-                    placeholder="Create a strong password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    error={errors.password}
-                    leftIcon={LockClosedIcon}
-                    showPasswordToggle
-                  />
-                  
-                  <Input
-                    name="confirmPassword"
-                    type="password"
-                    label="Confirm Password"
-                    placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    error={errors.confirmPassword}
-                    leftIcon={LockClosedIcon}
-                    showPasswordToggle
-                  />
-                  
-                  <div className="flex space-x-4">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="lg"
-                      className="flex-1"
-                      onClick={handleBack}
-                    >
-                      Back
-                    </Button>
-                    
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="lg"
-                      loading={loading}
-                      className="flex-1"
-                    >
-                      Create Account
-                    </Button>
+                <motion.div key="step2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}>
+                  <div style={S.fieldGroup}>
+                    <label style={S.label}>Email address</label>
+                    <input name="email" type="email" placeholder="jane@example.com" value={formData.email} onChange={handleChange} {...inputProps('email')} />
+                    {errors.email && <div style={S.error}>{errors.email}</div>}
+                  </div>
+                  <div style={S.fieldGroup}>
+                    <label style={S.label}>Password</label>
+                    <input name="password" type="password" placeholder="At least 8 characters" value={formData.password} onChange={handleChange} {...inputProps('password')} />
+                    {errors.password && <div style={S.error}>{errors.password}</div>}
+                  </div>
+                  <div style={S.fieldGroup}>
+                    <label style={S.label}>Confirm password</label>
+                    <input name="confirmPassword" type="password" placeholder="Same password again" value={formData.confirmPassword} onChange={handleChange} {...inputProps('confirmPassword')} />
+                    {errors.confirmPassword && <div style={S.error}>{errors.confirmPassword}</div>}
+                  </div>
+                  <div style={S.btnRow}>
+                    <motion.button type="button" style={S.btn(false)} whileHover={{ color: '#f5f0e8' }} onClick={handleBack}>
+                      ← Back
+                    </motion.button>
+                    <motion.button type="submit" style={{ ...S.btn(true), opacity: loading ? 0.7 : 1 }} whileHover={{ background: loading ? '#6ee7b7' : '#a7f3d0' }} disabled={loading}>
+                      {loading ? 'Creating…' : 'Create account'}
+                    </motion.button>
                   </div>
                 </motion.div>
               )}
             </form>
-            
-            <div className="mt-6 text-center">
-              <p className="text-sm text-secondary-600">
-                Already have an account?{' '}
-                <Link
-                  to="/login"
-                  className="text-primary-600 hover:text-primary-500 font-medium transition-colors"
-                >
-                  Sign in here
-                </Link>
-              </p>
+
+            <div style={S.footer}>
+              Already have an account?{' '}
+              <Link to="/login" style={S.footerLink}>Sign in</Link>
             </div>
-          </Card>
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-center"
-        >
-          <p className="text-xs text-secondary-500">
-            By creating an account, you agree to our{' '}
-            <Link to="/terms" className="text-primary-600 hover:underline">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link to="/privacy" className="text-primary-600 hover:underline">
-              Privacy Policy
-            </Link>
+          </div>
+
+          <p style={S.legal}>
+            By creating an account you agree to our{' '}
+            <Link to="/terms" style={S.legalLink}>Terms</Link>
+            {' & '}
+            <Link to="/privacy" style={S.legalLink}>Privacy Policy</Link>
           </p>
         </motion.div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -24,7 +24,7 @@ const CodeExecution = sequelize.define('CodeExecution', {
     allowNull: true
   },
   language: {
-    type: DataTypes.ENUM('javascript', 'python', 'java', 'typescript'),
+    type: DataTypes.ENUM('javascript', 'python', 'java', 'typescript', 'go', 'rust', 'csharp', 'php', 'ruby', 'kotlin', 'c', 'cpp', 'sql'),
     allowNull: false
   },
   code: {

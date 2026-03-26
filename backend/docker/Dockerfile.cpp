@@ -3,9 +3,11 @@ FROM gcc:latest
 # Security: Create non-root user
 RUN groupadd -r coderunner && useradd -r -g coderunner coderunner
 
-# Install minimal dependencies
+# Install python3 (used by the execution wrapper) and boost libraries
 RUN apt-get update && apt-get install -y \
     --no-install-recommends \
+    python3 \
+    libboost-all-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up working directory
@@ -15,7 +17,7 @@ RUN chown coderunner:coderunner /app
 # Switch to non-root user
 USER coderunner
 
-# Copy execution script
+# Copy execution wrapper
 COPY --chown=coderunner:coderunner execute.cpp /app/
 
-CMD ["g++", "-o", "main", "execute.cpp", "&&", "./main"]
+CMD ["python3", "/app/execute.cpp"]

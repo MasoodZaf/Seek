@@ -524,7 +524,7 @@ class UserAcceptanceTestSuite {
             <TestWrapper>
               <div className="brand-section">
                 <div className="logo" data-testid="brand-logo">
-                  <span className="text-2xl font-bold text-primary-600">Seek</span>
+                  <span className="text-2xl font-bold text-primary-600">CodeArc</span>
                 </div>
                 <p className="brand-tagline">Learn. Code. Excel.</p>
               </div>

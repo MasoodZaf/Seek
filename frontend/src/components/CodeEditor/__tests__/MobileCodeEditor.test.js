@@ -84,7 +84,7 @@ describe('MobileCodeEditor', () => {
     language: 'javascript',
     onExecute: jest.fn(),
     isExecuting: false,
-    theme: 'seek-light-professional',
+    theme: 'codearc-light-professional',
     fontSize: 12
   };
 

@@ -21,11 +21,11 @@ const Footer = () => {
           <div className="text-sm flex items-center gap-2">
             <img
               src="/footer-icon.png"
-              alt="Seek logo"
+              alt="CodeArc logo"
               className="h-8 w-auto"
             />
             <div>
-              <span className="font-medium">© {currentYear} Seek Learning Platform</span>
+              <span className="font-medium">© {currentYear} CodeArc</span>
               <span className="mx-2">•</span>
               <span>All rights reserved</span>
             </div>

@@ -65,7 +65,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
   // Resizing state
-  const [isMini, setIsMini] = useState(false);
+  const [isMini, setIsMini] = useState(true);
   const [width, setWidth] = useState(256); // 16rem = 256px
   const [isResizing, setIsResizing] = useState(false);
 
@@ -236,35 +236,39 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const SidebarContent = () => (
     <div className="h-full flex flex-col relative overflow-hidden bg-transparent">
-      {/* Background with Texture */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-        <div className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
+      {/* Background */}
+      <div className="absolute inset-0 -z-10" style={{ background: '#17171a' }}>
+        <div className="absolute inset-0 bg-gradient-to-b from-white/3 to-transparent" />
       </div>
 
       <div className="relative z-10 h-full flex flex-col shadow-2xl">
         {/* Header / Logo */}
         <motion.div
-          animate={{ padding: isMini ? "1.5rem 0" : "1.5rem 1.5rem" }}
+          animate={{ padding: isMini ? "1.25rem 0" : "1.5rem 1.25rem" }}
           className="flex items-center justify-center border-b border-white/10"
         >
-          <div className={clsx("flex items-center relative", isMini ? "justify-center w-full" : "space-x-3 w-full")}>
+          <div className={clsx("flex relative", isMini ? "items-center justify-center w-full" : "items-center gap-3 w-full")}>
             <motion.div
-              whileHover={{ scale: 1.05, rotate: 5 }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
               onClick={isMini ? toggleMini : undefined}
-              className={clsx("flex-shrink-0 bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20 shadow-lg cursor-pointer", isMini ? "h-12 w-12" : "h-10 w-10")}
+              className={clsx(
+                "flex-shrink-0 rounded-2xl overflow-hidden shadow-xl cursor-pointer border border-white/15 ring-1 ring-white/5",
+                isMini ? "h-12 w-12" : "h-20 w-20"
+              )}
+              style={{ boxShadow: '0 0 20px rgba(110,231,183,0.18), 0 4px 16px rgba(0,0,0,0.4)' }}
             >
-              <AcademicCapIcon className={clsx("text-white drop-shadow-sm pointer-events-none", isMini ? "h-8 w-8" : "h-6 w-6")} />
+              <img
+                src="/logo192.png"
+                alt="CodeArc"
+                className="w-full h-full object-contain pointer-events-none"
+              />
             </motion.div>
 
             {!isMini && (
-              <div className="flex flex-col flex-1 overflow-hidden">
-                <span className="text-xl font-bold text-white drop-shadow-sm truncate">Seek</span>
-                <span className="text-[10px] text-white/60 font-medium truncate">Learning Platform</span>
+              <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+                <span className="text-2xl font-bold text-white tracking-tight leading-none truncate" style={{ letterSpacing: '-0.02em' }}>CodeArc</span>
+                <span className="text-[11px] text-white/50 font-medium mt-1 truncate tracking-wide uppercase">Learning Platform</span>
               </div>
             )}
 

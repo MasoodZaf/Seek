@@ -21,7 +21,7 @@ services:
     container_name: seek-backend
     restart: always
     ports:
-      - "5001:5001"
+      - "5001:5002"
     env_file:
       - ./backend/.env
     environment:
@@ -30,6 +30,8 @@ services:
     volumes:
       # CRITICAL: Allows the backend to spawn child containers for the Code Playground
       - /var/run/docker.sock:/var/run/docker.sock
+      # Persist SQLite database across rebuilds so users/data are never lost
+      - ./backend/database.sqlite:/app/database.sqlite
     depends_on:
       - mongo
     networks:

@@ -567,14 +567,14 @@ class AccessibilityUserTestSuite {
           const { container } = render(
             <TestWrapper>
               <div>
-                <img src="/logo.png" alt="Seek Learning Platform Logo" />
+                <img src="/logo.png" alt="CodeArc Logo" />
                 <img src="/chart.png" alt="Progress chart showing 75% completion" />
                 <img src="/decoration.png" alt="" role="presentation" />
               </div>
             </TestWrapper>
           );
 
-          const logo = screen.getByAltText('Seek Learning Platform Logo');
+          const logo = screen.getByAltText('CodeArc Logo');
           const chart = screen.getByAltText('Progress chart showing 75% completion');
           const decoration = screen.getByRole('presentation');
 

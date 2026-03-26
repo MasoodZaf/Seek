@@ -8,10 +8,10 @@ import { Button } from './Button';
  */
 const SocialShare = ({
   url = window.location.href,
-  title = 'Check out what I built on Seek!',
-  description = 'Learning to code with Seek\'s professional platform',
-  hashtags = ['coding', 'learning', 'SeekLearning'],
-  via = 'SeekLearning',
+  title = 'Check out what I built on CodeArc!',
+  description = 'Learning to code with CodeArc's professional platform',
+  hashtags = ['coding', 'learning', 'CodeArcDev'],
+  via = 'CodeArcDev',
   variant = 'default',
   showLabels = true,
   className = ''
@@ -209,43 +209,43 @@ const SocialShare = ({
 // Predefined sharing components for common scenarios
 export const CodeSnippetShare = ({ code, language, title }) => {
   const shareUrl = `${window.location.origin}/share/code?code=${encodeURIComponent(code)}&lang=${language}`;
-  const shareTitle = title || `Check out my ${language} code on Seek!`;
-  const shareDescription = `I just wrote some ${language} code on Seek. Take a look!`;
+  const shareTitle = title || `Check out my ${language} code on CodeArc!`;
+  const shareDescription = `I just wrote some ${language} code on CodeArc. Take a look!`;
 
   return (
     <SocialShare
       url={shareUrl}
       title={shareTitle}
       description={shareDescription}
-      hashtags={['coding', language, 'SeekLearning']}
+      hashtags={['coding', language, 'CodeArcDev']}
       variant="compact"
     />
   );
 };
 
 export const AchievementShare = ({ achievement }) => {
-  const shareTitle = `🏆 I just earned the "${achievement.name}" badge on Seek!`;
+  const shareTitle = `🏆 I just earned the "${achievement.name}" badge on CodeArc!`;
   const shareDescription = `${achievement.description} Join me in learning to code!`;
 
   return (
     <SocialShare
       title={shareTitle}
       description={shareDescription}
-      hashtags={['achievement', 'coding', 'learning', 'SeekLearning']}
+      hashtags={['achievement', 'coding', 'learning', 'CodeArcDev']}
       variant="default"
     />
   );
 };
 
 export const TutorialCompletionShare = ({ tutorial }) => {
-  const shareTitle = `✅ Just completed "${tutorial.title}" on Seek!`;
-  const shareDescription = `I'm learning ${tutorial.language} and making great progress. Check out Seek's interactive tutorials!`;
+  const shareTitle = `✅ Just completed "${tutorial.title}" on CodeArc!`;
+  const shareDescription = `I'm learning ${tutorial.language} and making great progress. Check out CodeArc's interactive tutorials!`;
 
   return (
     <SocialShare
       title={shareTitle}
       description={shareDescription}
-      hashtags={['tutorial', tutorial.language, 'learning', 'SeekLearning']}
+      hashtags={['tutorial', tutorial.language, 'learning', 'CodeArcDev']}
       variant="default"
     />
   );
@@ -253,15 +253,15 @@ export const TutorialCompletionShare = ({ tutorial }) => {
 
 export const ProjectShare = ({ project }) => {
   const shareUrl = `${window.location.origin}/projects/${project.id}`;
-  const shareTitle = `🚀 Check out my project "${project.name}" built on Seek!`;
-  const shareDescription = `I built this ${project.language} project using Seek's code playground. Try it yourself!`;
+  const shareTitle = `🚀 Check out my project "${project.name}" built on CodeArc!`;
+  const shareDescription = `I built this ${project.language} project using CodeArc's code playground. Try it yourself!`;
 
   return (
     <SocialShare
       url={shareUrl}
       title={shareTitle}
       description={shareDescription}
-      hashtags={['project', project.language, 'coding', 'SeekLearning']}
+      hashtags={['project', project.language, 'coding', 'CodeArcDev']}
       variant="default"
     />
   );

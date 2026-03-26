@@ -97,8 +97,7 @@ const Layout = () => {
   }
 
   return (
-    <div className={`h-screen flex overflow-hidden transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-secondary-50'
-      }`}>
+    <div className="h-screen flex overflow-hidden" style={{ background: '#111110' }}>
       {/* Skip Navigation Links */}
       <SkipNavigation
         links={[
@@ -128,46 +127,55 @@ const Layout = () => {
 
         <main
           id="main-content"
-          className="flex-1 relative overflow-y-auto focus:outline-none pb-16 md:pb-0"
+          className="flex-1 relative focus:outline-none pb-16 md:pb-0 overflow-y-auto"
           tabIndex="-1"
           role="main"
           aria-label="Main content"
         >
-          <div className="py-6">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-              {/* Breadcrumb Navigation */}
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="hidden lg:flex items-center space-x-2 mb-6"
-              >
-                {currentBreadcrumbs.map((crumb, index) => (
-                  <React.Fragment key={crumb.href}>
-                    {index > 0 && (
-                      <ChevronRightIcon className="h-4 w-4 text-secondary-400" />
-                    )}
-                    <Link
-                      to={crumb.href}
-                      className={clsx(
-                        'flex items-center space-x-1 px-2 py-1 rounded-lg text-sm font-medium transition-all duration-200 hover-lift',
-                        index === currentBreadcrumbs.length - 1
-                          ? 'text-primary-600 bg-primary-50/50 dark:bg-primary-900/30 dark:text-primary-400'
-                          : 'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-50/50 dark:text-secondary-400 dark:hover:text-secondary-200 dark:hover:bg-secondary-800/50'
-                      )}
-                    >
-                      <crumb.icon className="h-4 w-4" />
-                      <span>{crumb.name}</span>
-                    </Link>
-                  </React.Fragment>
-                ))}
-              </motion.div>
-
-              <RouteTransition>
-                <Outlet />
-              </RouteTransition>
+          {location.pathname === '/playground' || location.pathname === '/translator' ? (
+            <div className="px-4 py-3">
+              <Outlet />
             </div>
-          </div>
-          <Footer />
+          ) : (
+            /* All other pages: normal padded scrollable layout */
+            <>
+              <div className="py-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                  {/* Breadcrumb Navigation */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="hidden lg:flex items-center space-x-2 mb-6"
+                  >
+                    {currentBreadcrumbs.map((crumb, index) => (
+                      <React.Fragment key={crumb.href}>
+                        {index > 0 && (
+                          <ChevronRightIcon className="h-4 w-4 text-secondary-400" />
+                        )}
+                        <Link
+                          to={crumb.href}
+                          className={clsx(
+                            'flex items-center space-x-1 px-2 py-1 rounded-lg text-sm font-medium transition-all duration-200 hover-lift',
+                            index === currentBreadcrumbs.length - 1
+                              ? 'text-primary-600 bg-primary-50/50 dark:bg-primary-900/30 dark:text-primary-400'
+                              : 'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-50/50 dark:text-secondary-400 dark:hover:text-secondary-200 dark:hover:bg-secondary-800/50'
+                          )}
+                        >
+                          <crumb.icon className="h-4 w-4" />
+                          <span>{crumb.name}</span>
+                        </Link>
+                      </React.Fragment>
+                    ))}
+                  </motion.div>
+
+                  <RouteTransition>
+                    <Outlet />
+                  </RouteTransition>
+                </div>
+              </div>
+              <Footer />
+            </>
+          )}
         </main>
       </div>
 
@@ -182,9 +190,9 @@ const Layout = () => {
         toastOptions={{
           duration: 4000,
           style: {
-            background: isDarkMode ? '#1e293b' : '#ffffff',
-            color: isDarkMode ? '#f1f5f9' : '#0f172a',
-            border: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
+            background: '#1e1e24',
+            color: '#f5f0e8',
+            border: '1px solid rgba(255,255,255,0.1)',
           },
           success: {
             iconTheme: {

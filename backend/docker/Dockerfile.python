@@ -3,10 +3,36 @@ FROM python:3.11-slim
 # Security: Create non-root user
 RUN groupadd -r coderunner && useradd -r -g coderunner coderunner
 
-# Install minimal dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     --no-install-recommends \
+    gcc \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
+
+# Install popular Python packages so any standard code works
+RUN pip install --no-cache-dir \
+    numpy \
+    pandas \
+    requests \
+    beautifulsoup4 \
+    scipy \
+    sympy \
+    Pillow \
+    matplotlib \
+    flask \
+    fastapi \
+    pydantic \
+    httpx \
+    aiohttp \
+    pytest \
+    black \
+    cryptography \
+    arrow \
+    click \
+    rich \
+    tabulate \
+    more-itertools
 
 # Set up working directory
 WORKDIR /app
@@ -18,8 +44,7 @@ USER coderunner
 # Copy execution script
 COPY --chown=coderunner:coderunner execute.py /app/
 
-# Set resource limits
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-CMD ["python", "/app/execute.py"]
+CMD ["python3", "/app/execute.py"]

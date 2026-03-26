@@ -116,8 +116,9 @@ class NativeExecutionService {
           reject(error);
         });
 
-        setTimeout(() => {
+        setTimeout(async () => {
           process.kill('SIGTERM');
+          try { await fs.unlink(filename); } catch (e) { /* ignore */ }
           reject(new Error('Execution timeout'));
         }, this.maxExecutionTime);
       });
@@ -278,8 +279,9 @@ class NativeExecutionService {
           reject(error);
         });
 
-        setTimeout(() => {
+        setTimeout(async () => {
           process.kill('SIGTERM');
+          try { await fs.unlink(tsFilename); await fs.unlink(jsFilename); } catch (e) { /* ignore */ }
           reject(new Error('Execution timeout'));
         }, this.maxExecutionTime);
       });
@@ -375,8 +377,9 @@ class NativeExecutionService {
           reject(error);
         });
 
-        setTimeout(() => {
+        setTimeout(async () => {
           process.kill('SIGTERM');
+          try { await fs.unlink(filename); await fs.unlink(classFile); } catch (e) { /* ignore */ }
           reject(new Error('Execution timeout'));
         }, this.maxExecutionTime);
       });
@@ -485,8 +488,9 @@ class NativeExecutionService {
           reject(error);
         });
 
-        setTimeout(() => {
+        setTimeout(async () => {
           process.kill('SIGTERM');
+          try { await fs.unlink(sourceFile); await fs.unlink(execFile); } catch (e) { /* ignore */ }
           reject(new Error('Execution timeout'));
         }, this.maxExecutionTime);
       });
@@ -595,8 +599,9 @@ class NativeExecutionService {
           reject(error);
         });
 
-        setTimeout(() => {
+        setTimeout(async () => {
           process.kill('SIGTERM');
+          try { await fs.unlink(sourceFile); await fs.unlink(execFile); } catch (e) { /* ignore */ }
           reject(new Error('Execution timeout'));
         }, this.maxExecutionTime);
       });

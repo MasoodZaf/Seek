@@ -28,7 +28,7 @@ import CodeSharingModal from './CodeSharingModal';
 import { SUPPORTED_LANGUAGES, getLanguageById, MONACO_THEMES, getExecutableLanguages } from './languageConfig';
 import { getThemeDisplayNames } from './themes/seekProfessional';
 import useResponsive from '../../hooks/useResponsive';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const EnhancedPlayground = () => {
   const { user } = useAuth();
@@ -54,7 +54,7 @@ const EnhancedPlayground = () => {
   
   // Professional editor settings
   const [editorSettings, setEditorSettings] = useState({
-    theme: isDarkMode ? 'seek-dark-professional' : 'seek-light-professional',
+    theme: isDarkMode ? 'codearc-dark-professional' : 'codearc-light-professional',
     fontSize: isMobile ? 12 : 14,
     fontFamily: 'JetBrains Mono, Consolas, "Courier New", monospace',
     fontLigatures: true,
@@ -101,7 +101,7 @@ const EnhancedPlayground = () => {
   useEffect(() => {
     setEditorSettings(prev => ({
       ...prev,
-      theme: isDarkMode ? 'seek-dark-professional' : 'seek-light-professional'
+      theme: isDarkMode ? 'codearc-dark-professional' : 'codearc-light-professional'
     }));
   }, [isDarkMode]);
 
@@ -114,13 +114,32 @@ const EnhancedPlayground = () => {
     }));
   }, [isMobile]);
 
-  // Load saved codes from localStorage
+  // Load saved codes — from DB if logged in, localStorage for guests
   useEffect(() => {
-    const saved = localStorage.getItem('playground_saved_codes');
-    if (saved) {
-      setSavedCodes(JSON.parse(saved));
+    if (user) {
+      api.get('/snippets').then(res => {
+        if (res.data.success) {
+          const dbSnippets = res.data.data.map(s => ({
+            id: s._id,
+            name: s.name,
+            code: s.code,
+            language: s.language,
+            createdAt: s.createdAt,
+          }));
+          setSavedCodes(dbSnippets);
+          // Keep localStorage in sync as offline cache
+          localStorage.setItem('playground_saved_codes', JSON.stringify(dbSnippets));
+        }
+      }).catch(() => {
+        // Fall back to localStorage on error
+        const saved = localStorage.getItem('playground_saved_codes');
+        if (saved) setSavedCodes(JSON.parse(saved));
+      });
+    } else {
+      const saved = localStorage.getItem('playground_saved_codes');
+      if (saved) setSavedCodes(JSON.parse(saved));
     }
-  }, []);
+  }, [user]);
 
   // Load execution history and stats
   useEffect(() => {
@@ -132,7 +151,7 @@ const EnhancedPlayground = () => {
 
   const loadExecutionHistory = async () => {
     try {
-      const response = await axios.get('/api/code/history', {
+      const response = await api.get('/code/history', {
         params: { limit: 10 }
       });
       if (response.data.success) {
@@ -145,7 +164,7 @@ const EnhancedPlayground = () => {
 
   const loadExecutionStats = async () => {
     try {
-      const response = await axios.get('/api/code/stats');
+      const response = await api.get('/code/stats');
       if (response.data.success) {
         setExecutionStats(response.data.data);
       }
@@ -178,7 +197,7 @@ const EnhancedPlayground = () => {
     const startTime = Date.now();
 
     try {
-      const response = await axios.post('/api/code/execute', {
+      const response = await api.post('/code/execute', {
         code,
         language,
         input: ''
@@ -193,15 +212,18 @@ const EnhancedPlayground = () => {
       if (response.data.success) {
         const result = response.data.data;
         let outputText = '';
-        
-        if (result.output.stdout) {
-          outputText += '📤 Output:\n' + result.output.stdout + '\n';
+
+        const rawOutput = typeof result.output === 'string' ? result.output : (result.output?.stdout ?? '');
+        const rawError  = typeof result.output === 'object' ? (result.output?.stderr ?? '') : '';
+
+        if (rawOutput) {
+          outputText += '📤 Output:\n' + rawOutput + '\n';
         }
-        
-        if (result.output.stderr) {
-          outputText += '⚠️ Errors/Warnings:\n' + result.output.stderr + '\n';
+
+        if (rawError) {
+          outputText += '⚠️ Errors/Warnings:\n' + rawError + '\n';
         }
-        
+
         if (!outputText) {
           outputText = '✅ Code executed successfully (no output)';
         }
@@ -247,7 +269,7 @@ const EnhancedPlayground = () => {
 
   const validateCode = async () => {
     try {
-      const response = await axios.post('/api/code/validate', {
+      const response = await api.post('/code/validate', {
         code,
         language
       });
@@ -262,21 +284,35 @@ const EnhancedPlayground = () => {
     }
   };
 
-  const saveCode = () => {
+  const saveCode = async () => {
     if (!currentCodeName.trim()) return;
-    
-    const newSavedCode = {
-      id: Date.now(),
-      name: currentCodeName,
-      code,
-      language,
-      createdAt: new Date().toISOString(),
-      userId: user?.id
-    };
-    
-    const updatedCodes = [...savedCodes, newSavedCode];
-    setSavedCodes(updatedCodes);
-    localStorage.setItem('playground_saved_codes', JSON.stringify(updatedCodes));
+
+    if (user) {
+      try {
+        const res = await api.post('/snippets', { name: currentCodeName, code, language });
+        if (res.data.success) {
+          const s = res.data.data;
+          const newEntry = { id: s._id, name: s.name, code: s.code, language: s.language, createdAt: s.createdAt };
+          const updated = [newEntry, ...savedCodes];
+          setSavedCodes(updated);
+          localStorage.setItem('playground_saved_codes', JSON.stringify(updated));
+        }
+      } catch (e) {
+        // silent
+      }
+    } else {
+      const newSavedCode = {
+        id: Date.now(),
+        name: currentCodeName,
+        code,
+        language,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedCodes = [newSavedCode, ...savedCodes];
+      setSavedCodes(updatedCodes);
+      localStorage.setItem('playground_saved_codes', JSON.stringify(updatedCodes));
+    }
+
     setCurrentCodeName('');
     setShowSaveDialog(false);
   };
@@ -287,8 +323,15 @@ const EnhancedPlayground = () => {
     setOutput('');
   };
 
-  const deleteSavedCode = (id) => {
-    const updatedCodes = savedCodes.filter(code => code.id !== id);
+  const deleteSavedCode = async (id) => {
+    if (user) {
+      try {
+        await api.delete(`/snippets/${id}`);
+      } catch (e) {
+        // silent
+      }
+    }
+    const updatedCodes = savedCodes.filter(c => c.id !== id);
     setSavedCodes(updatedCodes);
     localStorage.setItem('playground_saved_codes', JSON.stringify(updatedCodes));
   };
@@ -346,7 +389,7 @@ const EnhancedPlayground = () => {
 
   const resetSettingsToDefaults = () => {
     const defaultSettings = {
-      theme: isDarkMode ? 'seek-dark-professional' : 'seek-light-professional',
+      theme: isDarkMode ? 'codearc-dark-professional' : 'codearc-light-professional',
       fontSize: isMobile ? 12 : 14,
       fontFamily: 'JetBrains Mono, Consolas, "Courier New", monospace',
       fontLigatures: true,

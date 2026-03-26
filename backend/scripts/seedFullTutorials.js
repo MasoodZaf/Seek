@@ -43,7 +43,7 @@ const createTutorial = (overrides) => ({
     }
   ],
   author: {
-    name: 'Seek Learning Team',
+    name: 'CodeArc Team',
     bio: 'Experienced educators passionate about teaching'
   },
   rating: { average: 4.5, count: 100 },

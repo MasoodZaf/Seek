@@ -1,7 +1,7 @@
 {
   "name": "seek-frontend",
   "version": "1.0.0",
-  "description": "Seek - Professional Coding Learning Platform Frontend",
+  "description": "CodeArc — Interactive Coding Learning Platform Frontend",
   "private": true,
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -79,6 +79,7 @@
       "last 1 safari version"
     ]
   },
+  "proxy": "http://localhost:5001",
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.{js,jsx}",

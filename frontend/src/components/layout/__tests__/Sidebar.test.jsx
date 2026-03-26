@@ -74,7 +74,7 @@ describe('Sidebar Component', () => {
       renderSidebar();
       
       // Check logo and branding
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       expect(screen.getByText('Learning Platform')).toBeInTheDocument();
       
       // Check navigation sections
@@ -143,7 +143,7 @@ describe('Sidebar Component', () => {
       renderSidebar({ isOpen: true });
       
       // Should render the same content as desktop
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       expect(screen.getByText('John Doe')).toBeInTheDocument();
       expect(screen.getByText('Dashboard')).toBeInTheDocument();
     });
@@ -265,7 +265,7 @@ describe('Sidebar Component', () => {
       renderSidebar();
       
       // Check for proper heading structure
-      const heading = screen.getByText('Seek');
+      const heading = screen.getByText('CodeArc');
       expect(heading).toBeInTheDocument();
       
       // Check for descriptive text
@@ -291,7 +291,7 @@ describe('Sidebar Component', () => {
       renderSidebar();
       
       // Component should render without animation issues
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
   });
 
@@ -334,7 +334,7 @@ describe('Sidebar Component', () => {
       
       renderSidebar();
       
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
   });
 
@@ -373,7 +373,7 @@ describe('Sidebar Component', () => {
       renderSidebar({}, null);
       
       // Should still render navigation
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       expect(screen.getByText('Dashboard')).toBeInTheDocument();
     });
 
@@ -384,7 +384,7 @@ describe('Sidebar Component', () => {
       renderSidebar();
       
       // Component should render without throwing
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       
       consoleSpy.mockRestore();
     });

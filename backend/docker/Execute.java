@@ -1,176 +1,117 @@
 import java.io.*;
-import java.lang.reflect.*;
+import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.security.*;
 
 public class Execute {
-    private static final int TIMEOUT_SECONDS = 5;
-    private static final long MEMORY_LIMIT = 64 * 1024 * 1024; // 64MB
-    
+    private static final int TIMEOUT_SECONDS = 10;
+
     public static void main(String[] args) {
         try {
-            // Read code from stdin
             StringBuilder codeBuilder = new StringBuilder();
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             String line;
             while ((line = reader.readLine()) != null) {
                 codeBuilder.append(line).append("\n");
             }
-            
-            String userCode = codeBuilder.toString();
-            executeJavaCode(userCode);
-            
+            executeJavaCode(codeBuilder.toString());
         } catch (Exception e) {
             printResult(false, "", "Execution error: " + e.getMessage(), 1);
         }
     }
-    
+
     private static void executeJavaCode(String code) {
+        Path tempDir = null;
         try {
-            // Set up security manager
-            System.setSecurityManager(new RestrictiveSecurityManager());
-            
-            // Create a temporary Java file
-            File tempFile = File.createTempFile("UserCode", ".java");
-            tempFile.deleteOnExit();
-            
-            // Extract class name from code or use default
+            // Extract or assign class name
             String className = extractClassName(code);
             if (className == null) {
                 className = "UserCode";
                 code = "public class " + className + " {\n" + code + "\n}";
             }
-            
-            // Write code to file
-            try (FileWriter writer = new FileWriter(tempFile)) {
-                writer.write(code);
+
+            // Create temp directory and source file named after the class
+            tempDir = Files.createTempDirectory("javarun");
+            File srcFile = new File(tempDir.toFile(), className + ".java");
+            try (FileWriter w = new FileWriter(srcFile)) {
+                w.write(code);
             }
-            
-            // Compile the Java code
-            Process compileProcess = new ProcessBuilder("javac", tempFile.getAbsolutePath())
-                .redirectErrorStream(true)
-                .start();
-            
-            boolean compileFinished = compileProcess.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            if (!compileFinished) {
-                compileProcess.destroyForcibly();
+
+            // Compile
+            Process compileProc = new ProcessBuilder("javac", srcFile.getAbsolutePath())
+                    .redirectErrorStream(true)
+                    .start();
+            boolean compiled = compileProc.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if (!compiled) {
+                compileProc.destroyForcibly();
                 printResult(false, "", "Compilation timed out", 124);
                 return;
             }
-            
-            if (compileProcess.exitValue() != 0) {
-                String compileError = readProcessOutput(compileProcess);
-                printResult(false, "", "Compilation error: " + compileError, 1);
+            if (compileProc.exitValue() != 0) {
+                String err = readStream(compileProc.getInputStream());
+                printResult(false, "", "Compilation error:\n" + err, 1);
                 return;
             }
-            
-            // Execute the compiled code
-            File classFile = new File(tempFile.getParent(), className + ".class");
-            Process execProcess = new ProcessBuilder("java", "-cp", tempFile.getParent(), className)
-                .redirectErrorStream(false)
-                .start();
-            
-            boolean execFinished = execProcess.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            if (!execFinished) {
-                execProcess.destroyForcibly();
+
+            // Run
+            Process runProc = new ProcessBuilder("java", "-cp", tempDir.toString(), className)
+                    .start();
+            boolean finished = runProc.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if (!finished) {
+                runProc.destroyForcibly();
                 printResult(false, "", "Execution timed out", 124);
                 return;
             }
-            
-            String stdout = readProcessOutput(execProcess.getInputStream());
-            String stderr = readProcessOutput(execProcess.getErrorStream());
-            
-            printResult(execProcess.exitValue() == 0, stdout, stderr, execProcess.exitValue());
-            
-            // Cleanup
-            tempFile.delete();
-            if (classFile.exists()) {
-                classFile.delete();
-            }
-            
+
+            String stdout = readStream(runProc.getInputStream());
+            String stderr = readStream(runProc.getErrorStream());
+            printResult(runProc.exitValue() == 0, stdout, stderr, runProc.exitValue());
+
         } catch (Exception e) {
             printResult(false, "", "Java execution error: " + e.getMessage(), 1);
-        }
-    }
-    
-    private static String extractClassName(String code) {
-        // Simple regex to extract class name
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("public\\s+class\\s+(\\w+)");
-        java.util.regex.Matcher matcher = pattern.matcher(code);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return null;
-    }
-    
-    private static String readProcessOutput(Process process) throws IOException {
-        return readProcessOutput(process.getInputStream());
-    }
-    
-    private static String readProcessOutput(InputStream inputStream) throws IOException {
-        StringBuilder output = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
+        } finally {
+            if (tempDir != null) {
+                try {
+                    Files.walk(tempDir)
+                         .sorted(Comparator.reverseOrder())
+                         .map(Path::toFile)
+                         .forEach(File::delete);
+                } catch (Exception ignored) {}
             }
         }
-        return output.toString();
     }
-    
+
+    private static String extractClassName(String code) {
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("public\\s+class\\s+(\\w+)")
+                .matcher(code);
+        return m.find() ? m.group(1) : null;
+    }
+
+    private static String readStream(InputStream is) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(is))) {
+            String l;
+            while ((l = r.readLine()) != null) sb.append(l).append("\n");
+        }
+        return sb.toString();
+    }
+
     private static void printResult(boolean success, String stdout, String stderr, int exitCode) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", success);
-        result.put("stdout", stdout);
-        result.put("stderr", stderr);
-        result.put("exit_code", exitCode);
-        
-        // Simple JSON serialization
         System.out.println("{" +
             "\"success\":" + success + "," +
             "\"stdout\":\"" + escapeJson(stdout) + "\"," +
             "\"stderr\":\"" + escapeJson(stderr) + "\"," +
             "\"exit_code\":" + exitCode +
-            "}");
+        "}");
     }
-    
-    private static String escapeJson(String str) {
-        if (str == null) return "";
-        return str.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\r")
-                  .replace("\t", "\\t");
-    }
-    
-    // Restrictive security manager for sandbox
-    private static class RestrictiveSecurityManager extends SecurityManager {
-        @Override
-        public void checkPermission(Permission perm) {
-            // Allow basic operations needed for execution
-            if (perm instanceof RuntimePermission) {
-                String name = perm.getName();
-                if (name.equals("exitVM.0") || name.startsWith("accessDeclaredMembers") || 
-                    name.equals("createClassLoader") || name.equals("getStackTrace")) {
-                    return;
-                }
-            }
-            
-            // Block file system access
-            if (perm instanceof FilePermission) {
-                throw new SecurityException("File access denied");
-            }
-            
-            // Block network access
-            if (perm instanceof java.net.SocketPermission) {
-                throw new SecurityException("Network access denied");
-            }
-        }
-        
-        @Override
-        public void checkExit(int status) {
-            throw new SecurityException("System.exit() is not allowed");
-        }
+
+    private static String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }

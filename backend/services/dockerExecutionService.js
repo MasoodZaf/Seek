@@ -7,7 +7,7 @@ const logger = require('../config/logger');
 class DockerExecutionService {
   constructor() {
     this.docker = new Docker();
-    this.maxExecutionTime = parseInt(process.env.CODE_EXECUTION_TIMEOUT) || 5000;
+    this.maxExecutionTime = parseInt(process.env.CODE_EXECUTION_TIMEOUT) || 15000;
     this.maxMemory = '64m'; // 64MB memory limit (default)
     this.maxCpus = '0.5'; // 50% of one CPU core
     this.images = {
@@ -26,33 +26,33 @@ class DockerExecutionService {
     };
     // Memory limits per language (some compilers need more memory)
     this.memoryLimits = {
-      python: '64m',
-      typescript: '256m', // ts-node needs more memory
-      javascript: '64m',
-      java: '256m', // JVM needs more memory
-      cpp: '128m', // C++ compilation needs more
-      c: '128m',
-      go: '512m', // Go compilation needs even more memory
-      rust: '128m', // Rust is precompiled in the image, but still needs some
-      csharp: '256m',
-      php: '64m',
-      ruby: '64m',
-      kotlin: '256m'
+      python: '256m',   // numpy/pandas can be memory-hungry
+      typescript: '512m',
+      javascript: '128m',
+      java: '512m',     // JVM needs more memory
+      cpp: '256m',
+      c: '256m',
+      go: '512m',
+      rust: '256m',
+      csharp: '512m',
+      php: '128m',
+      ruby: '128m',
+      kotlin: '512m'
     };
     // Process limits per language (Go compiler spawns many processes)
     this.pidsLimits = {
-      python: 50,
-      typescript: 50,
-      javascript: 50,
-      java: 100,
-      cpp: 100,
-      c: 100,
-      go: 200, // Go compiler needs many processes
-      rust: 100,
-      csharp: 100,
-      php: 50,
-      ruby: 50,
-      kotlin: 100
+      python: 100,
+      typescript: 100,
+      javascript: 100,
+      java: 200,
+      cpp: 200,
+      c: 200,
+      go: 300,
+      rust: 200,
+      csharp: 200,
+      php: 100,
+      ruby: 100,
+      kotlin: 200
     };
     this.imageBuilt = {};
   }
@@ -70,18 +70,30 @@ class DockerExecutionService {
 
   async buildImages() {
     const dockerDir = path.join(__dirname, '../docker');
+    // Bump this version string whenever any Docker execute script or Dockerfile changes.
+    // All images whose stored label doesn't match will be force-rebuilt.
+    const CURRENT_BUILD_VERSION = '2025-03-24-v3';
 
     for (const [language, imageName] of Object.entries(this.images)) {
       try {
-        // Check if image already exists
+        // Check if image already exists AND is the current version
+        let needsRebuild = true;
         try {
-          await this.docker.getImage(imageName).inspect();
-          this.imageBuilt[language] = true;
-          logger.info(`Docker image ${imageName} already exists`);
-          continue;
+          const imageInfo = await this.docker.getImage(imageName).inspect();
+          const storedVersion = imageInfo.Config?.Labels?.['seek.build.version'];
+          if (storedVersion === CURRENT_BUILD_VERSION) {
+            this.imageBuilt[language] = true;
+            logger.info(`Docker image ${imageName} is current (v${CURRENT_BUILD_VERSION}), skipping rebuild`);
+            needsRebuild = false;
+          } else {
+            logger.info(`Docker image ${imageName} is outdated (${storedVersion} vs ${CURRENT_BUILD_VERSION}), rebuilding...`);
+            // Remove stale image
+            try { await this.docker.getImage(imageName).remove({ force: true }); } catch (e) { /* ignore */ }
+          }
         } catch (error) {
           // Image doesn't exist, build it
         }
+        if (!needsRebuild) continue;
 
         logger.info(`Building Docker image for ${language}...`);
 
@@ -153,11 +165,12 @@ class DockerExecutionService {
         
         tarStream.finalize();
 
-        // Build the image
+        // Build the image with version label for cache invalidation
         const buildStream = await this.docker.buildImage(tarStream, {
           t: imageName,
           rm: true,
-          forcerm: true
+          forcerm: true,
+          labels: { 'seek.build.version': CURRENT_BUILD_VERSION }
         });
 
         await new Promise((resolve, reject) => {

@@ -331,7 +331,7 @@ describe('Mobile Experience Complete Journey E2E Tests', () => {
       // Verify native share API called
       expect(mockNativeShare).toHaveBeenCalledWith({
         title: 'My Code Snippet',
-        text: 'Check out my code on Seek!',
+        text: 'Check out my code on CodeArc!',
         url: expect.stringContaining('seek.com')
       });
 

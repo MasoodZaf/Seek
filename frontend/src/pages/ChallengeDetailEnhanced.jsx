@@ -53,6 +53,7 @@ const ChallengeDetailEnhanced = () => {
   const [timer, setTimer] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const timerRef = useRef(null);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     fetchChallenge();
@@ -195,7 +196,7 @@ const ChallengeDetailEnhanced = () => {
         setIsTimerRunning(false);
 
         if (response.data.data.status === 'Accepted') {
-          toast.success('Accepted! Great job! 🎉');
+          setShowCelebration(true);
         } else {
           toast.error(`${response.data.data.status}`);
         }
@@ -249,6 +250,110 @@ const ChallengeDetailEnhanced = () => {
 
   return (
     <div className="h-screen flex flex-col bg-gray-900 text-gray-100">
+      {/* Celebration Modal */}
+      <AnimatePresence>
+        {showCelebration && submissionResult && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)' }}
+            onClick={() => setShowCelebration(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.7, y: 40, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', damping: 18, stiffness: 260 }}
+              className="bg-gray-900 border border-green-500 rounded-2xl p-10 max-w-md w-full mx-4 text-center shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Trophy animation */}
+              <motion.div
+                initial={{ scale: 0, rotate: -30 }}
+                animate={{ scale: [0, 1.3, 1], rotate: [- 30, 10, 0] }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="text-7xl mb-4"
+              >
+                🏆
+              </motion.div>
+
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-3xl font-bold text-green-400 mb-1"
+              >
+                Accepted!
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-gray-400 mb-6"
+              >
+                {submissionResult.testCasesPassed}/{submissionResult.totalTestCases} test cases passed
+                {' · '}{submissionResult.runtime}ms runtime
+              </motion.p>
+
+              {/* XP Award */}
+              {submissionResult.xpEarned > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5, type: 'spring' }}
+                  className="mb-6 p-4 bg-indigo-900/40 border border-indigo-500 rounded-xl"
+                >
+                  <p className="text-indigo-300 text-sm mb-1">XP Earned</p>
+                  <p className="text-4xl font-bold text-indigo-400">+{submissionResult.xpEarned} XP</p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    Total: {submissionResult.newTotalPoints} XP · Level {submissionResult.newLevel}
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Test case summary */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="flex gap-2 justify-center mb-6"
+              >
+                {submissionResult.testResults?.map((r, i) => (
+                  <span
+                    key={i}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                      r.passed ? 'bg-green-500/20 text-green-400 border border-green-500' : 'bg-red-500/20 text-red-400 border border-red-500'
+                    }`}
+                  >
+                    {r.passed ? '✓' : '✗'}
+                  </span>
+                ))}
+              </motion.div>
+
+              <div className="flex gap-3 justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowCelebration(false)}
+                  className="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Keep Solving
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate('/challenges')}
+                  className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-medium transition-all shadow-lg"
+                >
+                  Next Challenge →
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Enhanced Header */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
@@ -695,58 +800,72 @@ const ChallengeDetailEnhanced = () => {
                         </motion.div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-800/50 p-4 rounded-lg">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-gray-800/50 p-4 rounded-lg text-center">
                           <p className="text-sm text-gray-400 mb-1">Test Cases</p>
                           <p className="text-2xl font-bold text-white">
                             {submissionResult.testCasesPassed} / {submissionResult.totalTestCases}
                           </p>
                         </div>
-                        <div className="bg-gray-800/50 p-4 rounded-lg">
+                        <div className="bg-gray-800/50 p-4 rounded-lg text-center">
                           <p className="text-sm text-gray-400 mb-1">Runtime</p>
                           <p className="text-2xl font-bold text-white">{submissionResult.runtime}ms</p>
                         </div>
+                        <div className="bg-indigo-900/30 p-4 rounded-lg text-center border border-indigo-700">
+                          <p className="text-sm text-indigo-300 mb-1">XP Earned</p>
+                          <p className="text-2xl font-bold text-indigo-400">
+                            {submissionResult.xpEarned > 0 ? `+${submissionResult.xpEarned}` : '0'}
+                          </p>
+                        </div>
                       </div>
 
-                      {submissionResult.failedTestCase && (
+                      {/* Per-test-case breakdown */}
+                      {submissionResult.testResults && submissionResult.testResults.length > 0 && (
                         <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           transition={{ delay: 0.3 }}
-                          className="mt-6 p-4 bg-gray-800 rounded-lg"
+                          className="mt-4 space-y-2"
                         >
-                          <p className="font-semibold text-red-400 mb-3">Failed Test Case:</p>
-                          <div className="space-y-2 text-sm">
-                            <div>
-                              <span className="font-medium text-gray-400">Input:</span>{' '}
-                              <code className="ml-2 bg-gray-900 px-2 py-1 rounded text-green-400 font-mono">
-                                {JSON.stringify(submissionResult.failedTestCase.input)}
-                              </code>
-                            </div>
-                            {submissionResult.failedTestCase.expectedOutput && (
-                              <div>
-                                <span className="font-medium text-gray-400">Expected:</span>{' '}
-                                <code className="ml-2 bg-gray-900 px-2 py-1 rounded text-blue-400 font-mono">
-                                  {JSON.stringify(submissionResult.failedTestCase.expectedOutput)}
-                                </code>
+                          <p className="text-sm font-semibold text-gray-400 mb-3">Test Case Results:</p>
+                          {submissionResult.testResults.map((tc, idx) => (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.1 + idx * 0.05 }}
+                              className={`p-3 rounded-lg border ${
+                                tc.passed
+                                  ? 'bg-green-900/10 border-green-700'
+                                  : 'bg-red-900/10 border-red-700'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-semibold text-sm text-white">Test {idx + 1}</span>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                                  tc.passed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                                }`}>
+                                  {tc.passed ? '✓ Passed' : '✗ Failed'}
+                                </span>
                               </div>
-                            )}
-                            {submissionResult.failedTestCase.actualOutput && (
-                              <div>
-                                <span className="font-medium text-gray-400">Your Output:</span>{' '}
-                                <code className="ml-2 bg-gray-900 px-2 py-1 rounded text-red-400 font-mono">
-                                  {JSON.stringify(submissionResult.failedTestCase.actualOutput)}
-                                </code>
+                              <div className="space-y-1 text-xs font-mono">
+                                <div className="flex gap-2">
+                                  <span className="text-gray-500 w-20 shrink-0">Input:</span>
+                                  <code className="text-green-400 truncate">{JSON.stringify(tc.input)}</code>
+                                </div>
+                                <div className="flex gap-2">
+                                  <span className="text-gray-500 w-20 shrink-0">Expected:</span>
+                                  <code className="text-blue-400 truncate">{JSON.stringify(tc.expectedOutput)}</code>
+                                </div>
+                                <div className="flex gap-2">
+                                  <span className="text-gray-500 w-20 shrink-0">Got:</span>
+                                  <code className={`truncate ${tc.passed ? 'text-green-400' : 'text-red-400'}`}>
+                                    {tc.error ? tc.error : JSON.stringify(tc.actualOutput)}
+                                  </code>
+                                </div>
                               </div>
-                            )}
-                            {submissionResult.failedTestCase.error && (
-                              <div className="mt-2 p-3 bg-red-900/20 rounded border-l-4 border-red-500">
-                                <p className="text-red-400 text-xs font-mono">
-                                  {submissionResult.failedTestCase.error}
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                            </motion.div>
+                          ))}
                         </motion.div>
                       )}
                     </motion.div>

@@ -266,7 +266,7 @@ const LearningGameSchema = new mongoose.Schema({
   author: {
     name: {
       type: String,
-      default: 'Seek Learning Team'
+      default: 'CodeArc Team'
     },
     bio: {
       type: String,

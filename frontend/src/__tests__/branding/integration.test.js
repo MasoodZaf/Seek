@@ -41,8 +41,8 @@ describe('Cross-Component Brand Integration', () => {
       const { rerender } = render(
         <SocialShare
           url="https://seek.example.com/code/123"
-          title="Check out my JavaScript code on Seek!"
-          hashtags={['javascript', 'coding', 'SeekLearning']}
+          title="Check out my JavaScript code on CodeArc!"
+          hashtags={['javascript', 'coding', 'CodeArcDev']}
         />
       );
       
@@ -50,7 +50,7 @@ describe('Cross-Component Brand Integration', () => {
       await user.click(twitterButton);
       
       let calledUrl = mockWindowOpen.mock.calls[0][0];
-      expect(calledUrl).toContain('SeekLearning');
+      expect(calledUrl).toContain('CodeArcDev');
       expect(calledUrl).toContain('javascript');
       
       mockWindowOpen.mockClear();
@@ -58,8 +58,8 @@ describe('Cross-Component Brand Integration', () => {
       // Test achievement sharing
       rerender(
         <SocialShare
-          title="🏆 I just earned the 'First Steps' badge on Seek!"
-          hashtags={['achievement', 'coding', 'SeekLearning']}
+          title="🏆 I just earned the 'First Steps' badge on CodeArc!"
+          hashtags={['achievement', 'coding', 'CodeArcDev']}
         />
       );
       
@@ -67,36 +67,36 @@ describe('Cross-Component Brand Integration', () => {
       await user.click(twitterButton2);
       
       calledUrl = mockWindowOpen.mock.calls[0][0];
-      expect(calledUrl).toContain('SeekLearning');
+      expect(calledUrl).toContain('CodeArcDev');
       expect(calledUrl).toContain('achievement');
-      expect(calledUrl).toContain('Seek');
+      expect(calledUrl).toContain('CodeArc');
     });
 
     test('social sharing uses consistent brand messaging', () => {
       const contexts = [
         {
-          title: 'Check out my Python project on Seek!',
-          description: 'Learning to code with Seek\'s professional platform',
-          hashtags: ['python', 'project', 'SeekLearning']
+          title: 'Check out my Python project on CodeArc!',
+          description: 'Learning to code with CodeArc's professional platform',
+          hashtags: ['python', 'project', 'CodeArcDev']
         },
         {
-          title: '✅ Just completed "React Basics" on Seek!',
-          description: 'I\'m learning React and making great progress with Seek!',
-          hashtags: ['tutorial', 'react', 'SeekLearning']
+          title: '✅ Just completed "React Basics" on CodeArc!',
+          description: 'I\'m learning React and making great progress with CodeArc!',
+          hashtags: ['tutorial', 'react', 'CodeArcDev']
         },
         {
-          title: '🔥 7 day learning streak on Seek!',
+          title: '🔥 7 day learning streak on CodeArc!',
           description: 'Consistent daily practice is paying off. Join me!',
-          hashtags: ['streak', 'learning', 'SeekLearning']
+          hashtags: ['streak', 'learning', 'CodeArcDev']
         }
       ];
       
       contexts.forEach(context => {
         const { unmount } = render(<SocialShare {...context} />);
         
-        // All should mention Seek
-        expect(context.title).toMatch(/Seek/);
-        expect(context.hashtags).toContain('SeekLearning');
+        // All should mention CodeArc
+        expect(context.title).toMatch(/CodeArc/);
+        expect(context.hashtags).toContain('CodeArcDev');
         
         // All should have encouraging tone
         expect(context.description).toMatch(/learning|progress|great|join/i);
@@ -288,8 +288,8 @@ describe('Cross-Component Brand Integration', () => {
         const { unmount } = render(
           <SocialShare
             variant={variant}
-            title="Test share from Seek"
-            hashtags={['test', 'SeekLearning']}
+            title="Test share from CodeArc"
+            hashtags={['test', 'CodeArcDev']}
           />
         );
         
@@ -311,13 +311,13 @@ describe('Cross-Component Brand Integration', () => {
       // Simulate onboarding flow
       const { rerender } = render(
         <div>
-          <h1>Welcome to Seek! 👋</h1>
+          <h1>Welcome to CodeArc! 👋</h1>
           <p>We're excited to help you on your coding journey.</p>
           <Button variant="primary">Get Started</Button>
         </div>
       );
       
-      expect(screen.getByText(/Welcome to Seek/)).toBeInTheDocument();
+      expect(screen.getByText(/Welcome to CodeArc/)).toBeInTheDocument();
       expect(screen.getByText(/excited.*journey/)).toBeInTheDocument();
       
       // Move to profile setup
@@ -407,7 +407,7 @@ describe('Cross-Component Brand Integration', () => {
         />
       );
       
-      expect(screen.getByText(/Welcome to Seek!/)).toBeInTheDocument();
+      expect(screen.getByText(/Welcome to CodeArc!/)).toBeInTheDocument();
       expect(screen.getByText(/🎉/)).toBeInTheDocument();
     });
   });

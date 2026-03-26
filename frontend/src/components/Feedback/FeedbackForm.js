@@ -78,7 +78,7 @@ const FeedbackForm = () => {
     <div className="feedback-form-container">
       <div className="feedback-header">
         <h1>📝 Share Your Feedback</h1>
-        <p>Help us improve Seek by sharing your thoughts and suggestions</p>
+        <p>Help us improve CodeArc by sharing your thoughts and suggestions</p>
       </div>
 
       <form onSubmit={handleSubmit} className="feedback-form">

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -7,1258 +7,668 @@ import {
   ChevronRightIcon,
   BookOpenIcon,
   CodeBracketIcon,
-  AcademicCapIcon,
+  LightBulbIcon,
   CheckCircleIcon,
-  XCircleIcon,
   PlayIcon,
   HomeIcon,
   SunIcon,
   MoonIcon,
+  ChevronDownIcon,
+  ExclamationTriangleIcon,
+  GlobeAltIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
-import { Card, Button, Progress } from '../components/ui';
+import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
 import { useTheme } from '../context/ThemeContext';
-import { useSEO } from '../context/SEOContext';
-import { generateTutorialSEO } from '../utils/seo';
 import api from '../utils/api';
-import EnhancedCodeEditor from '../components/CodeEditor/EnhancedCodeEditor';
+import EnhancedCodeEditor from '../components/CodeEditor/EnhancedCodeEditor.jsx';
+
+/* ─── helpers ─────────────────────────────────────────────────────────────── */
+
+const normaliseSteps = (tutorial) => {
+  const raw = tutorial?.steps || tutorial?.lessons || [];
+  return raw.map((s, i) => ({ ...s, _idx: i }));
+};
+
+/* ─── sub-components ──────────────────────────────────────────────────────── */
+
+const SectionHeader = ({ icon, title, subtitle, color = 'blue' }) => {
+  const colors = {
+    blue:   'bg-blue-100 text-blue-600',
+    purple: 'bg-purple-100 text-purple-600',
+    green:  'bg-green-100 text-green-600',
+    orange: 'bg-orange-100 text-orange-600',
+    red:    'bg-red-100 text-red-600',
+  };
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <div className={`p-2.5 rounded-xl ${colors[color]}`}>{icon}</div>
+      <div>
+        <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+        {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+      </div>
+    </div>
+  );
+};
+
+const CodeBlock = ({ code, language = 'javascript', explanation, onRun }) => {
+  return (
+    <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+      <div className="bg-gray-900 flex items-center justify-between px-4 py-2.5">
+        <span className="text-xs font-mono text-gray-400 uppercase tracking-wide">{language}</span>
+        {onRun && (
+          <button
+            onClick={onRun}
+            className="flex items-center gap-1.5 text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded-md transition-colors"
+          >
+            <PlayIcon className="h-3.5 w-3.5" /> Run
+          </button>
+        )}
+      </div>
+      <pre className="bg-gray-900 p-4 overflow-x-auto text-sm font-mono text-green-300 leading-relaxed">
+        <code>{code}</code>
+      </pre>
+      {explanation && (
+        <div className="bg-gray-50 border-t border-gray-200 px-4 py-3">
+          <p className="text-sm text-gray-600 leading-relaxed">{explanation}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const HintCard = ({ hints }) => {
+  const [revealed, setRevealed] = useState(0);
+  if (!hints?.length) return null;
+  return (
+    <div className="border border-yellow-200 rounded-xl bg-yellow-50 p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <LightBulbIcon className="h-5 w-5 text-yellow-500" />
+        <span className="font-semibold text-yellow-800 text-sm">Hints</span>
+        <span className="text-xs text-yellow-600">({revealed}/{hints.length} revealed)</span>
+      </div>
+      <div className="space-y-2">
+        {hints.slice(0, revealed).map((h, i) => (
+          <div key={i} className="text-sm text-yellow-900 bg-yellow-100 rounded-lg px-3 py-2">
+            💡 {typeof h === 'object' ? h.hint : h}
+          </div>
+        ))}
+      </div>
+      {revealed < hints.length && (
+        <button
+          onClick={() => setRevealed(r => r + 1)}
+          className="mt-3 text-sm text-yellow-700 hover:text-yellow-900 font-medium flex items-center gap-1"
+        >
+          <ChevronDownIcon className="h-4 w-4" /> Reveal next hint
+        </button>
+      )}
+    </div>
+  );
+};
+
+/* ─── main component ───────────────────────────────────────────────────────── */
 
 const TutorialLearn = () => {
   const { id } = useParams();
-  const { updateSEO } = useSEO();
-  const [tutorial, setTutorial] = useState(null);
-  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
-  const [currentStep, setCurrentStep] = useState('content'); // content, exercise, quiz
-  const [currentPhase, setCurrentPhase] = useState('learn'); // learn, practice, challenge
-  const [hintsUnlocked, setHintsUnlocked] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [exerciseCode, setExerciseCode] = useState('');
-  const [exerciseResults, setExerciseResults] = useState(null);
-  const [challengeCode, setChallengeCode] = useState('');
-  const [challengeOutput, setChallengeOutput] = useState(null);
-  const [practiceCode, setPracticeCode] = useState('');
-  const [practiceOutput, setPracticeOutput] = useState(null);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [quizAnswers, setQuizAnswers] = useState({});
-  const [quizResults, setQuizResults] = useState({});
-  const [lessonProgress, setLessonProgress] = useState({});
   const { isDarkMode, toggleDarkMode } = useTheme();
 
+  const [tutorial, setTutorial] = useState(null);
+  const [steps, setSteps] = useState([]);
+  const [stepIdx, setStepIdx] = useState(0);
+  const [completed, setCompleted] = useState(new Set());
+  const [practiceCode, setPracticeCode] = useState('');
+  const [practiceOutput, setPracticeOutput] = useState(null);
+  const [challengeCode, setChallengeCode] = useState('');
+  const [challengeOutput, setChallengeOutput] = useState(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showSidebar, setShowSidebar] = useState(false);
+
+  /* fetch tutorial */
   useEffect(() => {
+    const fetchTutorial = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.get(`/mongo-tutorials/${id}`);
+        const t = res.data?.data?.tutorial;
+        if (!t) throw new Error('Tutorial data not found in response');
+        setTutorial(t);
+        const s = normaliseSteps(t);
+        setSteps(s);
+        if (s.length > 0) {
+          const practice = s[0].practicePhase?.starterCode || s[0].practice?.starterCode || s[0].codeExamples?.[0]?.code || '// Start coding here\n';
+          setPracticeCode(practice);
+          const challenge = s[0].challengePhase?.starterCode || s[0].challenge?.starterCode || '';
+          setChallengeCode(challenge);
+        }
+      } catch (err) {
+        console.error('Failed to fetch tutorial:', err);
+        setError(err.message || 'Could not load tutorial');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchTutorial();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Update SEO when tutorial loads
+  /* update code when step changes */
   useEffect(() => {
-    if (tutorial) {
-      const seoConfig = generateTutorialSEO({
-        id: tutorial._id,
-        title: tutorial.title,
-        description: tutorial.description,
-        category: tutorial.category,
-        difficulty: tutorial.difficulty,
-        tags: tutorial.tags,
-        slug: tutorial.slug || tutorial._id
-      });
-      updateSEO(seoConfig);
-    }
-  }, [tutorial, updateSEO]);
-
-  useEffect(() => {
-    if (tutorial && currentLessonIndex >= 0) {
-      const lesson = (tutorial.steps || tutorial.lessons || [])[currentLessonIndex];
-      if (lesson?.exercises?.[0]) {
-        setExerciseCode(lesson.exercises[0].starterCode || '');
-      }
-      // Initialize practice code from practicePhase starterCode
-      setPracticeCode(lesson?.practicePhase?.starterCode || lesson?.codeExamples?.[0]?.code || '// Start coding here');
-      setPracticeOutput(null);
-    }
-  }, [tutorial, currentLessonIndex]);
-
-  const fetchTutorial = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/mongo-tutorials/${id}`);
-
-      if (response.data) {
-        setTutorial(response.data.data.tutorial);
-      }
-    } catch (error) {
-      console.error('Error fetching tutorial:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const currentLesson = (tutorial?.steps || tutorial?.lessons || [])[currentLessonIndex];
-  const totalLessons = (tutorial?.steps || tutorial?.lessons || []).length;
-  const progressPercentage = totalLessons > 0 ? ((currentLessonIndex + 1) / totalLessons) * 100 : 0;
-
-  const goToNextLesson = () => {
-    if (currentLessonIndex < totalLessons - 1) {
-      setCurrentLessonIndex(currentLessonIndex + 1);
-      setCurrentStep('content');
-      setExerciseResults(null);
-      setQuizAnswers({});
-      setQuizResults({});
-    }
-  };
-
-  const goToPreviousLesson = () => {
-    if (currentLessonIndex > 0) {
-      setCurrentLessonIndex(currentLessonIndex - 1);
-      setCurrentStep('content');
-      setExerciseResults(null);
-      setQuizAnswers({});
-      setQuizResults({});
-    }
-  };
-
-  const runExercise = () => {
-    const lesson = currentLesson;
-    const exercise = lesson.exercises?.[0];
-    
-    if (!exercise) return;
-    
-    try {
-      // Simple test runner for demonstration
-      const testResults = exercise.tests.map(test => {
-        try {
-          // This is a simplified test runner - in production you'd want a more secure sandbox
-          const testCode = `
-            ${exerciseCode}
-            
-            // Test: ${test.description}
-            const result = ${test.code};
-            result;
-          `;
-          
-          // eslint-disable-next-line no-eval
-          const result = eval(testCode);
-          return {
-            description: test.description,
-            passed: !!result,
-            error: null
-          };
-        } catch (error) {
-          return {
-            description: test.description,
-            passed: false,
-            error: error.message
-          };
-        }
-      });
-
-      setExerciseResults({
-        tests: testResults,
-        passed: testResults.every(t => t.passed),
-        score: Math.round((testResults.filter(t => t.passed).length / testResults.length) * 100)
-      });
-      
-      if (testResults.every(t => t.passed)) {
-        setLessonProgress(prev => ({
-          ...prev,
-          [currentLesson.id]: { ...prev[currentLesson.id], exercise: true }
-        }));
-      }
-    } catch (error) {
-      console.error('Exercise execution error:', error);
-    }
-  };
-
-  const runChallengeCode = async () => {
-    if (!challengeCode.trim()) {
-      setChallengeOutput({ success: false, error: 'Please enter some code first!' });
-      return;
-    }
-
-    setIsExecuting(true);
-    setChallengeOutput(null);
-
-    try {
-      const response = await api.post('/code/execute', {
-        code: challengeCode,
-        language: tutorial.language || 'javascript'
-      });
-
-      if (response.data.success) {
-        setChallengeOutput({
-          success: true,
-          output: response.data.data.output,
-          executionTime: response.data.data.executionTime
-        });
-      } else {
-        setChallengeOutput({
-          success: false,
-          error: response.data.error || 'Execution failed'
-        });
-      }
-    } catch (error) {
-      setChallengeOutput({
-        success: false,
-        error: error.response?.data?.error || error.message || 'Failed to execute code'
-      });
-    } finally {
-      setIsExecuting(false);
-    }
-  };
-
-  const runPracticeCode = async () => {
-    if (!practiceCode.trim()) {
-      setPracticeOutput({ success: false, error: 'Please enter some code first!' });
-      return;
-    }
-
-    setIsExecuting(true);
+    if (!steps.length) return;
+    const s = steps[stepIdx];
+    setPracticeCode(s?.practicePhase?.starterCode || s?.practice?.starterCode || s?.codeExamples?.[0]?.code || '// Start coding here\n');
+    setChallengeCode(s?.challengePhase?.starterCode || s?.challenge?.starterCode || '');
     setPracticeOutput(null);
+    setChallengeOutput(null);
+  }, [stepIdx, steps]);
 
+  const runCode = useCallback(async (code, setter) => {
+    if (!code.trim()) return;
+    setIsRunning(true);
+    setter(null);
     try {
-      const response = await api.post('/code/execute', {
-        code: practiceCode,
-        language: tutorial.language || 'javascript'
+      const res = await api.post('/code/execute', {
+        code,
+        language: tutorial?.language || 'javascript',
       });
-
-      if (response.data.success) {
-        setPracticeOutput({
-          success: true,
-          output: response.data.data.output,
-          executionTime: response.data.data.executionTime
-        });
+      if (res.data.success) {
+        setter({ success: true, output: res.data.data.output, time: res.data.data.executionTime });
       } else {
-        setPracticeOutput({
-          success: false,
-          error: response.data.error || 'Execution failed'
-        });
+        setter({ success: false, error: res.data.error || 'Execution failed' });
       }
-    } catch (error) {
-      setPracticeOutput({
-        success: false,
-        error: error.response?.data?.error || error.message || 'Failed to execute code'
-      });
+    } catch (e) {
+      setter({ success: false, error: e.response?.data?.message || 'Execution error' });
     } finally {
-      setIsExecuting(false);
+      setIsRunning(false);
+    }
+  }, [tutorial]);
+
+  const markComplete = useCallback((idx = stepIdx) => {
+    setCompleted(prev => new Set([...prev, idx]));
+  }, [stepIdx]);
+
+  const goNext = () => {
+    markComplete();
+    if (stepIdx < steps.length - 1) {
+      setStepIdx(i => i + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const handleQuizAnswer = (questionId, answerIndex) => {
-    setQuizAnswers(prev => ({
-      ...prev,
-      [questionId]: answerIndex
-    }));
-  };
-
-  const submitQuiz = () => {
-    const lesson = currentLesson;
-    const quiz = lesson.quiz || [];
-    
-    const results = quiz.reduce((acc, question) => {
-      const userAnswer = quizAnswers[question.id];
-      const correct = userAnswer === question.correctAnswer;
-      
-      acc[question.id] = {
-        correct,
-        userAnswer,
-        correctAnswer: question.correctAnswer,
-        explanation: question.explanation
-      };
-      
-      return acc;
-    }, {});
-    
-    const score = Math.round((Object.values(results).filter(r => r.correct).length / quiz.length) * 100);
-    
-    setQuizResults({ ...results, score });
-    
-    if (score >= 70) {
-      setLessonProgress(prev => ({
-        ...prev,
-        [currentLesson.id]: { ...prev[currentLesson.id], quiz: true }
-      }));
+  const goPrev = () => {
+    if (stepIdx > 0) {
+      setStepIdx(i => i - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const completeContent = async () => {
-    // Update local state
-    setLessonProgress(prev => ({
-      ...prev,
-      [currentLesson.id]: { ...prev[currentLesson.id], content: true }
-    }));
-
-    // Check if this was the last lesson
-    const isLastLesson = currentLessonIndex === totalLessons - 1;
-    if (isLastLesson) {
-      try {
-        // Mark entire tutorial as complete
-        await api.post(`/mongo-tutorials/${tutorial._id || id}/complete`);
-        console.log('Tutorial marked as complete');
-      } catch (error) {
-        console.error('Error marking tutorial as complete:', error);
-      }
-    }
-  };
+  /* ── loading / error states ─────────────────────────────────────────────── */
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500"></div>
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 font-medium">Loading tutorial…</p>
+        </div>
       </div>
     );
   }
 
-  if (!tutorial || !currentLesson) {
+  if (error || !tutorial) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Tutorial Not Found</h1>
-          <Link to="/tutorials">
-            <Button variant="primary">Back to Tutorials</Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <ExclamationTriangleIcon className="h-16 w-16 text-orange-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Tutorial Not Found</h1>
+          <p className="text-gray-500 mb-6">{error || 'This tutorial could not be loaded. It may not exist or is temporarily unavailable.'}</p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+            >
+              <ArrowPathIcon className="h-4 w-4" /> Retry
+            </button>
+            <Link
+              to="/tutorials"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Back to Tutorials
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (steps.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <BookOpenIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">No Lessons Yet</h1>
+          <p className="text-gray-500 mb-6">This tutorial has no lessons yet. Check back soon!</p>
+          <Link to="/tutorials" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors">
+            Back to Tutorials
           </Link>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
-    }`}>
-      {/* Header */}
-      <div className={`border-b sticky top-0 z-10 transition-colors duration-300 ${
-        isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                to={`/tutorials/${tutorial.slug || id}`}
-                className={`inline-flex items-center transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-400 hover:text-gray-200'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <ChevronLeftIcon className="h-5 w-5 mr-1" />
-                <HomeIcon className="h-4 w-4" />
-              </Link>
-              
-              <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <span className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                  {tutorial.title}
-                </span>
-                <span className="mx-2">•</span>
-                <span>Lesson {currentLessonIndex + 1} of {totalLessons}</span>
-              </div>
+  const step = steps[stepIdx];
+  const progress = Math.round(((completed.size) / steps.length) * 100);
+  const isLastStep = stepIdx === steps.length - 1;
+
+  /* practice/challenge data */
+  const practiceInstructions = step.practicePhase?.instructions || step.practice?.instructions;
+  const practiceHints = step.practicePhase?.hints || step.practice?.hints || step.hints || [];
+  const challengeStatement = step.challengePhase?.problemStatement || step.challenge?.problemStatement;
+  const challengeRequirements = step.challengePhase?.requirements || step.challenge?.requirements || [];
+
+  const hasPractice = !!(practiceInstructions || step.practicePhase?.starterCode || step.practice?.starterCode);
+  const hasChallenge = !!(challengeStatement || step.challengePhase || step.challenge);
+
+  const OutputPanel = ({ result }) => {
+    if (!result) return null;
+    return (
+      <div className={`mt-3 rounded-xl p-4 font-mono text-sm ${result.success ? 'bg-gray-900' : 'bg-red-50 border border-red-200'}`}>
+        {result.success ? (
+          <>
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircleSolid className="h-4 w-4 text-green-400" />
+              <span className="text-green-400 text-xs font-sans">Output {result.time ? `· ${result.time}ms` : ''}</span>
             </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* Dark Mode Toggle */}
-              <button
-                onClick={toggleDarkMode}
-                className={`p-2 rounded-lg transition-colors ${
-                  isDarkMode 
-                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              >
-                {isDarkMode ? (
-                  <SunIcon className="h-4 w-4" />
-                ) : (
-                  <MoonIcon className="h-4 w-4" />
-                )}
-              </button>
-              
-              <div className="w-32">
-                <Progress value={progressPercentage} size="sm" />
+            <pre className="text-green-300 whitespace-pre-wrap">{result.output || '(no output)'}</pre>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-2 mb-2">
+              <ExclamationTriangleIcon className="h-4 w-4 text-red-500" />
+              <span className="text-red-600 text-xs font-sans">Error</span>
+            </div>
+            <pre className="text-red-700 whitespace-pre-wrap">{result.error}</pre>
+          </>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+
+      {/* ── Top bar ─────────────────────────────────────────────────────────── */}
+      <div className={`sticky top-0 z-20 border-b ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-4">
+          <Link
+            to={`/tutorials/${tutorial.slug || id}`}
+            className={`flex items-center gap-1.5 text-sm font-medium transition-colors shrink-0 ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            <ChevronLeftIcon className="h-4 w-4" />
+            <HomeIcon className="h-4 w-4" />
+          </Link>
+
+          <div className="flex-1 min-w-0">
+            <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{tutorial.title}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <div className={`h-1.5 rounded-full flex-1 max-w-48 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                <div
+                  className="h-1.5 bg-indigo-500 rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
-              <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {Math.round(progressPercentage)}%
+              <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                Step {stepIdx + 1}/{steps.length}
               </span>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowSidebar(s => !s)}
+              className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${isDarkMode ? 'border-gray-600 text-gray-400 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}
+            >
+              All Steps
+            </button>
+            <button
+              onClick={toggleDarkMode}
+              className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'}`}
+            >
+              {isDarkMode ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar - Lesson Navigation */}
-          <div className="lg:col-span-1">
-            <Card className={`p-4 sticky top-24 transition-colors duration-300 ${
-              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                Lessons
-              </h3>
-              <div className="space-y-2">
-                {(tutorial.steps || tutorial.lessons || []).map((lesson, index) => {
-                  // Determine phase based on step title
-                  let phase = 'learn';
-                  if (lesson.title?.toLowerCase().includes('practice')) {
-                    phase = 'practice';
-                  } else if (lesson.title?.toLowerCase().includes('challenge')) {
-                    phase = 'challenge';
-                  }
-
-                  const isActive = currentLessonIndex === index;
-
-                  return (
+      {/* ── Sidebar overlay (all steps) ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {showSidebar && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-30"
+              onClick={() => setShowSidebar(false)}
+            />
+            <motion.div
+              initial={{ x: -320 }} animate={{ x: 0 }} exit={{ x: -320 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className={`fixed left-0 top-0 bottom-0 w-72 z-40 overflow-y-auto shadow-2xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
+            >
+              <div className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className={`font-bold text-base ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>All Steps</h3>
+                  <button onClick={() => setShowSidebar(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+                <div className="space-y-1.5">
+                  {steps.map((s, i) => (
                     <button
-                      key={lesson.id || index}
-                      onClick={() => {
-                        setCurrentLessonIndex(index); // Set to the clicked step index
-                        setCurrentPhase(phase); // Set the phase based on which step was clicked
-                        setCurrentStep('content');
-                      }}
-                      className={`w-full text-left p-3 rounded-lg transition-colors ${
-                        isActive
-                          ? isDarkMode
-                            ? 'bg-blue-900 text-blue-200 border border-blue-800'
-                            : 'bg-primary-100 text-primary-900 border border-primary-200'
-                          : isDarkMode
-                            ? 'hover:bg-gray-700 text-gray-300'
-                            : 'hover:bg-gray-50 text-gray-700'
+                      key={i}
+                      onClick={() => { setStepIdx(i); setShowSidebar(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 ${
+                        i === stepIdx
+                          ? 'bg-indigo-600 text-white'
+                          : completed.has(i)
+                          ? isDarkMode ? 'bg-green-900/30 text-green-300' : 'bg-green-50 text-green-800'
+                          : isDarkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-sm">{lesson.title}</p>
-                          <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                            {lesson.duration || '15'}min
-                          </p>
-                        </div>
-                        {lessonProgress[lesson.id] && (
-                          <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                        )}
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                        i === stepIdx ? 'bg-white text-indigo-600' :
+                        completed.has(i) ? 'bg-green-500 text-white' :
+                        isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-600'
+                      }`}>
+                        {completed.has(i) && i !== stepIdx ? '✓' : i + 1}
                       </div>
+                      <span className="text-sm leading-snug">{s.title}</span>
                     </button>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="space-y-6">
-              {/* Lesson Header */}
-              <div className="text-center">
-                <h1 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                  {currentLesson.title}
-                </h1>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {currentLesson.description || (currentLesson.content ? currentLesson.content.substring(0, 100) + '...' : '')}
-                </p>
-                
-                {/* Phase Navigation - Enhanced 3-Phase Learning */}
-                <div className="flex justify-center mt-6">
-                  <div className="flex space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
-                    <button
-                      onClick={() => setCurrentPhase('learn')}
-                      className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
-                        currentPhase === 'learn'
-                          ? isDarkMode
-                            ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg'
-                            : 'bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-lg'
-                          : isDarkMode
-                            ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
-                      }`}
-                    >
-                      <BookOpenIcon className="h-5 w-5 mr-2" />
-                      📚 Learn
-                    </button>
-                    <button
-                      onClick={() => setCurrentPhase('practice')}
-                      className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
-                        currentPhase === 'practice'
-                          ? isDarkMode
-                            ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg'
-                            : 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg'
-                          : isDarkMode
-                            ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
-                      }`}
-                    >
-                      <CodeBracketIcon className="h-5 w-5 mr-2" />
-                      💻 Practice
-                    </button>
-                    <button
-                      onClick={() => setCurrentPhase('challenge')}
-                      className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
-                        currentPhase === 'challenge'
-                          ? isDarkMode
-                            ? 'bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-lg'
-                            : 'bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-lg'
-                          : isDarkMode
-                            ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
-                      }`}
-                    >
-                      <AcademicCapIcon className="h-5 w-5 mr-2" />
-                      🎯 Challenge
-                    </button>
-                    
-                    {currentLesson.exercises?.length > 0 && (
-                      <button
-                        onClick={() => setCurrentStep('exercise')}
-                        className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                          currentStep === 'exercise'
-                            ? isDarkMode
-                              ? 'bg-blue-900 text-blue-200'
-                              : 'bg-primary-100 text-primary-900'
-                            : isDarkMode
-                              ? 'text-gray-400 hover:text-gray-200'
-                              : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        <CodeBracketIcon className="h-5 w-5 mr-2" />
-                        Exercise
-                        {lessonProgress[currentLesson.id]?.exercise && (
-                          <CheckCircleIcon className="h-4 w-4 ml-1 text-green-500" />
-                        )}
-                      </button>
-                    )}
-                    
-                    {currentLesson.quiz?.length > 0 && (
-                      <button
-                        onClick={() => setCurrentStep('quiz')}
-                        className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                          currentStep === 'quiz'
-                            ? isDarkMode
-                              ? 'bg-blue-900 text-blue-200'
-                              : 'bg-primary-100 text-primary-900'
-                            : isDarkMode
-                              ? 'text-gray-400 hover:text-gray-200'
-                              : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        <AcademicCapIcon className="h-5 w-5 mr-2" />
-                        Quiz
-                        {lessonProgress[currentLesson.id]?.quiz && (
-                          <CheckCircleIcon className="h-4 w-4 ml-1 text-green-500" />
-                        )}
-                      </button>
-                    )}
-                  </div>
+                  ))}
                 </div>
               </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-              {/* Content */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`${currentLessonIndex}-${currentStep}-${currentPhase}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {currentStep === 'content' && (
-                    <Card className={`p-8 transition-colors duration-300 ${
-                      isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                    }`}>
-                      {/* PHASE 1: LEARN */}
-                      {currentPhase === 'learn' && (
-                        <div className="space-y-6">
-                          <div className="flex items-center space-x-3 mb-6">
-                            <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg">
-                              <BookOpenIcon className="h-6 w-6 text-blue-600 dark:text-blue-300" />
-                            </div>
-                            <div>
-                              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                                Understanding the Concept
-                              </h2>
-                              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                Learn the theory before you code
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Concept Explanation */}
-                          <div className="prose prose-lg max-w-none">
-                            <div className={`whitespace-pre-wrap text-base leading-relaxed ${
-                              isDarkMode ? 'text-gray-200' : 'text-gray-900'
-                            }`}>
-                              {currentLesson.learnPhase?.conceptExplanation || currentLesson.content}
-                            </div>
-                          </div>
-
-                          {/* Key Points */}
-                          {currentLesson.learnPhase?.keyPoints?.length > 0 && (
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl">
-                              <h3 className={`font-semibold mb-4 flex items-center ${isDarkMode ? 'text-blue-300' : 'text-blue-900'}`}>
-                                <span className="mr-2">💡</span> Key Takeaways
-                              </h3>
-                              <ul className="space-y-2">
-                                {currentLesson.learnPhase.keyPoints.map((point, idx) => (
-                                  <li key={idx} className={`flex items-start ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    <span className="mr-2 text-blue-500">✓</span>
-                                    <span>{point}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Real World Example */}
-                          {currentLesson.learnPhase?.realWorldExample && (
-                            <div className={`border-l-4 border-green-500 pl-6 py-4 ${isDarkMode ? 'bg-gray-750' : 'bg-green-50'}`}>
-                              <h3 className={`font-semibold mb-2 ${isDarkMode ? 'text-green-300' : 'text-green-900'}`}>
-                                🌍 Real-World Use Case
-                              </h3>
-                              <p className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
-                                {currentLesson.learnPhase.realWorldExample}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Code Examples */}
-                          {(currentLesson.codeExamples || []).map((example, index) => (
-                            <div key={index}>
-                              <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                                📝 {example.title || `${example.language} Example`}
-                              </h3>
-                              <div className="rounded-lg overflow-hidden">
-                                <div className="bg-gray-900 p-4 overflow-x-auto">
-                                  <pre className="text-green-400 text-sm font-mono">
-                                    <code>{example.code}</code>
-                                  </pre>
-                                </div>
-                                {example.explanation && (
-                                  <div className={`p-4 ${isDarkMode ? 'bg-gray-750' : 'bg-gray-100'}`}>
-                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                      {example.explanation}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-
-                          {/* Common Mistakes */}
-                          {currentLesson.learnPhase?.commonMistakes?.length > 0 && (
-                            <div className={`border-l-4 border-red-500 pl-6 py-4 ${isDarkMode ? 'bg-gray-750' : 'bg-red-50'}`}>
-                              <h3 className={`font-semibold mb-3 ${isDarkMode ? 'text-red-300' : 'text-red-900'}`}>
-                                ⚠️ Common Mistakes to Avoid
-                              </h3>
-                              <ul className="space-y-2">
-                                {currentLesson.learnPhase.commonMistakes.map((mistake, idx) => (
-                                  <li key={idx} className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    • {mistake}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* PHASE 2: PRACTICE */}
-                      {currentPhase === 'practice' && (
-                        <div className="space-y-6">
-                          <div className="flex items-center space-x-3 mb-6">
-                            <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">
-                              <CodeBracketIcon className="h-6 w-6 text-purple-600 dark:text-purple-300" />
-                            </div>
-                            <div>
-                              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                                Practice Makes Perfect
-                              </h2>
-                              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                Follow the instructions to complete the code
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Instructions */}
-                          {currentLesson.practicePhase?.instructions?.length > 0 && (
-                            <div className="space-y-3">
-                              <h3 className={`font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                                📋 Steps to Complete
-                              </h3>
-                              {currentLesson.practicePhase.instructions.map((instr, idx) => (
-                                <div key={idx} className={`flex items-start p-4 rounded-lg ${
-                                  isDarkMode ? 'bg-gray-750' : 'bg-purple-50'
-                                }`}>
-                                  <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold mr-3">
-                                    {instr.step}
-                                  </div>
-                                  <div>
-                                    <p className={isDarkMode ? 'text-gray-200' : 'text-gray-900'}>
-                                      {instr.instruction}
-                                    </p>
-                                    {instr.hint && (
-                                      <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        💡 {instr.hint}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Code Editor */}
-                          <div className="mt-8">
-                            <h3 className={`font-semibold mb-4 flex items-center ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                              <CodeBracketIcon className="h-5 w-5 mr-2 text-purple-500" />
-                              Your Code
-                            </h3>
-
-                            <div className={`rounded-xl overflow-hidden border-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                              <div className={isDarkMode ? 'bg-gray-800' : 'bg-white'}>
-                                <EnhancedCodeEditor
-                                  code={practiceCode}
-                                  onChange={setPracticeCode}
-                                  language={tutorial?.language || 'javascript'}
-                                  placeholder={`// Write your practice code here...\n// Click "Run Code" to test`}
-                                  isDark={isDarkMode}
-                                  showLineNumbers={true}
-                                  className="min-h-[300px]"
-                                />
-                              </div>
-
-                              {/* Run Button */}
-                              <div className={`p-4 border-t-2 ${isDarkMode ? 'bg-gray-750 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-                                <Button
-                                  onClick={runPracticeCode}
-                                  disabled={isExecuting || !practiceCode.trim()}
-                                  variant="primary"
-                                  className="w-full sm:w-auto"
-                                >
-                                  {isExecuting ? (
-                                    <>
-                                      <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                      </svg>
-                                      Running...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <PlayIcon className="h-4 w-4 mr-2" />
-                                      Run Code
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-
-                              {/* Output Panel */}
-                              {practiceOutput && (
-                                <div className={`p-4 border-t-2 ${
-                                  isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                                }`}>
-                                  <h4 className={`font-semibold mb-2 flex items-center ${
-                                    practiceOutput.success
-                                      ? 'text-green-600 dark:text-green-400'
-                                      : 'text-red-600 dark:text-red-400'
-                                  }`}>
-                                    {practiceOutput.success ? (
-                                      <>
-                                        <CheckCircleIcon className="h-5 w-5 mr-2" />
-                                        Success
-                                      </>
-                                    ) : (
-                                      <>
-                                        <XCircleIcon className="h-5 w-5 mr-2" />
-                                        Error
-                                      </>
-                                    )}
-                                  </h4>
-                                  <div className={`font-mono text-sm p-4 rounded-lg ${
-                                    isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-100 text-gray-900'
-                                  }`}>
-                                    {practiceOutput.success ? (
-                                      <>
-                                        <pre className="whitespace-pre-wrap">{practiceOutput.output}</pre>
-                                        {practiceOutput.executionTime && (
-                                          <p className="mt-2 text-xs text-gray-500">
-                                            Execution time: {practiceOutput.executionTime}ms
-                                          </p>
-                                        )}
-                                      </>
-                                    ) : (
-                                      <pre className="whitespace-pre-wrap text-red-600 dark:text-red-400">
-                                        {practiceOutput.error}
-                                      </pre>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Hints System */}
-                          {currentLesson.practicePhase?.hints?.length > 0 && (
-                            <div className="space-y-2">
-                              <h3 className={`font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                                💡 Need Help? Unlock Hints
-                              </h3>
-                              {currentLesson.practicePhase.hints.map((hint, idx) => (
-                                <details key={idx} className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-750' : 'bg-yellow-50'}`}>
-                                  <summary className={`cursor-pointer font-medium ${isDarkMode ? 'text-yellow-300' : 'text-yellow-900'}`}>
-                                    Hint {hint.level} - Click to reveal
-                                  </summary>
-                                  <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    {hint.hint}
-                                  </p>
-                                </details>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* PHASE 3: CHALLENGE */}
-                      {currentPhase === 'challenge' && (
-                        <div className="space-y-6">
-                          <div className="flex items-center space-x-3 mb-6">
-                            <div className="bg-orange-100 dark:bg-orange-900 p-3 rounded-lg">
-                              <AcademicCapIcon className="h-6 w-6 text-orange-600 dark:text-orange-300" />
-                            </div>
-                            <div>
-                              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                                Challenge Yourself
-                              </h2>
-                              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                Apply what you've learned independently
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Problem Statement */}
-                          <div className={`p-6 rounded-xl border-2 ${
-                            isDarkMode ? 'bg-orange-900/20 border-orange-700' : 'bg-orange-50 border-orange-200'
-                          }`}>
-                            <h3 className={`font-bold mb-3 ${isDarkMode ? 'text-orange-300' : 'text-orange-900'}`}>
-                              🎯 Challenge Problem
-                            </h3>
-                            <p className={isDarkMode ? 'text-gray-200' : 'text-gray-900'}>
-                              {currentLesson.challengePhase?.problemStatement || 'Build a solution using what you learned!'}
-                            </p>
-                          </div>
-
-                          {/* Requirements */}
-                          {currentLesson.challengePhase?.requirements?.length > 0 && (
-                            <div>
-                              <h3 className={`font-semibold mb-3 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                                ✅ Requirements
-                              </h3>
-                              <ul className="space-y-2">
-                                {currentLesson.challengePhase.requirements.map((req, idx) => (
-                                  <li key={idx} className={`flex items-start ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    <span className="mr-2 text-orange-500">□</span>
-                                    <span>{req}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Test Cases */}
-                          {currentLesson.challengePhase?.testCases?.length > 0 && (
-                            <div>
-                              <h3 className={`font-semibold mb-3 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                                🧪 Test Cases
-                              </h3>
-                              <div className="space-y-2">
-                                {currentLesson.challengePhase.testCases.map((test, idx) => (
-                                  <div key={idx} className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-750' : 'bg-gray-100'}`}>
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <p className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                                          Input: {test.input}
-                                        </p>
-                                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                          Expected: {test.expected}
-                                        </p>
-                                      </div>
-                                      <span className={`text-sm font-semibold ${isDarkMode ? 'text-orange-300' : 'text-orange-600'}`}>
-                                        {test.points} pts
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Code Playground */}
-                          <div className="mt-8">
-                            <h3 className={`font-semibold mb-4 flex items-center ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                              <CodeBracketIcon className="h-5 w-5 mr-2 text-orange-500" />
-                              Code Playground - Test Your Solution
-                            </h3>
-
-                            <div className={`rounded-xl overflow-hidden border-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                              {/* Code Editor */}
-                              <div className={isDarkMode ? 'bg-gray-800' : 'bg-white'}>
-                                <EnhancedCodeEditor
-                                  code={challengeCode}
-                                  onChange={setChallengeCode}
-                                  language={tutorial?.language || 'javascript'}
-                                  placeholder={`// Write your solution here...\n// Click "Run Code" to test your solution`}
-                                  isDark={isDarkMode}
-                                  showLineNumbers={true}
-                                  className="min-h-[300px]"
-                                />
-                              </div>
-
-                              {/* Run Button */}
-                              <div className={`p-4 border-t-2 ${isDarkMode ? 'bg-gray-750 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-                                <Button
-                                  onClick={runChallengeCode}
-                                  disabled={isExecuting || !challengeCode.trim()}
-                                  variant="primary"
-                                  className="w-full sm:w-auto"
-                                >
-                                  {isExecuting ? (
-                                    <>
-                                      <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                      </svg>
-                                      Running...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <PlayIcon className="h-4 w-4 mr-2" />
-                                      Run Code
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-
-                              {/* Output Panel */}
-                              {challengeOutput && (
-                                <div className={`p-4 border-t-2 ${
-                                  isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                                }`}>
-                                  <h4 className={`font-semibold mb-2 flex items-center ${
-                                    challengeOutput.success
-                                      ? 'text-green-600 dark:text-green-400'
-                                      : 'text-red-600 dark:text-red-400'
-                                  }`}>
-                                    {challengeOutput.success ? (
-                                      <>
-                                        <CheckCircleIcon className="h-5 w-5 mr-2" />
-                                        Success
-                                      </>
-                                    ) : (
-                                      <>
-                                        <XCircleIcon className="h-5 w-5 mr-2" />
-                                        Error
-                                      </>
-                                    )}
-                                  </h4>
-                                  <div className={`font-mono text-sm p-4 rounded-lg ${
-                                    isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-100 text-gray-900'
-                                  }`}>
-                                    {challengeOutput.success ? (
-                                      <>
-                                        <pre className="whitespace-pre-wrap">{challengeOutput.output}</pre>
-                                        {challengeOutput.executionTime && (
-                                          <p className="mt-2 text-xs text-gray-500">
-                                            Execution time: {challengeOutput.executionTime}ms
-                                          </p>
-                                        )}
-                                      </>
-                                    ) : (
-                                      <pre className="whitespace-pre-wrap text-red-600 dark:text-red-400">
-                                        {challengeOutput.error}
-                                      </pre>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Navigation Buttons */}
-                      <div className="mt-8 flex justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <Button
-                          variant="outline"
-                          onClick={goToPreviousLesson}
-                          disabled={currentLessonIndex === 0}
-                        >
-                          <ChevronLeftIcon className="h-4 w-4 mr-2" />
-                          Previous Step
-                        </Button>
-
-                        <div className="space-x-4">
-                          {currentPhase === 'learn' && (
-                            <Button variant="primary" onClick={() => setCurrentPhase('practice')}>
-                              Start Practice
-                              <ChevronRightIcon className="h-4 w-4 ml-2" />
-                            </Button>
-                          )}
-                          {currentPhase === 'practice' && (
-                            <Button variant="primary" onClick={() => setCurrentPhase('challenge')}>
-                              Try Challenge
-                              <ChevronRightIcon className="h-4 w-4 ml-2" />
-                            </Button>
-                          )}
-                          {currentPhase === 'challenge' && (
-                            <Button variant="primary" onClick={goToNextLesson}>
-                              <CheckCircleIcon className="h-4 w-4 mr-2" />
-                              Complete & Next
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
-                  )}
-
-                  {currentStep === 'exercise' && currentLesson.exercises?.length > 0 && (
-                    <div className="space-y-6">
-                      <Card className={`p-6 transition-colors duration-300 ${
-                        isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                      }`}>
-                        <h2 className={`text-xl font-semibold mb-4 ${
-                          isDarkMode ? 'text-gray-100' : 'text-gray-900'
-                        }`}>
-                          {currentLesson.exercises[0].title}
-                        </h2>
-                        <p className={`mb-6 ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                        }`}>
-                          {currentLesson.exercises[0].description}
-                        </p>
-                        
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          <div>
-                            <h3 className={`font-medium mb-3 ${
-                              isDarkMode ? 'text-gray-200' : 'text-gray-900'
-                            }`}>
-                              Your Code
-                            </h3>
-                            <textarea
-                              value={exerciseCode}
-                              onChange={(e) => setExerciseCode(e.target.value)}
-                              className="w-full h-64 font-mono text-sm border rounded-lg p-4 bg-gray-900 text-green-400"
-                              placeholder="Write your code here..."
-                            />
-                            
-                            <div className="mt-4 flex space-x-3">
-                              <Button variant="primary" onClick={runExercise}>
-                                <PlayIcon className="h-4 w-4 mr-2" />
-                                Run Code
-                              </Button>
-                              
-                              <Button
-                                variant="outline"
-                                onClick={() => setExerciseCode(currentLesson.exercises[0].solution)}
-                              >
-                                Show Solution
-                              </Button>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <h3 className={`font-medium mb-3 ${
-                              isDarkMode ? 'text-gray-200' : 'text-gray-900'
-                            }`}>
-                              Test Results
-                            </h3>
-                            <div className={`border rounded-lg p-4 h-64 overflow-y-auto ${
-                              isDarkMode 
-                                ? 'border-gray-600 bg-gray-700' 
-                                : 'border-gray-200 bg-gray-50'
-                            }`}>
-                              {exerciseResults ? (
-                                <div className="space-y-3">
-                                  <div className={`p-3 rounded-lg ${
-                                    exerciseResults.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                  }`}>
-                                    {exerciseResults.passed ? (
-                                      <div className="flex items-center">
-                                        <CheckCircleIcon className="h-5 w-5 mr-2" />
-                                        All tests passed! Score: {exerciseResults.score}%
-                                      </div>
-                                    ) : (
-                                      <div className="flex items-center">
-                                        <XCircleIcon className="h-5 w-5 mr-2" />
-                                        Some tests failed. Score: {exerciseResults.score}%
-                                      </div>
-                                    )}
-                                  </div>
-                                  
-                                  {exerciseResults.tests.map((test, index) => (
-                                    <div key={index} className={`p-3 rounded border ${
-                                      test.passed ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                                    }`}>
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-sm">{test.description}</span>
-                                        {test.passed ? (
-                                          <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                                        ) : (
-                                          <XCircleIcon className="h-4 w-4 text-red-500" />
-                                        )}
-                                      </div>
-                                      {test.error && (
-                                        <p className="text-xs text-red-600 mt-1">{test.error}</p>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className={`text-center mt-12 ${
-                                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                                }`}>
-                                  Run your code to see test results
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                      
-                      <div className="flex justify-between">
-                        <Button variant="outline" onClick={() => setCurrentStep('content')}>
-                          <ChevronLeftIcon className="h-4 w-4 mr-2" />
-                          Back to Content
-                        </Button>
-                        
-                        {currentLesson.quiz?.length > 0 ? (
-                          <Button
-                            variant="primary"
-                            onClick={() => setCurrentStep('quiz')}
-                            disabled={!exerciseResults?.passed}
-                          >
-                            Take Quiz
-                            <ChevronRightIcon className="h-4 w-4 ml-2" />
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="primary"
-                            onClick={goToNextLesson}
-                            disabled={!exerciseResults?.passed}
-                          >
-                            Next Lesson
-                            <ChevronRightIcon className="h-4 w-4 ml-2" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 'quiz' && currentLesson.quiz?.length > 0 && (
-                    <div className="space-y-6">
-                      <Card className={`p-6 transition-colors duration-300 ${
-                        isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                      }`}>
-                        <h2 className={`text-xl font-semibold mb-6 ${
-                          isDarkMode ? 'text-gray-100' : 'text-gray-900'
-                        }`}>
-                          Quiz Time!
-                        </h2>
-                        
-                        <div className="space-y-6">
-                          {currentLesson.quiz.map((question, index) => (
-                            <div key={question.id} className={`border-b pb-6 ${
-                              isDarkMode ? 'border-gray-600' : 'border-gray-200'
-                            }`}>
-                              <h3 className={`font-medium mb-4 ${
-                                isDarkMode ? 'text-gray-200' : 'text-gray-900'
-                              }`}>
-                                {index + 1}. {question.question}
-                              </h3>
-                              
-                              <div className="space-y-2">
-                                {question.options.map((option, optionIndex) => (
-                                  <label key={optionIndex} className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                                    isDarkMode 
-                                      ? 'hover:bg-gray-700' 
-                                      : 'hover:bg-gray-50'
-                                  }`}>
-                                    <input
-                                      type="radio"
-                                      name={question.id}
-                                      value={optionIndex}
-                                      checked={quizAnswers[question.id] === optionIndex}
-                                      onChange={() => handleQuizAnswer(question.id, optionIndex)}
-                                      className="text-primary-600"
-                                    />
-                                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-900'}>
-                                      {option}
-                                    </span>
-                                  </label>
-                                ))}
-                              </div>
-                              
-                              {quizResults[question.id] && (
-                                <div className={`mt-4 p-3 rounded-lg ${
-                                  quizResults[question.id].correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                }`}>
-                                  <div className="flex items-center mb-2">
-                                    {quizResults[question.id].correct ? (
-                                      <CheckCircleIcon className="h-5 w-5 mr-2" />
-                                    ) : (
-                                      <XCircleIcon className="h-5 w-5 mr-2" />
-                                    )}
-                                    {quizResults[question.id].correct ? 'Correct!' : 'Incorrect'}
-                                  </div>
-                                  <p className="text-sm">{question.explanation}</p>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {!quizResults.score && (
-                          <div className="mt-6">
-                            <Button
-                              variant="primary"
-                              onClick={submitQuiz}
-                              disabled={Object.keys(quizAnswers).length < currentLesson.quiz.length}
-                            >
-                              Submit Quiz
-                            </Button>
-                          </div>
-                        )}
-                        
-                        {quizResults.score !== undefined && (
-                          <div className="mt-6">
-                            <div className={`p-4 rounded-lg text-center ${
-                              quizResults.score >= 70 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                              <h3 className="font-semibold text-lg mb-2">
-                                Quiz Score: {quizResults.score}%
-                              </h3>
-                              <p>
-                                {quizResults.score >= 70
-                                  ? 'Great job! You passed the quiz.'
-                                  : 'You need 70% to pass. Try again!'}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </Card>
-                      
-                      <div className="flex justify-between">
-                        <Button variant="outline" onClick={() => setCurrentStep('exercise')}>
-                          <ChevronLeftIcon className="h-4 w-4 mr-2" />
-                          Back to Exercise
-                        </Button>
-                        
-                        <Button
-                          variant="primary"
-                          onClick={goToNextLesson}
-                          disabled={!quizResults.score || quizResults.score < 70}
-                        >
-                          Next Lesson
-                          <ChevronRightIcon className="h-4 w-4 ml-2" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
+      {/* ── Main content ────────────────────────────────────────────────────── */}
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={stepIdx}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.25 }}
+            className="space-y-6"
+          >
+            {/* Step badge + title */}
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xs font-bold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full uppercase tracking-wide">
+                  Step {stepIdx + 1} of {steps.length}
+                </span>
+                {completed.has(stepIdx) && (
+                  <span className="text-xs font-medium bg-green-100 text-green-700 px-2 py-1 rounded-full">✓ Completed</span>
+                )}
+              </div>
+              <h1 className={`text-2xl sm:text-3xl font-bold leading-snug ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                {step.title}
+              </h1>
+              {step.description && (
+                <p className={`mt-2 text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{step.description}</p>
+              )}
             </div>
-          </div>
-        </div>
+
+            {/* ── 1. LEARN — Concept Explanation ─────────────────────────── */}
+            <div className={`rounded-2xl p-6 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200 shadow-sm'}`}>
+              <SectionHeader
+                icon={<BookOpenIcon className="h-5 w-5" />}
+                title="Concept Explanation"
+                subtitle="Read and understand before you code"
+                color="blue"
+              />
+              <div className={`prose prose-sm max-w-none leading-relaxed whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {step.learnPhase?.conceptExplanation || step.content || 'No explanation provided for this step.'}
+              </div>
+
+              {/* Key Points */}
+              {(step.learnPhase?.keyPoints || []).length > 0 && (
+                <div className={`mt-5 rounded-xl p-4 ${isDarkMode ? 'bg-blue-900/20 border border-blue-800' : 'bg-blue-50'}`}>
+                  <p className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDarkMode ? 'text-blue-300' : 'text-blue-800'}`}>
+                    💡 Key Takeaways
+                  </p>
+                  <ul className="space-y-1.5">
+                    {step.learnPhase.keyPoints.map((pt, i) => (
+                      <li key={i} className={`flex items-start gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <span className="text-blue-500 font-bold mt-0.5">✓</span>
+                        <span>{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Real world example */}
+              {step.learnPhase?.realWorldExample && (
+                <div className={`mt-4 border-l-4 border-green-500 pl-4 py-3 rounded-r-xl ${isDarkMode ? 'bg-green-900/10' : 'bg-green-50'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <GlobeAltIcon className={`h-4 w-4 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
+                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-green-300' : 'text-green-800'}`}>Real-World Analogy</span>
+                  </div>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{step.learnPhase.realWorldExample}</p>
+                </div>
+              )}
+
+              {/* Common mistakes */}
+              {(step.learnPhase?.commonMistakes || []).length > 0 && (
+                <div className={`mt-4 border-l-4 border-red-400 pl-4 py-3 rounded-r-xl ${isDarkMode ? 'bg-red-900/10' : 'bg-red-50'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <ExclamationTriangleIcon className={`h-4 w-4 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`} />
+                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-red-300' : 'text-red-800'}`}>Common Mistakes to Avoid</span>
+                  </div>
+                  <ul className="space-y-1">
+                    {step.learnPhase.commonMistakes.map((m, i) => (
+                      <li key={i} className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>• {m}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* ── 2. CODE EXAMPLES ─────────────────────────────────────────── */}
+            {(step.codeExamples || []).length > 0 && (
+              <div className={`rounded-2xl p-6 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200 shadow-sm'}`}>
+                <SectionHeader
+                  icon={<CodeBracketIcon className="h-5 w-5" />}
+                  title="Code Examples"
+                  subtitle="Study the examples before trying yourself"
+                  color="purple"
+                />
+                <div className="space-y-5">
+                  {step.codeExamples.map((ex, i) => (
+                    <div key={i}>
+                      {ex.title && (
+                        <p className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                          Example {i + 1}{ex.title ? `: ${ex.title}` : ''}
+                        </p>
+                      )}
+                      <CodeBlock
+                        code={ex.code}
+                        language={ex.language || tutorial.language || 'javascript'}
+                        explanation={ex.explanation}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── 3. PRACTICE ──────────────────────────────────────────────── */}
+            {hasPractice && (
+              <div className={`rounded-2xl p-6 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200 shadow-sm'}`}>
+                <SectionHeader
+                  icon={<PlayIcon className="h-5 w-5" />}
+                  title="Practice"
+                  subtitle="Apply what you just learned"
+                  color="green"
+                />
+
+                {/* Step-by-step instructions */}
+                {Array.isArray(practiceInstructions) && practiceInstructions.length > 0 && (
+                  <div className="mb-5 space-y-2">
+                    {practiceInstructions.map((instr, i) => (
+                      <div key={i} className={`flex items-start gap-3 p-3 rounded-xl ${isDarkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
+                        <div className="w-7 h-7 shrink-0 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">
+                          {typeof instr === 'object' ? instr.step : i + 1}
+                        </div>
+                        <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {typeof instr === 'object' ? instr.instruction : instr}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {typeof practiceInstructions === 'string' && (
+                  <p className={`mb-4 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{practiceInstructions}</p>
+                )}
+
+                {/* Code editor */}
+                <div className="rounded-xl overflow-hidden border border-gray-200" style={{ height: 280 }}>
+                  <EnhancedCodeEditor
+                    code={practiceCode}
+                    onChange={setPracticeCode}
+                    language={tutorial.language || 'javascript'}
+                    className="h-full"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 mt-3">
+                  <button
+                    onClick={() => runCode(practiceCode, setPracticeOutput)}
+                    disabled={isRunning}
+                    className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    {isRunning ? <ArrowPathIcon className="h-4 w-4 animate-spin" /> : <PlayIcon className="h-4 w-4" />}
+                    {isRunning ? 'Running…' : 'Run Code'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const starter = step.practicePhase?.starterCode || step.practice?.starterCode || '// Start coding here\n';
+                      setPracticeCode(starter);
+                      setPracticeOutput(null);
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <OutputPanel result={practiceOutput} />
+                <HintCard hints={practiceHints} />
+              </div>
+            )}
+
+            {/* ── 4. CHALLENGE ─────────────────────────────────────────────── */}
+            {hasChallenge && (
+              <div className={`rounded-2xl p-6 ${isDarkMode ? 'bg-gray-800 border border-orange-900' : 'bg-white border border-orange-200 shadow-sm'}`}>
+                <SectionHeader
+                  icon={<CheckCircleIcon className="h-5 w-5" />}
+                  title="Challenge Yourself"
+                  subtitle="A harder problem to test your understanding"
+                  color="orange"
+                />
+
+                {challengeStatement && (
+                  <div className={`mb-4 p-4 rounded-xl ${isDarkMode ? 'bg-orange-900/20 border border-orange-800' : 'bg-orange-50'}`}>
+                    <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-orange-200' : 'text-orange-900'}`}>{challengeStatement}</p>
+                  </div>
+                )}
+
+                {challengeRequirements.length > 0 && (
+                  <div className="mb-4">
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Requirements</p>
+                    <ul className="space-y-1">
+                      {challengeRequirements.map((r, i) => (
+                        <li key={i} className={`flex items-start gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <span className="text-orange-500 mt-0.5">▸</span> {r}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="rounded-xl overflow-hidden border border-gray-200" style={{ height: 280 }}>
+                  <EnhancedCodeEditor
+                    code={challengeCode}
+                    onChange={setChallengeCode}
+                    language={tutorial.language || 'javascript'}
+                    className="h-full"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 mt-3">
+                  <button
+                    onClick={() => runCode(challengeCode, setChallengeOutput)}
+                    disabled={isRunning}
+                    className="flex items-center gap-2 px-5 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    {isRunning ? <ArrowPathIcon className="h-4 w-4 animate-spin" /> : <PlayIcon className="h-4 w-4" />}
+                    {isRunning ? 'Running…' : 'Run Code'}
+                  </button>
+                </div>
+
+                <OutputPanel result={challengeOutput} />
+              </div>
+            )}
+
+            {/* ── Navigation ─────────────────────────────────────────────────── */}
+            <div className={`rounded-2xl p-5 flex items-center justify-between ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200 shadow-sm'}`}>
+              <button
+                onClick={goPrev}
+                disabled={stepIdx === 0}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+                  isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <ChevronLeftIcon className="h-4 w-4" /> Previous
+              </button>
+
+              <div className="text-center">
+                {!completed.has(stepIdx) && (
+                  <button
+                    onClick={() => markComplete(stepIdx)}
+                    className="text-xs text-indigo-500 hover:text-indigo-700 font-medium underline"
+                  >
+                    Mark as complete
+                  </button>
+                )}
+                {completed.has(stepIdx) && (
+                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                    <CheckCircleSolid className="h-4 w-4" /> Step complete
+                  </span>
+                )}
+              </div>
+
+              {isLastStep ? (
+                <Link
+                  to="/tutorials"
+                  onClick={() => markComplete(stepIdx)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium text-sm transition-colors"
+                >
+                  <CheckCircleSolid className="h-4 w-4" /> Finish Tutorial
+                </Link>
+              ) : (
+                <button
+                  onClick={goNext}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-sm transition-colors"
+                >
+                  Next Step <ChevronRightIcon className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

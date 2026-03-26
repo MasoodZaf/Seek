@@ -14,6 +14,7 @@ import {
 import { toast } from 'react-hot-toast';
 import MonacoEditor from '@monaco-editor/react';
 import api from '../utils/api';
+import Footer from '../components/layout/Footer';
 
 // Code Languages
 const codeLanguages = [
@@ -137,6 +138,7 @@ const Translator = () => {
     };
 
     return (
+        <>
         <div className="w-full max-w-7xl mx-auto space-y-6 pb-12">
             <div className="flex flex-col h-[calc(100vh-200px)] min-h-[600px] w-full bg-gray-900 text-white overflow-hidden rounded-xl shadow-2xl border border-gray-700/50">
 
@@ -365,6 +367,8 @@ const Translator = () => {
                 </div>
             </div>
         </div>
+        <Footer />
+        </>
     );
 };
 

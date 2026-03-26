@@ -1,6 +1,6 @@
 class OfflineService {
   constructor() {
-    this.dbName = 'SeekOfflineDB';
+    this.dbName = 'CodeArcOfflineDB';
     this.dbVersion = 1;
     this.db = null;
     this.isOnline = navigator.onLine;
@@ -430,23 +430,32 @@ class OfflineService {
 
   async processSyncItem(item) {
     switch (item.action) {
-      case 'PROGRESS_UPDATE':
+      case 'PROGRESS_UPDATE': {
+        const token = localStorage.getItem('accessToken');
         await fetch('/api/v1/progress', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+          },
           credentials: 'include',
           body: JSON.stringify(item.data)
         });
         break;
-        
-      case 'CODE_EXECUTION':
+      }
+      case 'CODE_EXECUTION': {
+        const token = localStorage.getItem('accessToken');
         await fetch('/api/v1/code/execute', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+          },
           credentials: 'include',
           body: JSON.stringify(item.data)
         });
         break;
+      }
         
       default:
         console.warn(`Unknown sync action: ${item.action}`);

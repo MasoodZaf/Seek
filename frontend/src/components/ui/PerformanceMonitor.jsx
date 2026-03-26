@@ -128,12 +128,12 @@ const PerformanceMonitor = ({
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         className={`${positionClasses[position]} w-96 max-w-[calc(100vw-2rem)]`}
       >
-        <Card className="bg-white shadow-xl border border-gray-200">
+        <Card className="bg-codearc-900 shadow-xl border border-white/10">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between p-4 border-b border-white/10">
             <div className="flex items-center space-x-2">
-              <ChartBarIcon className="w-5 h-5 text-primary-600" />
-              <h3 className="font-semibold text-gray-900">Performance Monitor</h3>
+              <ChartBarIcon className="w-5 h-5 text-primary-400" />
+              <h3 className="font-semibold text-codearc-50">Performance Monitor</h3>
               {isRecording && (
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>

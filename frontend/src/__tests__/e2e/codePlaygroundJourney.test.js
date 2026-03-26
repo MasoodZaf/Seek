@@ -83,7 +83,7 @@ describe('Code Playground Complete Journey E2E Tests', () => {
       expect(playground).toHaveClass('professional-layout');
 
       const monacoEditor = await screen.findByTestId('monaco-editor');
-      expect(monacoEditor).toHaveAttribute('data-theme', 'seek-professional');
+      expect(monacoEditor).toHaveAttribute('data-theme', 'codearc-professional');
       expect(monacoEditor).toHaveClass('professional-theme');
 
       // Step 2: Select programming language

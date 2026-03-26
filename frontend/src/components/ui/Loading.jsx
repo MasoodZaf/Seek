@@ -187,7 +187,7 @@ const LoadingOverlay = ({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         className={clsx(
-          'absolute inset-0 bg-white/90 flex items-center justify-center z-50',
+          'absolute inset-0 bg-codearc-950/90 flex items-center justify-center z-50',
           blur && 'backdrop-blur-sm'
         )}
       >
@@ -195,7 +195,7 @@ const LoadingOverlay = ({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.3 }}
-          className="flex flex-col items-center space-y-4 p-6 bg-white rounded-xl shadow-elevation-2"
+          className="flex flex-col items-center space-y-4 p-6 bg-codearc-900 rounded-xl shadow-elevation-2 border border-white/10"
         >
           {spinner && <Spinner size="lg" variant={variant} />}
           {text && (
@@ -348,7 +348,7 @@ const LoadingList = ({ items = 3, className }) => (
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: i * 0.1 }}
-        className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-secondary-200"
+        className="flex items-center space-x-3 p-3 bg-codearc-900 rounded-lg border border-white/10"
       >
         <LoadingSkeleton width="3rem" height="3rem" rounded="rounded-full" />
         <div className="flex-1 space-y-2">

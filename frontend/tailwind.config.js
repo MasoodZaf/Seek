@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
@@ -33,6 +34,24 @@ module.exports = {
           800: '#104e6e',
           900: '#082a3c',
           950: '#041520',
+        },
+        // CodeArc dark-studio palette (matches design system exactly)
+        codearc: {
+          50:  '#f5f0e8',  // warm ivory — main text
+          100: '#e8e2d6',
+          200: '#c8c0b0',
+          300: '#a09898',  // secondary text
+          400: '#7a7070',
+          500: '#6b6565',  // dimmed text
+          600: '#3a3838',
+          700: '#282830',
+          800: '#1e1e24',  // elevated surface
+          900: '#17171a',  // card background
+          950: '#111110',  // main background
+          green: '#6ee7b7',
+          'green-dim': 'rgba(110,231,183,0.12)',
+          'green-glow': 'rgba(110,231,183,0.25)',
+          amber: '#fbbf24',
         },
         // Aurmak Brand - Neutral Palette
         secondary: {
@@ -182,9 +201,10 @@ module.exports = {
       },
       // Professional Typography System
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
-        display: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['DM Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', 'monospace'],
+        display: ['Fraunces', 'Georgia', 'serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
       },
       // Enhanced Typography Scale
       fontSize: {

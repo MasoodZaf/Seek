@@ -3,6 +3,36 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { loader } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
+
+// Tell @monaco-editor/react to use the locally installed monaco-editor (0.44.0)
+// instead of downloading it from the jsdelivr CDN. This means the main thread and
+// the workers below are guaranteed to be the same version — preventing the
+// "methodNames is not iterable" protocol mismatch that occurs when CDN (0.52.x)
+// and local workers (0.44.x) disagree on the message format.
+loader.config({ monaco });
+
+// Wire up language-specific workers from the same local monaco-editor bundle.
+// Webpack 5 (CRA 5) handles new URL(…, import.meta.url) natively — it creates
+// separate worker chunks that are served locally, no CDN requests at runtime.
+window.MonacoEnvironment = {
+  getWorker(_moduleId, label) {
+    if (label === 'json') {
+      return new Worker(new URL('monaco-editor/esm/vs/language/json/json.worker', import.meta.url));
+    }
+    if (label === 'css' || label === 'scss' || label === 'less') {
+      return new Worker(new URL('monaco-editor/esm/vs/language/css/css.worker', import.meta.url));
+    }
+    if (label === 'html' || label === 'handlebars' || label === 'razor') {
+      return new Worker(new URL('monaco-editor/esm/vs/language/html/html.worker', import.meta.url));
+    }
+    if (label === 'typescript' || label === 'javascript') {
+      return new Worker(new URL('monaco-editor/esm/vs/language/typescript/ts.worker', import.meta.url));
+    }
+    return new Worker(new URL('monaco-editor/esm/vs/editor/editor.worker', import.meta.url));
+  }
+};
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 

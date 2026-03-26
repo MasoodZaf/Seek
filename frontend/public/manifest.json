@@ -1,6 +1,7 @@
 {
-  "short_name": "Seek",
-  "name": "Seek Learning Platform",
+  "short_name": "CodeArc",
+  "name": "CodeArc — Learn to Code",
+  "description": "Master JavaScript, Python, TypeScript, Java, C++, SQL and more through interactive tutorials, coding challenges, and a multi-language playground.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,13 +9,39 @@
       "type": "image/x-icon"
     },
     {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
       "src": "logo.svg",
       "type": "image/svg+xml",
       "sizes": "any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait-primary",
+  "theme_color": "#111110",
+  "background_color": "#111110",
+  "categories": ["education", "productivity", "developer tools"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "og-image.png",
+      "type": "image/png",
+      "sizes": "1200x630",
+      "label": "CodeArc — Interactive Coding Platform"
+    }
+  ]
 }

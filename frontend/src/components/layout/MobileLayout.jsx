@@ -192,7 +192,7 @@ const MobileLayout = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-semibold text-sm mb-1">
-                    Install Seek App
+                    Install CodeArc App
                   </h3>
                   <p className="text-xs text-primary-100 mb-3">
                     Get the full mobile experience with offline access

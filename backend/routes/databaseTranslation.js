@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const databaseTranslationService = require('../services/databaseTranslationService');
 const { body, validationResult } = require('express-validator');
+const { protect } = require('../middleware/auth');
+const logger = require('../config/logger');
 
 /**
  * @route   POST /api/v1/database-translation/translate
@@ -9,6 +11,7 @@ const { body, validationResult } = require('express-validator');
  * @access  Public
  */
 router.post('/translate',
+  protect,
   [
     body('sourceQuery').notEmpty().withMessage('Source query is required'),
     body('sourceDB').notEmpty().withMessage('Source database is required'),
@@ -45,11 +48,8 @@ router.post('/translate',
       });
 
     } catch (error) {
-      console.error('Database translation error:', error);
-      res.status(500).json({
-        success: false,
-        message: error.message || 'Translation failed'
-      });
+      logger.error('Database translation error:', error);
+      res.status(500).json({ success: false, message: 'Translation failed' });
     }
   }
 );
@@ -95,10 +95,8 @@ router.get('/patterns/:database', (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    logger.error('Database translation route error:', error);
+    res.status(500).json({ success: false, message: 'Request failed' });
   }
 });
 
@@ -128,10 +126,8 @@ router.get('/info/:database', (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    logger.error('Database translation route error:', error);
+    res.status(500).json({ success: false, message: 'Request failed' });
   }
 });
 
@@ -141,6 +137,7 @@ router.get('/info/:database', (req, res) => {
  * @access  Public
  */
 router.post('/batch-translate',
+  protect,
   [
     body('queries').isArray().withMessage('Queries must be an array'),
     body('sourceDB').notEmpty().withMessage('Source database is required'),
@@ -186,11 +183,8 @@ router.post('/batch-translate',
       });
 
     } catch (error) {
-      console.error('Batch translation error:', error);
-      res.status(500).json({
-        success: false,
-        message: error.message || 'Batch translation failed'
-      });
+      logger.error('Batch translation error:', error);
+      res.status(500).json({ success: false, message: 'Batch translation failed' });
     }
   }
 );

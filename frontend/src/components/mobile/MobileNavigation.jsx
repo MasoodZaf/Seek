@@ -271,7 +271,7 @@ const MobileNavigation = () => {
               <span className="text-white font-bold text-sm drop-shadow-sm">S</span>
             </motion.div>
             <div>
-              <h1 className="font-bold text-secondary-900 text-lg">Seek</h1>
+              <h1 className="font-bold text-secondary-900 text-lg">CodeArc</h1>
               {user && (
                 <div className="flex items-center space-x-2">
                   <p className="text-xs text-secondary-500">
@@ -518,7 +518,7 @@ const MobileNavigation = () => {
                   className="text-center"
                 >
                   <p className="text-sm font-medium text-secondary-700">
-                    Seek Learning Platform
+                    CodeArc
                   </p>
                   <p className="text-xs text-secondary-500 mt-1">
                     Version 1.0.0 • Made with ❤️

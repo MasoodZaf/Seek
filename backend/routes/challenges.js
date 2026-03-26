@@ -3,22 +3,13 @@ const router = express.Router();
 const CodingChallenge = require('../models/CodingChallenge');
 const ChallengeSubmission = require('../models/ChallengeSubmission');
 const UserSkillProfile = require('../models/UserSkillProfile');
+const User = require('../models/User');
 const { executeCode } = require('../services/codeExecutionService');
 const recommendationService = require('../services/challengeRecommendation');
+const { protect, authorize } = require('../middleware/auth');
+const logger = require('../config/logger');
 
-// Middleware to check if user is admin
-const isAdmin = (req, res, next) => {
-  // In a real app, check user role from JWT token or session
-  // For now, check query parameter or header
-  const isAdminUser = req.query.admin === 'true' || req.headers['x-admin-access'] === 'true';
-  if (!isAdminUser) {
-    return res.status(403).json({
-      success: false,
-      message: 'Admin access required to view full challenge list'
-    });
-  }
-  next();
-};
+const XP_BY_DIFFICULTY = { easy: 50, medium: 100, hard: 200, expert: 350 };
 
 // GET /api/v1/challenges - Get all challenges with filtering
 router.get('/', async (req, res) => {
@@ -32,28 +23,16 @@ router.get('/', async (req, res) => {
       page = 1,
       sortBy = 'number',
       order = 'asc',
-      status, // accepted, attempted, todo
-      admin // admin flag
+      status
     } = req.query;
 
-    // Check if admin is requesting all challenges
-    const isAdminRequest = admin === 'true' || req.headers['x-admin-access'] === 'true';
-    const effectiveLimit = isAdminRequest ? 1000 : parseInt(limit); // No practical limit for admin
-
+    const effectiveLimit = parseInt(limit);
     const query = { isActive: true };
 
-    // Apply filters
-    if (difficulty && difficulty !== 'all') {
-      query.difficulty = difficulty;
-    }
-    if (category && category !== 'all') {
-      query.category = category;
-    }
-    if (tags) {
-      query.tags = { $in: tags.split(',') };
-    }
+    if (difficulty && difficulty !== 'all') query.difficulty = difficulty;
+    if (category && category !== 'all') query.category = category;
+    if (tags) query.tags = { $in: tags.split(',') };
 
-    // Search functionality
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -62,29 +41,22 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    // Sorting
     let sortOption = {};
-    if (sortBy === 'number') {
-      sortOption = { number: order === 'asc' ? 1 : -1 };
-    } else if (sortBy === 'acceptance') {
-      sortOption = { acceptanceRate: order === 'asc' ? 1 : -1 };
-    } else if (sortBy === 'difficulty') {
-      sortOption = { difficulty: order === 'asc' ? 1 : -1 };
-    } else {
-      sortOption = { [sortBy]: order === 'asc' ? 1 : -1 };
-    }
+    if (sortBy === 'number') sortOption = { number: order === 'asc' ? 1 : -1 };
+    else if (sortBy === 'acceptance') sortOption = { acceptanceRate: order === 'asc' ? 1 : -1 };
+    else if (sortBy === 'difficulty') sortOption = { difficulty: order === 'asc' ? 1 : -1 };
+    else sortOption = { [sortBy]: order === 'asc' ? 1 : -1 };
 
-    const skip = isAdminRequest ? 0 : (page - 1) * effectiveLimit;
+    const skip = (page - 1) * effectiveLimit;
 
-    const challenges = await CodingChallenge.find(query)
+    let challenges = await CodingChallenge.find(query)
       .sort(sortOption)
       .limit(effectiveLimit)
       .skip(skip)
-      .select('-testCases -solutions -hints'); // Exclude sensitive data
+      .select('-testCases -solutions -hints');
 
     const total = await CodingChallenge.countDocuments(query);
 
-    // If user is logged in and status filter is provided, filter by user's submission status
     if (req.query.userId && status) {
       const userSubmissions = await ChallengeSubmission.find({
         userId: req.query.userId,
@@ -108,17 +80,201 @@ router.get('/', async (req, res) => {
         totalPages: Math.ceil(total / effectiveLimit),
         totalItems: total,
         hasNext: page * effectiveLimit < total,
-        hasPrev: page > 1,
-        isAdmin: isAdminRequest
+        hasPrev: page > 1
       }
     });
   } catch (error) {
-    console.error('Get challenges error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch challenges',
-      error: error.message
+    logger.error('Get challenges error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch challenges' });
+  }
+});
+
+// GET /api/v1/challenges/admin/all - Get ALL challenges (admin only)
+router.get('/admin/all', protect, authorize('admin'), async (req, res) => {
+  try {
+    const challenges = await CodingChallenge.find({ isActive: true })
+      .sort({ number: 1 })
+      .select('-solutions -testCases');
+
+    res.json({
+      success: true,
+      data: challenges,
+      total: challenges.length
     });
+  } catch (error) {
+    logger.error('Get all challenges error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch challenges' });
+  }
+});
+
+// GET /api/v1/challenges/recommended - Get personalized recommendations
+router.get('/recommended', async (req, res) => {
+  try {
+    const { userId, count = 10 } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'userId is required' });
+    }
+
+    const recommendations = await recommendationService.getRecommendations(userId, parseInt(count));
+
+    res.json({ success: true, data: recommendations, count: recommendations.length });
+  } catch (error) {
+    logger.error('Get recommendations error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch recommendations' });
+  }
+});
+
+// GET /api/v1/challenges/daily - Get daily challenge
+router.get('/daily', async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      const challenge = await CodingChallenge.findOne({ difficulty: 'easy', skillLevel: { $lte: 2 } });
+      return res.json({ success: true, data: challenge });
+    }
+
+    const dailyChallenge = await recommendationService.getDailyChallenge(userId);
+    res.json({ success: true, data: dailyChallenge });
+  } catch (error) {
+    logger.error('Get daily challenge error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch daily challenge' });
+  }
+});
+
+// GET /api/v1/challenges/stats/summary - Get user challenge statistics
+router.get('/stats/summary', protect, async (req, res) => {
+  try {
+    const userId = req.user.id.toString();
+    const totalChallenges = await CodingChallenge.countDocuments({ isActive: true });
+
+    const acceptedSubmissions = await ChallengeSubmission.aggregate([
+      { $match: { userId, status: 'Accepted' } },
+      { $group: { _id: '$challengeSlug' } }
+    ]);
+
+    const solvedByDifficulty = await ChallengeSubmission.aggregate([
+      { $match: { userId, status: 'Accepted' } },
+      { $lookup: { from: 'codingchallenges', localField: 'challengeId', foreignField: '_id', as: 'challenge' } },
+      { $unwind: '$challenge' },
+      { $group: { _id: '$challenge.difficulty', count: { $sum: 1 } } }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalChallenges,
+        solvedChallenges: acceptedSubmissions.length,
+        solvedPercentage: ((acceptedSubmissions.length / totalChallenges) * 100).toFixed(1),
+        byDifficulty: {
+          easy: solvedByDifficulty.find(s => s._id === 'easy')?.count || 0,
+          medium: solvedByDifficulty.find(s => s._id === 'medium')?.count || 0,
+          hard: solvedByDifficulty.find(s => s._id === 'hard')?.count || 0
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Get stats error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch statistics' });
+  }
+});
+
+// GET /api/v1/challenges/assessment/:questionNumber
+router.get('/assessment/:questionNumber', protect, async (req, res) => {
+  try {
+    const questionNumber = parseInt(req.params.questionNumber);
+    const challenge = await recommendationService.getAssessmentChallenge(req.user.id, questionNumber);
+    res.json({ success: true, data: challenge });
+  } catch (error) {
+    logger.error('Get assessment challenge error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch assessment challenge' });
+  }
+});
+
+// POST /api/v1/challenges/assessment/complete
+router.post('/assessment/complete', protect, async (req, res) => {
+  try {
+    const { results } = req.body;
+
+    if (!results) {
+      return res.status(400).json({ success: false, message: 'results are required' });
+    }
+
+    const profile = await recommendationService.completeAssessment(req.user.id, results);
+    res.json({ success: true, data: profile });
+  } catch (error) {
+    logger.error('Complete assessment error:', error);
+    res.status(500).json({ success: false, message: 'Failed to complete assessment' });
+  }
+});
+
+// GET /api/v1/challenges/deck - Get weighted random deck of 25 unsolved challenges
+router.get('/deck', protect, async (req, res) => {
+  try {
+    const userId = req.user.id.toString();
+    const userLevel = req.user.progress?.level || 1;
+    const showCompleted = req.query.showCompleted === 'true';
+
+    // Get slugs the user has already solved
+    const acceptedSubs = await ChallengeSubmission.aggregate([
+      { $match: { userId, status: 'Accepted' } },
+      { $group: { _id: '$challengeSlug' } }
+    ]);
+    const solvedSlugs = new Set(acceptedSubs.map(s => s._id));
+
+    if (showCompleted) {
+      // Return only solved challenges
+      const solved = await CodingChallenge.find({ slug: { $in: [...solvedSlugs] }, isActive: true })
+        .select('-testCases -solutions').sort({ number: 1 });
+      return res.json({ success: true, data: { challenges: solved, solvedCount: solvedSlugs.size, totalCount: 200 } });
+    }
+
+    // Weighted difficulty distribution based on user level
+    // Level 1-3: 50% easy, 35% medium, 15% hard
+    // Level 4-6: 20% easy, 50% medium, 30% hard
+    // Level 7+:  5% easy, 35% medium, 60% hard
+    let weights;
+    if (userLevel <= 3) weights = { easy: 50, medium: 35, hard: 15 };
+    else if (userLevel <= 6) weights = { easy: 20, medium: 50, hard: 30 };
+    else weights = { easy: 5, medium: 35, hard: 60 };
+
+    // Target counts out of 25
+    const total = 25;
+    const easyCount = Math.round(total * weights.easy / 100);
+    const mediumCount = Math.round(total * weights.medium / 100);
+    const hardCount = total - easyCount - mediumCount;
+
+    const fetchRandom = async (difficulty, count) => {
+      if (count <= 0) return [];
+      return CodingChallenge.aggregate([
+        { $match: { difficulty, isActive: true, slug: { $nin: [...solvedSlugs] } } },
+        { $sample: { size: count } },
+        { $project: { testCases: 0, solutions: 0 } }
+      ]);
+    };
+
+    const [easy, medium, hard] = await Promise.all([
+      fetchRandom('easy', easyCount),
+      fetchRandom('medium', mediumCount),
+      fetchRandom('hard', hardCount)
+    ]);
+
+    // Shuffle combined deck
+    const deck = [...easy, ...medium, ...hard].sort(() => Math.random() - 0.5);
+
+    res.json({
+      success: true,
+      data: {
+        challenges: deck,
+        solvedCount: solvedSlugs.size,
+        totalCount: 200,
+        weights
+      }
+    });
+  } catch (err) {
+    logger.error('Deck fetch error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch deck' });
   }
 });
 
@@ -128,81 +284,58 @@ router.get('/:slug', async (req, res) => {
     const challenge = await CodingChallenge.findOne({
       slug: req.params.slug,
       isActive: true
-    }).select('-testCases.expectedOutput'); // Hide expected output for hidden test cases
+    }).select('-testCases.expectedOutput');
 
     if (!challenge) {
-      return res.status(404).json({
-        success: false,
-        message: 'Challenge not found'
-      });
+      return res.status(404).json({ success: false, message: 'Challenge not found' });
     }
 
-    // Get user's submission history if userId provided
     let submissionHistory = [];
     if (req.query.userId) {
       submissionHistory = await ChallengeSubmission.find({
         userId: req.query.userId,
         challengeId: challenge._id
       })
-      .sort({ timestamp: -1 })
-      .limit(10)
-      .select('-code'); // Don't send full code in history
+        .sort({ timestamp: -1 })
+        .limit(10)
+        .select('-code');
     }
 
-    res.json({
-      success: true,
-      data: {
-        challenge,
-        submissionHistory
-      }
-    });
+    res.json({ success: true, data: { challenge, submissionHistory } });
   } catch (error) {
-    console.error('Get challenge error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch challenge',
-      error: error.message
-    });
+    logger.error('Get challenge error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch challenge' });
   }
 });
 
-// POST /api/v1/challenges/:slug/run - Run code against sample test cases
-router.post('/:slug/run', async (req, res) => {
+// POST /api/v1/challenges/:slug/run - Run code (requires auth)
+router.post('/:slug/run', protect, async (req, res) => {
   try {
     const { code, language } = req.body;
 
     if (!code || !language) {
-      return res.status(400).json({
-        success: false,
-        message: 'Code and language are required'
-      });
+      return res.status(400).json({ success: false, message: 'Code and language are required' });
     }
 
-    const challenge = await CodingChallenge.findOne({
-      slug: req.params.slug
-    });
+    const challenge = await CodingChallenge.findOne({ slug: req.params.slug });
 
     if (!challenge) {
-      return res.status(404).json({
-        success: false,
-        message: 'Challenge not found'
-      });
+      return res.status(404).json({ success: false, message: 'Challenge not found' });
     }
 
-    // Run only against visible test cases (examples)
     const visibleTestCases = challenge.testCases.filter(tc => !tc.isHidden);
     const results = [];
 
     for (const testCase of visibleTestCases) {
       try {
-        const result = await executeCode({
+        const result = await executeCode(
+          req.user.id,
           code,
           language,
-          input: JSON.stringify(testCase.input)
-        });
+          JSON.stringify(testCase.input)
+        );
 
         const passed = JSON.stringify(result.output) === JSON.stringify(testCase.expectedOutput);
-
         results.push({
           input: testCase.input,
           expectedOutput: testCase.expectedOutput,
@@ -210,60 +343,41 @@ router.post('/:slug/run', async (req, res) => {
           passed,
           runtime: result.executionTime
         });
-      } catch (error) {
-        results.push({
-          input: testCase.input,
-          error: error.message,
-          passed: false
-        });
+      } catch (err) {
+        results.push({ input: testCase.input, error: 'Execution error', passed: false });
       }
     }
-
-    const allPassed = results.every(r => r.passed);
 
     res.json({
       success: true,
       data: {
         results,
-        allPassed,
+        allPassed: results.every(r => r.passed),
         totalTests: results.length,
         passedTests: results.filter(r => r.passed).length
       }
     });
   } catch (error) {
-    console.error('Run code error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to run code',
-      error: error.message
-    });
+    logger.error('Run code error:', error);
+    res.status(500).json({ success: false, message: 'Failed to run code' });
   }
 });
 
-// POST /api/v1/challenges/:slug/submit - Submit solution
-router.post('/:slug/submit', async (req, res) => {
+// POST /api/v1/challenges/:slug/submit - Submit solution (requires auth)
+router.post('/:slug/submit', protect, async (req, res) => {
   try {
-    const { code, language, userId = 'guest' } = req.body;
+    const { code, language } = req.body;
 
     if (!code || !language) {
-      return res.status(400).json({
-        success: false,
-        message: 'Code and language are required'
-      });
+      return res.status(400).json({ success: false, message: 'Code and language are required' });
     }
 
-    const challenge = await CodingChallenge.findOne({
-      slug: req.params.slug
-    });
+    const challenge = await CodingChallenge.findOne({ slug: req.params.slug });
 
     if (!challenge) {
-      return res.status(404).json({
-        success: false,
-        message: 'Challenge not found'
-      });
+      return res.status(404).json({ success: false, message: 'Challenge not found' });
     }
 
-    // Run against all test cases
     const results = [];
     let status = 'Accepted';
     let failedTestCase = null;
@@ -272,20 +386,23 @@ router.post('/:slug/submit', async (req, res) => {
     for (const testCase of challenge.testCases) {
       try {
         const startTime = Date.now();
-        const result = await executeCode({
+        const result = await executeCode(
+          req.user.id,
           code,
           language,
-          input: JSON.stringify(testCase.input),
-          timeout: challenge.timeLimit
-        });
+          JSON.stringify(testCase.input),
+          null,
+          null,
+          null,
+          { timeout: challenge.timeLimit }
+        );
         const runtime = Date.now() - startTime;
         totalRuntime += runtime;
 
-        // Check if output matches
-        const actualOutput = typeof result.output === 'string' ?
-          result.output.trim() : result.output;
-        const expectedOutput = typeof testCase.expectedOutput === 'string' ?
-          testCase.expectedOutput.trim() : testCase.expectedOutput;
+        const actualOutput = typeof result.output === 'string' ? result.output.trim() : result.output;
+        const expectedOutput = typeof testCase.expectedOutput === 'string'
+          ? testCase.expectedOutput.trim()
+          : testCase.expectedOutput;
 
         const passed = JSON.stringify(actualOutput) === JSON.stringify(expectedOutput);
 
@@ -300,29 +417,29 @@ router.post('/:slug/submit', async (req, res) => {
 
         results.push({
           passed,
-          runtime
+          runtime,
+          input: testCase.input,
+          expectedOutput: testCase.expectedOutput,
+          actualOutput: result.output
         });
 
         if (runtime > challenge.timeLimit) {
           status = 'Time Limit Exceeded';
           break;
         }
-      } catch (error) {
-        status = error.message.includes('timeout') ? 'Time Limit Exceeded' : 'Runtime Error';
-        failedTestCase = {
-          input: testCase.input,
-          error: error.message
-        };
+      } catch (err) {
+        status = err.message.includes('timeout') ? 'Time Limit Exceeded' : 'Runtime Error';
+        failedTestCase = { input: testCase.input, error: 'Execution error' };
+        results.push({ passed: false, runtime: 0, input: testCase.input, error: 'Execution error' });
         break;
       }
     }
 
     const testCasesPassed = results.filter(r => r.passed).length;
-    const avgRuntime = totalRuntime / results.length;
+    const avgRuntime = results.length > 0 ? totalRuntime / results.length : 0;
 
-    // Save submission
     const submission = new ChallengeSubmission({
-      userId,
+      userId: req.user.id,
       challengeId: challenge._id,
       challengeSlug: challenge.slug,
       code,
@@ -336,7 +453,6 @@ router.post('/:slug/submit', async (req, res) => {
 
     await submission.save();
 
-    // Update challenge stats
     challenge.totalSubmissions += 1;
     if (status === 'Accepted') {
       challenge.totalAccepted += 1;
@@ -344,13 +460,29 @@ router.post('/:slug/submit', async (req, res) => {
     }
     await challenge.save();
 
-    // Update user skill profile if not guest
-    if (userId && userId !== 'guest') {
-      await recommendationService.updateSkillProfile(
-        userId,
-        challenge._id,
-        status === 'Accepted'
-      );
+    await recommendationService.updateSkillProfile(req.user.id, challenge._id, status === 'Accepted');
+
+    // Award XP when accepted
+    let xpEarned = 0;
+    let newTotalPoints = 0;
+    let newLevel = 1;
+    if (status === 'Accepted') {
+      xpEarned = XP_BY_DIFFICULTY[challenge.difficulty] || 50;
+      try {
+        const sqlUser = await User.findOne({ where: { id: req.user.id } });
+        if (sqlUser) {
+          const progress = sqlUser.progress || {};
+          const updatedPoints = (progress.totalPoints || 0) + xpEarned;
+          newLevel = Math.floor(updatedPoints / 500) + 1;
+          await User.update(
+            { progress: { ...progress, totalPoints: updatedPoints, level: newLevel } },
+            { where: { id: req.user.id } }
+          );
+          newTotalPoints = updatedPoints;
+        }
+      } catch (xpErr) {
+        logger.error('XP award error:', xpErr);
+      }
     }
 
     res.json({
@@ -360,311 +492,56 @@ router.post('/:slug/submit', async (req, res) => {
         runtime: Math.round(avgRuntime),
         testCasesPassed,
         totalTestCases: challenge.testCases.length,
+        testResults: results,
         failedTestCase: status !== 'Accepted' ? failedTestCase : null,
-        submissionId: submission._id
+        submissionId: submission._id,
+        xpEarned,
+        newTotalPoints,
+        newLevel
       }
     });
   } catch (error) {
-    console.error('Submit solution error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to submit solution',
-      error: error.message
-    });
+    logger.error('Submit solution error:', error);
+    res.status(500).json({ success: false, message: 'Failed to submit solution' });
   }
 });
 
-// GET /api/v1/challenges/:slug/submissions - Get user submissions for a challenge
-router.get('/:slug/submissions', async (req, res) => {
+// GET /api/v1/challenges/:slug/submissions - Get user submissions (requires auth)
+router.get('/:slug/submissions', protect, async (req, res) => {
   try {
-    const { userId } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID is required'
-      });
-    }
-
-    const challenge = await CodingChallenge.findOne({
-      slug: req.params.slug
-    });
+    const challenge = await CodingChallenge.findOne({ slug: req.params.slug });
 
     if (!challenge) {
-      return res.status(404).json({
-        success: false,
-        message: 'Challenge not found'
-      });
+      return res.status(404).json({ success: false, message: 'Challenge not found' });
     }
 
     const submissions = await ChallengeSubmission.find({
-      userId,
+      userId: req.user.id,
       challengeId: challenge._id
     })
-    .sort({ timestamp: -1 })
-    .limit(20);
+      .sort({ timestamp: -1 })
+      .limit(20);
 
-    res.json({
-      success: true,
-      data: submissions
-    });
+    res.json({ success: true, data: submissions });
   } catch (error) {
-    console.error('Get submissions error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch submissions',
-      error: error.message
-    });
-  }
-});
-
-// GET /api/v1/challenges/stats/summary - Get user challenge statistics
-router.get('/stats/summary', async (req, res) => {
-  try {
-    const { userId } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID is required'
-      });
-    }
-
-    const totalChallenges = await CodingChallenge.countDocuments({ isActive: true });
-
-    const acceptedSubmissions = await ChallengeSubmission.aggregate([
-      {
-        $match: {
-          userId,
-          status: 'Accepted'
-        }
-      },
-      {
-        $group: {
-          _id: '$challengeSlug'
-        }
-      }
-    ]);
-
-    const solvedByDifficulty = await ChallengeSubmission.aggregate([
-      {
-        $match: {
-          userId,
-          status: 'Accepted'
-        }
-      },
-      {
-        $lookup: {
-          from: 'codingchallenges',
-          localField: 'challengeId',
-          foreignField: '_id',
-          as: 'challenge'
-        }
-      },
-      {
-        $unwind: '$challenge'
-      },
-      {
-        $group: {
-          _id: '$challenge.difficulty',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-
-    const stats = {
-      totalChallenges,
-      solvedChallenges: acceptedSubmissions.length,
-      solvedPercentage: ((acceptedSubmissions.length / totalChallenges) * 100).toFixed(1),
-      byDifficulty: {
-        easy: solvedByDifficulty.find(s => s._id === 'easy')?.count || 0,
-        medium: solvedByDifficulty.find(s => s._id === 'medium')?.count || 0,
-        hard: solvedByDifficulty.find(s => s._id === 'hard')?.count || 0
-      }
-    };
-
-    res.json({
-      success: true,
-      data: stats
-    });
-  } catch (error) {
-    console.error('Get stats error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch statistics',
-      error: error.message
-    });
-  }
-});
-
-// GET /api/v1/challenges/admin/all - Get ALL challenges (admin only)
-router.get('/admin/all', isAdmin, async (req, res) => {
-  try {
-    const challenges = await CodingChallenge.find({ isActive: true })
-      .sort({ number: 1 })
-      .select('-solutions -testCases'); // Exclude solutions from list
-
-    res.json({
-      success: true,
-      data: challenges,
-      total: challenges.length,
-      message: 'Full challenge list (admin access)'
-    });
-  } catch (error) {
-    console.error('Get all challenges error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch challenges',
-      error: error.message
-    });
-  }
-});
-
-// GET /api/v1/challenges/recommended - Get personalized recommendations
-router.get('/recommended', async (req, res) => {
-  try {
-    const { userId, count = 10 } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'userId is required'
-      });
-    }
-
-    const recommendations = await recommendationService.getRecommendations(userId, parseInt(count));
-
-    res.json({
-      success: true,
-      data: recommendations,
-      count: recommendations.length,
-      message: 'Personalized challenge recommendations'
-    });
-  } catch (error) {
-    console.error('Get recommendations error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch recommendations',
-      error: error.message
-    });
-  }
-});
-
-// GET /api/v1/challenges/daily - Get daily challenge
-router.get('/daily', async (req, res) => {
-  try {
-    const { userId } = req.query;
-
-    if (!userId) {
-      // Return a random easy challenge for non-logged-in users
-      const challenge = await CodingChallenge.findOne({
-        difficulty: 'easy',
-        skillLevel: { $lte: 2 }
-      });
-
-      return res.json({
-        success: true,
-        data: challenge
-      });
-    }
-
-    const dailyChallenge = await recommendationService.getDailyChallenge(userId);
-
-    res.json({
-      success: true,
-      data: dailyChallenge,
-      message: 'Daily challenge'
-    });
-  } catch (error) {
-    console.error('Get daily challenge error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch daily challenge',
-      error: error.message
-    });
-  }
-});
-
-// GET /api/v1/challenges/assessment/:questionNumber - Get assessment question
-router.get('/assessment/:questionNumber', async (req, res) => {
-  try {
-    const { userId } = req.query;
-    const questionNumber = parseInt(req.params.questionNumber);
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'userId is required'
-      });
-    }
-
-    const challenge = await recommendationService.getAssessmentChallenge(userId, questionNumber);
-
-    res.json({
-      success: true,
-      data: challenge
-    });
-  } catch (error) {
-    console.error('Get assessment challenge error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch assessment challenge',
-      error: error.message
-    });
-  }
-});
-
-// POST /api/v1/challenges/assessment/complete - Complete assessment
-router.post('/assessment/complete', async (req, res) => {
-  try {
-    const { userId, results } = req.body;
-
-    if (!userId || !results) {
-      return res.status(400).json({
-        success: false,
-        message: 'userId and results are required'
-      });
-    }
-
-    const profile = await recommendationService.completeAssessment(userId, results);
-
-    res.json({
-      success: true,
-      data: profile,
-      message: 'Assessment completed successfully'
-    });
-  } catch (error) {
-    console.error('Complete assessment error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to complete assessment',
-      error: error.message
-    });
+    logger.error('Get submissions error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch submissions' });
   }
 });
 
 // GET /api/v1/challenges/profile/:userId - Get user skill profile
-router.get('/profile/:userId', async (req, res) => {
+router.get('/profile/:userId', protect, async (req, res) => {
   try {
-    const { userId } = req.params;
-
-    let profile = await UserSkillProfile.findOne({ userId });
+    let profile = await UserSkillProfile.findOne({ userId: req.user.id });
 
     if (!profile) {
-      profile = await recommendationService.createInitialProfile(userId);
+      profile = await recommendationService.createInitialProfile(req.user.id);
     }
 
-    res.json({
-      success: true,
-      data: profile
-    });
+    res.json({ success: true, data: profile });
   } catch (error) {
-    console.error('Get profile error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch profile',
-      error: error.message
-    });
+    logger.error('Get profile error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch profile' });
   }
 });
 

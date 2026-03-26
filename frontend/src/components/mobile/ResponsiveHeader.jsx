@@ -79,7 +79,7 @@ const ResponsiveHeader = ({
       '/settings': 'Settings'
     };
     
-    return pathTitles[location.pathname] || 'Seek';
+    return pathTitles[location.pathname] || 'CodeArc';
   };
 
   const menuItems = [
@@ -153,7 +153,7 @@ const ResponsiveHeader = ({
                     <span className="text-white font-bold text-sm drop-shadow-sm">S</span>
                   </motion.div>
                   <div className="hidden sm:block">
-                    <h1 className="font-bold text-gray-900 text-lg">Seek</h1>
+                    <h1 className="font-bold text-gray-900 text-lg">CodeArc</h1>
                   </div>
                 </Link>
                 

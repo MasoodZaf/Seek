@@ -1,20 +1,31 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
-# Security: Create non-root user
-RUN groupadd -r coderunner && useradd -r -g coderunner coderunner
+# Security: Create non-root user with writable home
+RUN groupadd -r coderunner && useradd -r -g coderunner -m -d /home/coderunner coderunner
+
+# Allow writing to /tmp
+RUN chmod 1777 /tmp
 
 # Set up working directory
 WORKDIR /app
-RUN chown coderunner:coderunner /app
+RUN chown -R coderunner:coderunner /app
+
+# .NET environment (set before build so dotnet uses home dir)
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+ENV DOTNET_NOLOGO=1
+ENV HOME=/home/coderunner
+ENV NUGET_PACKAGES=/home/coderunner/.nuget/packages
+
+# Copy and compile the runner script (as root, but uses HOME above)
+COPY execute.cs /build/Program.cs
+RUN echo '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings></PropertyGroup></Project>' \
+    > /build/runner.csproj && \
+    dotnet build /build --nologo -v q -o /app/runner && \
+    # Fix ownership of everything written by root (NuGet cache, home, app)
+    chown -R coderunner:coderunner /home/coderunner /app/runner
 
 # Switch to non-root user
 USER coderunner
 
-# Copy execution script
-COPY --chown=coderunner:coderunner execute.cs /app/
-
-# Set .NET environment variables
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-ENV DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
-
-CMD ["dotnet", "script", "/app/execute.cs"]
+CMD ["dotnet", "/app/runner/runner.dll"]

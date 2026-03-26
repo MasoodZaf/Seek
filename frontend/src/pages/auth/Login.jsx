@@ -68,19 +68,21 @@ const Login = () => {
     
     try {
       const result = await login(formData.email, formData.password);
-      
       if (result.success) {
         navigate(from, { replace: true });
+      } else {
+        setErrors({ general: result.error || 'Invalid login credentials. Please try again.' });
       }
     } catch (error) {
+      setErrors({ general: 'Invalid login credentials. Please try again.' });
     }
-    
+
     setLoading(false);
   };
   
   const demoCredentials = [
     {
-      email: 'admin@seek.com',
+      email: 'admin@codearc.dev',
       password: 'admin123456',
       role: 'Admin',
       name: 'Admin User',
@@ -89,7 +91,7 @@ const Login = () => {
       description: 'Full access to all features'
     },
     {
-      email: 'test@seek.com',
+      email: 'test@codearc.dev',
       password: 'test123456',
       role: 'Student',
       name: 'Test User',
@@ -101,181 +103,262 @@ const Login = () => {
 
   const handleQuickLogin = async (credentials) => {
     setFormData({ email: credentials.email, password: credentials.password });
+    setErrors({});
     setLoading(true);
     try {
       const result = await login(credentials.email, credentials.password);
       if (result.success) {
         navigate(from, { replace: true });
+      } else {
+        setErrors({ general: result.error || 'Invalid login credentials. Please try again.' });
       }
     } catch (error) {
-      // Error handling is in the login function
+      setErrors({ general: 'Invalid login credentials. Please try again.' });
     }
     setLoading(false);
   };
 
+  const S = {
+    page: {
+      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: '#111110', padding: '48px 16px',
+      fontFamily: "'DM Sans', system-ui, sans-serif",
+    },
+    wrap: { width: '100%', maxWidth: 420 },
+    logoWrap: {
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      marginBottom: 24,
+    },
+    logoMark: {
+      width: 80, height: 80, borderRadius: 20,
+      overflow: 'hidden', display: 'block',
+      boxShadow: '0 0 32px rgba(110,231,183,0.25), 0 8px 24px rgba(0,0,0,0.5)',
+      border: '1px solid rgba(110,231,183,0.2)',
+      marginBottom: 14,
+    },
+    logoBrand: {
+      fontSize: 26, fontWeight: 700, color: '#f5f0e8',
+      letterSpacing: '-0.02em', lineHeight: 1,
+    },
+    logoTagline: {
+      fontSize: 12, color: '#6b6565', fontWeight: 500,
+      textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4,
+    },
+    backLink: {
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      fontSize: 13, color: '#6b6565', textDecoration: 'none',
+      marginBottom: 32, transition: 'color 0.2s',
+    },
+    heading: {
+      fontFamily: "'Fraunces', Georgia, serif",
+      fontSize: 28, fontWeight: 600, color: '#f5f0e8',
+      textAlign: 'center', marginBottom: 6, letterSpacing: '-0.02em',
+    },
+    sub: { fontSize: 14, color: '#6b6565', textAlign: 'center', marginBottom: 32 },
+    card: {
+      background: '#17171a', border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 14, padding: 28,
+    },
+    demoLabel: {
+      fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase',
+      color: '#6b6565', marginBottom: 12,
+      fontFamily: "'JetBrains Mono', monospace",
+    },
+    demoBtn: {
+      width: '100%', border: 'none', borderRadius: 10, padding: '12px 16px',
+      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12,
+      marginBottom: 8, transition: 'opacity 0.15s, transform 0.15s',
+      textAlign: 'left',
+    },
+    demoIcon: { fontSize: 22, flexShrink: 0 },
+    demoName: { fontSize: 14, fontWeight: 600, color: '#fff', lineHeight: 1.3 },
+    demoDesc: { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2 },
+    demoBadge: {
+      marginLeft: 'auto', padding: '3px 10px', borderRadius: 100,
+      background: 'rgba(255,255,255,0.15)', fontSize: 11, color: '#fff',
+      fontWeight: 500, flexShrink: 0,
+    },
+    divider: {
+      display: 'flex', alignItems: 'center', gap: 12,
+      margin: '20px 0',
+    },
+    dividerLine: { flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' },
+    dividerText: { fontSize: 12, color: '#6b6565', whiteSpace: 'nowrap' },
+    label: { display: 'block', fontSize: 13, color: '#a09898', marginBottom: 6, fontWeight: 500 },
+    input: {
+      width: '100%', background: '#111110', border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: 8, padding: '10px 12px', fontSize: 14, color: '#f5f0e8',
+      outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+      transition: 'border-color 0.2s',
+    },
+    inputFocus: { borderColor: 'rgba(110,231,183,0.4)' },
+    fieldGroup: { marginBottom: 16 },
+    error: { fontSize: 12, color: '#fca5a5', marginTop: 4 },
+    row: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
+    checkLabel: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#a09898', cursor: 'pointer' },
+    forgotLink: { fontSize: 13, color: '#6ee7b7', textDecoration: 'none' },
+    submitBtn: {
+      width: '100%', background: '#6ee7b7', color: '#111', border: 'none',
+      borderRadius: 8, padding: '11px 0', fontSize: 14, fontWeight: 600,
+      cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s',
+    },
+    footer: { marginTop: 20, textAlign: 'center', fontSize: 13, color: '#6b6565' },
+    footerLink: { color: '#6ee7b7', textDecoration: 'none' },
+    legal: { marginTop: 24, textAlign: 'center', fontSize: 12, color: '#4a4545' },
+    legalLink: { color: '#6b6565', textDecoration: 'none' },
+  };
+
+  const [focusedField, setFocusedField] = useState(null);
+
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary-50 via-white to-secondary-50">
-      <div className="max-w-md w-full space-y-8">
+    <>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap');`}</style>
+      <div style={S.page}>
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          style={S.wrap}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center"
+          transition={{ duration: 0.4 }}
         >
-          <div className="mx-auto h-20 w-20 bg-gradient-to-r from-primary-600 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-            <span className="text-white text-3xl font-bold">S</span>
+          {/* Back to home */}
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <Link to="/" style={S.backLink}>
+              ← Back to CodeArc
+            </Link>
           </div>
-          <h2 className="text-4xl font-bold text-secondary-900 mb-2">
-            Welcome to Seek
-          </h2>
-          <p className="text-secondary-600 text-lg">
-            Sign in to continue your coding journey
-          </p>
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card className="p-8 shadow-xl">
-            {/* Quick Login Section - Prominent */}
-            <div className="mb-8">
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold text-secondary-800 mb-1">Quick Login</h3>
-                <p className="text-sm text-secondary-500">Try Seek instantly with demo accounts</p>
-              </div>
+          {/* Logo + heading */}
+          <div style={S.logoWrap}>
+            <img src="/logo512.png" alt="CodeArc" style={S.logoMark} />
+            <div style={S.logoBrand}>CodeArc</div>
+            <div style={S.logoTagline}>Learning Platform</div>
+          </div>
+          <h1 style={S.heading}>Welcome back</h1>
+          <p style={S.sub}>Sign in to continue your coding journey</p>
 
-              <div className="grid grid-cols-1 gap-3">
-                {demoCredentials.map((cred, index) => (
-                  <motion.button
-                    key={index}
-                    type="button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleQuickLogin(cred);
-                    }}
-                    disabled={loading}
-                    className={`${cred.bgColor} text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    <div className="flex items-center">
-                      <div className="text-3xl mr-4">{cred.icon}</div>
-                      <div className="flex-1 text-left">
-                        <div className="font-semibold text-lg">{cred.name}</div>
-                        <div className="text-sm opacity-90">{cred.description}</div>
-                        <div className="text-xs opacity-75 mt-1">{cred.email}</div>
-                      </div>
-                      <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-medium">
-                        {cred.role}
-                      </div>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
+          <div style={S.card}>
+            {/* Quick login */}
+            <div style={S.demoLabel}>Quick access</div>
+            {demoCredentials.map((cred, i) => (
+              <motion.button
+                key={i}
+                type="button"
+                style={{
+                  ...S.demoBtn,
+                  background: i === 0
+                    ? 'linear-gradient(135deg, #6d28d9, #ec4899)'
+                    : 'linear-gradient(135deg, #1d4ed8, #0891b2)',
+                  opacity: loading ? 0.5 : 1,
+                }}
+                whileHover={{ scale: loading ? 1 : 1.01 }}
+                whileTap={{ scale: loading ? 1 : 0.99 }}
+                onClick={() => !loading && handleQuickLogin(cred)}
+                disabled={loading}
+              >
+                <span style={S.demoIcon}>{cred.icon}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={S.demoName}>{cred.name}</div>
+                  <div style={S.demoDesc}>{cred.email}</div>
+                </div>
+                <span style={S.demoBadge}>{cred.role}</span>
+              </motion.button>
+            ))}
+
+            {/* General error (e.g. failed quick login) */}
+            {errors.general && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  padding: '10px 14px', borderRadius: 8,
+                  background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)',
+                  color: '#fca5a5', fontSize: 13, textAlign: 'center'
+                }}
+              >
+                {errors.general}
+              </motion.div>
+            )}
 
             {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-secondary-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-secondary-500 font-medium">Or sign in with credentials</span>
-              </div>
+            <div style={S.divider}>
+              <div style={S.dividerLine} />
+              <span style={S.dividerText}>or sign in manually</span>
+              <div style={S.dividerLine} />
             </div>
 
-            {/* Manual Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <Input
-                name="email"
-                type="email"
-                label="Email address"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                error={errors.email}
-                leftIcon={EnvelopeIcon}
-                animate
-              />
+            {/* Email/password form */}
+            <form onSubmit={handleSubmit}>
+              <div style={S.fieldGroup}>
+                <label style={S.label}>Email address</label>
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
+                  style={{
+                    ...S.input,
+                    ...(focusedField === 'email' ? S.inputFocus : {}),
+                    ...(errors.email ? { borderColor: 'rgba(252,165,165,0.5)' } : {}),
+                  }}
+                />
+                {errors.email && <div style={S.error}>{errors.email}</div>}
+              </div>
 
-              <Input
-                name="password"
-                type="password"
-                label="Password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-                error={errors.password}
-                leftIcon={LockClosedIcon}
-                showPasswordToggle
-                animate
-              />
+              <div style={S.fieldGroup}>
+                <label style={S.label}>Password</label>
+                <input
+                  name="password"
+                  type="password"
+                  placeholder="Your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
+                  style={{
+                    ...S.input,
+                    ...(focusedField === 'password' ? S.inputFocus : {}),
+                    ...(errors.password ? { borderColor: 'rgba(252,165,165,0.5)' } : {}),
+                  }}
+                />
+                {errors.password && <div style={S.error}>{errors.password}</div>}
+              </div>
 
-              <div className="flex items-center justify-between">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
-                  />
-                  <span className="ml-2 text-sm text-secondary-700">
-                    Remember me
-                  </span>
+              <div style={S.row}>
+                <label style={S.checkLabel}>
+                  <input type="checkbox" style={{ accentColor: '#6ee7b7' }} />
+                  Remember me
                 </label>
-
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-primary-600 hover:text-primary-500 transition-colors font-medium"
-                >
-                  Forgot password?
-                </Link>
+                <Link to="/forgot-password" style={S.forgotLink}>Forgot password?</Link>
               </div>
 
-              <Button
+              <motion.button
                 type="submit"
-                variant="primary"
-                size="lg"
-                loading={loading}
-                className="w-full"
+                style={{ ...S.submitBtn, opacity: loading ? 0.7 : 1 }}
+                whileHover={{ background: loading ? '#6ee7b7' : '#a7f3d0' }}
+                disabled={loading}
               >
-                Sign In
-              </Button>
+                {loading ? 'Signing in…' : 'Sign in'}
+              </motion.button>
             </form>
-            
-            <div className="mt-6 text-center">
-              <p className="text-sm text-secondary-600">
-                Don't have an account?{' '}
-                <Link
-                  to="/register"
-                  className="text-primary-600 hover:text-primary-500 font-medium transition-colors"
-                >
-                  Sign up here
-                </Link>
-              </p>
+
+            <div style={S.footer}>
+              No account?{' '}
+              <Link to="/register" style={S.footerLink}>Create one free</Link>
             </div>
-          </Card>
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-center"
-        >
-          <p className="text-xs text-secondary-500">
-            By signing in, you agree to our{' '}
-            <Link to="/terms" className="text-primary-600 hover:underline">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link to="/privacy" className="text-primary-600 hover:underline">
-              Privacy Policy
-            </Link>
+          </div>
+
+          <p style={S.legal}>
+            By signing in you agree to our{' '}
+            <Link to="/terms" style={S.legalLink}>Terms</Link>
+            {' & '}
+            <Link to="/privacy" style={S.legalLink}>Privacy Policy</Link>
           </p>
         </motion.div>
       </div>
-    </div>
+    </>
   );
 };
 

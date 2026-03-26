@@ -60,7 +60,7 @@ const getTutorials = async (req, res) => {
 
       // Add author information (we'll get this from the user later, for now use default)
       tutorialData.author = {
-        name: 'Seek Team',
+        name: 'CodeArc Team',
         avatar: null
       };
 

@@ -93,7 +93,7 @@ export const errorMessages = {
 export const successMessages = {
   // Account actions
   accountCreated: {
-    title: "Welcome to Seek! 🎉",
+    title: "Welcome to CodeArc! 🎉",
     message: "Your account has been created successfully. Let's start your coding journey!",
     action: "Get Started"
   },
@@ -202,7 +202,7 @@ export const progressMessages = {
 // Onboarding Messages - Welcoming and guiding
 export const onboardingMessages = {
   welcome: {
-    title: "Welcome to Seek! 👋",
+    title: "Welcome to CodeArc! 👋",
     message: "We're excited to help you on your coding journey. Let's get you set up for success.",
     steps: [
       "Complete your profile",

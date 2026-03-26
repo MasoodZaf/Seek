@@ -13,6 +13,9 @@ RUN npm install --legacy-peer-deps
 # Fix react-scripts ajv bug caused by missing root workspace lockfile
 RUN npm install ajv@^6.12.6 ajv-keywords@^3.5.2 --legacy-peer-deps
 
+# Install monaco-editor directly (peer dep of @monaco-editor/react, needed for worker imports)
+RUN npm install monaco-editor@0.43.0 --legacy-peer-deps
+
 # Copy source code
 COPY . .
 

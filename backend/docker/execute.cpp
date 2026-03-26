@@ -1,40 +1,64 @@
-#include <iostream>
-#include <vector>
-#include <string>
+#!/usr/bin/env python3
+"""C++ execution wrapper — reads user code from stdin, compiles with g++, runs, returns JSON."""
+import sys
+import json
+import subprocess
+import tempfile
+import os
 
-using namespace std;
+def main():
+    code = sys.stdin.read()
 
-// Function declaration
-int fibonacci(int n);
+    with tempfile.NamedTemporaryFile(suffix='.cpp', delete=False, mode='w', dir='/tmp') as f:
+        f.write(code)
+        src = f.name
 
-int main() {
-    cout << "Hello from C++!" << endl;
-    
-    // Calculate fibonacci numbers
-    cout << "First 10 Fibonacci numbers:" << endl;
-    for (int i = 0; i < 10; i++) {
-        cout << "F(" << i << ") = " << fibonacci(i) << endl;
-    }
-    
-    // Vector operations
-    vector<int> numbers = {1, 2, 3, 4, 5};
-    vector<int> doubled;
-    
-    for (int num : numbers) {
-        doubled.push_back(num * 2);
-    }
-    
-    cout << "Doubled numbers: ";
-    for (int num : doubled) {
-        cout << num << " ";
-    }
-    cout << endl;
-    
-    return 0;
-}
+    bin_path = src[:-4]  # strip .cpp
 
-// Function definition
-int fibonacci(int n) {
-    if (n <= 1) return n;
-    return fibonacci(n - 1) + fibonacci(n - 2);
-}
+    try:
+        compile_proc = subprocess.run(
+            ['g++', '-std=c++17', '-o', bin_path, src, '-lm'],
+            capture_output=True, text=True, timeout=15
+        )
+        if compile_proc.returncode != 0:
+            print(json.dumps({
+                'success': False,
+                'stdout': '',
+                'stderr': compile_proc.stderr or compile_proc.stdout,
+                'exit_code': 1
+            }))
+            return
+
+        run_proc = subprocess.run(
+            [bin_path],
+            capture_output=True, text=True, timeout=5
+        )
+        print(json.dumps({
+            'success': run_proc.returncode == 0,
+            'stdout': run_proc.stdout,
+            'stderr': run_proc.stderr,
+            'exit_code': run_proc.returncode
+        }))
+
+    except subprocess.TimeoutExpired:
+        print(json.dumps({
+            'success': False,
+            'stdout': '',
+            'stderr': 'Execution timed out (5 seconds)',
+            'exit_code': 124
+        }))
+    except Exception as e:
+        print(json.dumps({
+            'success': False,
+            'stdout': '',
+            'stderr': str(e),
+            'exit_code': 1
+        }))
+    finally:
+        for path in [src, bin_path]:
+            try:
+                os.unlink(path)
+            except Exception:
+                pass
+
+main()

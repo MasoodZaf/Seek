@@ -1,23 +1,53 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { Loader2 } from 'lucide-react';
 import './CodeEditor.css';
 
-const CodeEditor = ({ 
+const CodeEditor = forwardRef(({
   value = '',
   language = 'javascript',
   theme = 'vs-dark',
   onChange,
   onValidate,
+  onContentSizeChange,
+  onRun,
   height = '400px',
   readOnly = false
-}) => {
+}, ref) => {
   const editorRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleEditorDidMount = (editor, _monaco) => {
+  // Expose setValue so parent can imperatively update Monaco content
+  useImperativeHandle(ref, () => ({
+    setValue(newValue) {
+      if (editorRef.current) {
+        editorRef.current.setValue(newValue);
+      }
+    },
+    getEditor() {
+      return editorRef.current;
+    }
+  }));
+
+  const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor;
     setIsLoading(false);
+
+    // Ctrl+Enter / Cmd+Enter → run code
+    if (onRun) {
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+        () => onRun()
+      );
+    }
+
+    // Report content height changes to parent
+    if (onContentSizeChange) {
+      onContentSizeChange(editor.getContentHeight());
+      editor.onDidContentSizeChange(() => {
+        onContentSizeChange(editor.getContentHeight());
+      });
+    }
 
     // Configure editor
     editor.updateOptions({
@@ -63,7 +93,7 @@ const CodeEditor = ({
   };
 
   return (
-    <div className="code-editor">
+    <div className="code-editor" style={{ height }}>
       {isLoading && (
         <div className="editor-loading">
           <Loader2 className="loading-spinner" />
@@ -71,7 +101,7 @@ const CodeEditor = ({
         </div>
       )}
       <Editor
-        height={height}
+        height="100%"
         language={language}
         value={value}
         theme={theme}
@@ -88,6 +118,6 @@ const CodeEditor = ({
       />
     </div>
   );
-};
+});
 
 export default CodeEditor;

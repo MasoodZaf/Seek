@@ -108,7 +108,7 @@ const BugReportForm = () => {
       <div className="bug-report-success">
         <div className="success-icon">✓</div>
         <h2>Bug Report Submitted!</h2>
-        <p>Thank you for helping us improve Seek.</p>
+        <p>Thank you for helping us improve CodeArc.</p>
         <p>We will investigate this issue and keep you updated.</p>
       </div>
     );

@@ -18,27 +18,27 @@ const StatCard = ({
 }) => {
   const colorClasses = {
     primary: {
-      bg: 'bg-primary-50 dark:bg-primary-900/20',
-      icon: 'text-primary-600 dark:text-primary-400',
-      iconBg: 'bg-primary-100 dark:bg-primary-800/50',
+      bg: 'bg-primary-900/20',
+      icon: 'text-primary-400',
+      iconBg: 'bg-primary-800/40',
       gradient: 'from-primary-500 to-primary-600',
     },
     success: {
-      bg: 'bg-success-50 dark:bg-success-900/20',
-      icon: 'text-success-600 dark:text-success-400',
-      iconBg: 'bg-success-100 dark:bg-success-800/50',
+      bg: 'bg-success-900/20',
+      icon: 'text-success-400',
+      iconBg: 'bg-success-800/40',
       gradient: 'from-success-500 to-success-600',
     },
     warning: {
-      bg: 'bg-warning-50 dark:bg-warning-900/20',
-      icon: 'text-warning-600 dark:text-warning-400',
-      iconBg: 'bg-warning-100 dark:bg-warning-800/50',
+      bg: 'bg-warning-900/20',
+      icon: 'text-warning-400',
+      iconBg: 'bg-warning-800/40',
       gradient: 'from-warning-500 to-warning-600',
     },
     error: {
-      bg: 'bg-error-50 dark:bg-error-900/20',
-      icon: 'text-error-600 dark:text-error-400',
-      iconBg: 'bg-error-100 dark:bg-error-800/50',
+      bg: 'bg-error-900/20',
+      icon: 'text-error-400',
+      iconBg: 'bg-error-800/40',
       gradient: 'from-error-500 to-error-600',
     },
   };
@@ -48,7 +48,7 @@ const StatCard = ({
   const cardClasses = clsx(
     'relative overflow-hidden rounded-xl p-6 transition-all duration-300',
     {
-      'bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 hover:shadow-lg hover:shadow-primary-500/10': variant === 'default',
+      'bg-codearc-900 border border-white/10 hover:shadow-lg hover:shadow-primary-500/10': variant === 'default',
       [`${colors.bg} border-2 border-transparent hover:border-${color}-200`]: variant === 'colored',
       'bg-gradient-to-br text-white border-0 hover:shadow-xl': variant === 'gradient',
       'cursor-pointer': onClick,
@@ -97,7 +97,7 @@ const StatCard = ({
         <div className="ml-4 flex-1">
           <p className={clsx(
             'text-sm font-medium',
-            variant === 'gradient' ? 'text-white/80' : 'text-secondary-600 dark:text-secondary-400'
+            variant === 'gradient' ? 'text-white/80' : 'text-codearc-300'
           )}>
             {label}
           </p>
@@ -107,7 +107,7 @@ const StatCard = ({
               value={typeof value === 'number' ? value : 0}
               className={clsx(
                 'text-2xl font-bold',
-                variant === 'gradient' ? 'text-white' : 'text-secondary-900 dark:text-secondary-100'
+                variant === 'gradient' ? 'text-white' : 'text-codearc-50'
               )}
               format={typeof value === 'string' ? 'string' : 'number'}
             />

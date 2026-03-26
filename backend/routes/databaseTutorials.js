@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const DatabaseTutorial = require('../models/DatabaseTutorial');
+const logger = require('../config/logger');
 
 // GET /api/v1/database-tutorials - Get all database tutorials
 router.get('/', async (req, res) => {
@@ -60,12 +61,8 @@ router.get('/', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get database tutorials error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch database tutorials',
-      error: error.message
-    });
+    logger.error('Get database tutorials error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch database tutorials' });
   }
 });
 
@@ -83,12 +80,8 @@ router.get('/databases', async (req, res) => {
       data: dbNames.sort()
     });
   } catch (error) {
-    console.error('Get databases error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch databases',
-      error: error.message
-    });
+    logger.error('Get databases error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch databases' });
   }
 });
 
@@ -136,12 +129,8 @@ router.get('/stats', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get stats error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch statistics',
-      error: error.message
-    });
+    logger.error('Get stats error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch statistics' });
   }
 });
 
@@ -168,12 +157,8 @@ router.get('/:slug', async (req, res) => {
       data: tutorial
     });
   } catch (error) {
-    console.error('Get database tutorial error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch database tutorial',
-      error: error.message
-    });
+    logger.error('Get database tutorial error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch database tutorial' });
   }
 });
 

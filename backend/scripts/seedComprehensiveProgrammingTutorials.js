@@ -3071,7 +3071,7 @@ async function seedProgrammingTutorials() {
             }
           ],
           author: {
-            name: 'Seek Learning Platform',
+            name: 'CodeArc',
             email: 'learn@seekplatform.com',
             bio: 'Comprehensive programming tutorials for all skill levels'
           },

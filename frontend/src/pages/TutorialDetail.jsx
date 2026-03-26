@@ -367,7 +367,7 @@ const TutorialDetail = () => {
                   </span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">{tutorial.author?.name || 'Seek Team'}</h4>
+                  <h4 className="font-medium text-gray-900">{tutorial.author?.name || 'CodeArc Team'}</h4>
                   <p className="text-gray-600 text-sm">Expert Instructor</p>
                 </div>
               </div>

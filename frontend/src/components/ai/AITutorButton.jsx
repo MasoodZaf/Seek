@@ -21,7 +21,7 @@ const AITutorButton = ({
 
   const openChat = () => {
     // For now, show premium feature notice
-    alert('🚀 AI Tutor is a Premium Feature!\n\nGet personalized coding help, code reviews, and debugging assistance.\n\nComing soon in Seek Premium!');
+    alert('🚀 AI Tutor is a Premium Feature!\n\nGet personalized coding help, code reviews, and debugging assistance.\n\nComing soon in CodeArc Premium!');
     // setIsChatOpen(true);
   };
 

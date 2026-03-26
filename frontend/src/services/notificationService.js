@@ -117,7 +117,7 @@ class NotificationService {
       icon: '/logo192.png',
       badge: '/logo192.png',
       vibrate: [200, 100, 200],
-      tag: 'seek-notification',
+      tag: 'codearc-notification',
       renotify: true,
       requireInteraction: false,
       ...options
@@ -390,7 +390,7 @@ class NotificationService {
     this.showLocalNotification(
       '🧪 Test Notification',
       {
-        body: 'This is a test notification from Seek Learning Platform!',
+        body: 'This is a test notification from CodeArc Learning Platform!',
         tag: 'test',
         icon: '/logo192.png'
       }
@@ -416,8 +416,8 @@ if ('serviceWorker' in navigator) {
         case 'share':
           if (navigator.share) {
             navigator.share({
-              title: 'I just earned an achievement on Seek!',
-              text: `Check out my progress on Seek Learning Platform`,
+              title: 'I just earned an achievement on CodeArc!',
+              text: `Check out my progress on CodeArc Learning Platform`,
               url: window.location.origin
             });
           }

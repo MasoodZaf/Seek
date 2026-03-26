@@ -1,73 +1,51 @@
 const express = require('express');
-
 const router = express.Router();
 const GameSession = require('../models/GameSession');
 const LearningGame = require('../models/LearningGame');
+const { protect } = require('../middleware/auth');
+const logger = require('../config/logger');
 
-// GET /api/v1/game-sessions/:sessionId - Get session details
-router.get('/:sessionId', async (req, res) => {
+// GET /api/v1/game-sessions/:sessionId - Get session details (requires auth)
+router.get('/:sessionId', protect, async (req, res) => {
   try {
     const { sessionId } = req.params;
 
     const session = await GameSession.findOne({ sessionId })
       .populate('gameId', 'title slug difficulty maxScore')
-      .populate('userId', 'username email');
+      .populate('userId', 'username'); // email excluded intentionally
 
     if (!session) {
-      return res.status(404).json({
-        success: false,
-        error: 'Game session not found'
-      });
+      return res.status(404).json({ success: false, message: 'Game session not found' });
     }
 
-    res.json({
-      success: true,
-      data: session
-    });
+    res.json({ success: true, data: session });
   } catch (error) {
-    console.error('Get session error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch session details'
-    });
+    logger.error('Get session error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch session details' });
   }
 });
 
-// PUT /api/v1/game-sessions/:sessionId/answer - Submit challenge answer
-router.put('/:sessionId/answer', async (req, res) => {
+// PUT /api/v1/game-sessions/:sessionId/answer - Submit challenge answer (requires auth)
+router.put('/:sessionId/answer', protect, async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const {
-      challengeId, userAnswer, timeSpent, hintsUsed
-    } = req.body;
+    const { challengeId, userAnswer, timeSpent, hintsUsed } = req.body;
 
     const session = await GameSession.findOne({ sessionId });
     if (!session) {
-      return res.status(404).json({
-        success: false,
-        error: 'Game session not found'
-      });
+      return res.status(404).json({ success: false, message: 'Game session not found' });
     }
 
-    // Get the game to validate the answer
     const game = await LearningGame.findById(session.gameId);
     if (!game) {
-      return res.status(404).json({
-        success: false,
-        error: 'Game not found'
-      });
+      return res.status(404).json({ success: false, message: 'Game not found' });
     }
 
-    // Find the challenge
     const challenge = game.challenges.find((c) => c.challengeId === challengeId);
     if (!challenge) {
-      return res.status(404).json({
-        success: false,
-        error: 'Challenge not found'
-      });
+      return res.status(404).json({ success: false, message: 'Challenge not found' });
     }
 
-    // Validate answer (this is a simplified validation)
     let isCorrect = false;
     let pointsEarned = 0;
 
@@ -77,18 +55,13 @@ router.put('/:sessionId/answer', async (req, res) => {
     } else if (challenge.type === 'true-false') {
       isCorrect = challenge.expectedOutput === userAnswer;
     } else if (challenge.type === 'fill-blank' || challenge.type === 'code-completion') {
-      // Simple string comparison (in production, use more sophisticated checking)
-      isCorrect = challenge.expectedOutput.toLowerCase().trim()
-                 === String(userAnswer).toLowerCase().trim();
+      isCorrect = challenge.expectedOutput.toLowerCase().trim() === String(userAnswer).toLowerCase().trim();
     }
 
     if (isCorrect) {
-      pointsEarned = challenge.points;
-      // Apply bonus multiplier if streak exists
-      pointsEarned = Math.round(pointsEarned * session.gameState.bonusMultiplier);
+      pointsEarned = Math.round(challenge.points * session.gameState.bonusMultiplier);
     }
 
-    // Create challenge attempt
     const challengeAttempt = {
       challengeId,
       userAnswer,
@@ -101,13 +74,9 @@ router.put('/:sessionId/answer', async (req, res) => {
 
     await session.addChallengeAttempt(challengeAttempt);
 
-    // Update progress
     session.progress.challengesCompleted += 1;
-    if (isCorrect) {
-      session.progress.challengesCorrect += 1;
-    }
+    if (isCorrect) session.progress.challengesCorrect += 1;
 
-    // Check if game is completed
     if (session.progress.challengesCompleted >= session.progress.totalChallenges) {
       await session.completeSession();
     }
@@ -128,128 +97,67 @@ router.put('/:sessionId/answer', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Submit answer error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to submit answer'
-    });
+    logger.error('Submit answer error:', error);
+    res.status(500).json({ success: false, message: 'Failed to submit answer' });
   }
 });
 
-// PUT /api/v1/game-sessions/:sessionId/pause - Pause game session
-router.put('/:sessionId/pause', async (req, res) => {
+// PUT /api/v1/game-sessions/:sessionId/pause (requires auth)
+router.put('/:sessionId/pause', protect, async (req, res) => {
   try {
-    const { sessionId } = req.params;
-
-    const session = await GameSession.findOne({ sessionId });
-    if (!session) {
-      return res.status(404).json({
-        success: false,
-        error: 'Game session not found'
-      });
-    }
+    const session = await GameSession.findOne({ sessionId: req.params.sessionId });
+    if (!session) return res.status(404).json({ success: false, message: 'Game session not found' });
 
     await session.pauseSession();
-
-    res.json({
-      success: true,
-      data: session
-    });
+    res.json({ success: true, data: session });
   } catch (error) {
-    console.error('Pause session error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to pause session'
-    });
+    logger.error('Pause session error:', error);
+    res.status(500).json({ success: false, message: 'Failed to pause session' });
   }
 });
 
-// PUT /api/v1/game-sessions/:sessionId/resume - Resume game session
-router.put('/:sessionId/resume', async (req, res) => {
+// PUT /api/v1/game-sessions/:sessionId/resume (requires auth)
+router.put('/:sessionId/resume', protect, async (req, res) => {
   try {
-    const { sessionId } = req.params;
-
-    const session = await GameSession.findOne({ sessionId });
-    if (!session) {
-      return res.status(404).json({
-        success: false,
-        error: 'Game session not found'
-      });
-    }
+    const session = await GameSession.findOne({ sessionId: req.params.sessionId });
+    if (!session) return res.status(404).json({ success: false, message: 'Game session not found' });
 
     await session.resumeSession();
-
-    res.json({
-      success: true,
-      data: session
-    });
+    res.json({ success: true, data: session });
   } catch (error) {
-    console.error('Resume session error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to resume session'
-    });
+    logger.error('Resume session error:', error);
+    res.status(500).json({ success: false, message: 'Failed to resume session' });
   }
 });
 
-// POST /api/v1/game-sessions/:sessionId/complete - Complete game session
-router.post('/:sessionId/complete', async (req, res) => {
+// POST /api/v1/game-sessions/:sessionId/complete (requires auth)
+router.post('/:sessionId/complete', protect, async (req, res) => {
   try {
-    const { sessionId } = req.params;
     const { userRating, feedback } = req.body;
 
-    const session = await GameSession.findOne({ sessionId });
-    if (!session) {
-      return res.status(404).json({
-        success: false,
-        error: 'Game session not found'
-      });
-    }
+    const session = await GameSession.findOne({ sessionId: req.params.sessionId });
+    if (!session) return res.status(404).json({ success: false, message: 'Game session not found' });
 
-    if (userRating) {
-      session.finalStats.userRating = userRating;
-    }
-    if (feedback) {
-      session.finalStats.feedback = feedback;
-    }
+    if (userRating) session.finalStats.userRating = userRating;
+    if (feedback) session.finalStats.feedback = feedback;
 
     await session.completeSession();
 
-    // Update game statistics
     const game = await LearningGame.findById(session.gameId);
-    if (game && userRating) {
-      await game.updateRating(userRating);
-    }
+    if (game && userRating) await game.updateRating(userRating);
 
-    res.json({
-      success: true,
-      data: {
-        session,
-        rewards: session.rewards,
-        finalStats: session.finalStats
-      }
-    });
+    res.json({ success: true, data: { session, rewards: session.rewards, finalStats: session.finalStats } });
   } catch (error) {
-    console.error('Complete session error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to complete session'
-    });
+    logger.error('Complete session error:', error);
+    res.status(500).json({ success: false, message: 'Failed to complete session' });
   }
 });
 
-// GET /api/v1/game-sessions/:sessionId/progress - Get session progress
-router.get('/:sessionId/progress', async (req, res) => {
+// GET /api/v1/game-sessions/:sessionId/progress (requires auth)
+router.get('/:sessionId/progress', protect, async (req, res) => {
   try {
-    const { sessionId } = req.params;
-
-    const session = await GameSession.findOne({ sessionId });
-    if (!session) {
-      return res.status(404).json({
-        success: false,
-        error: 'Game session not found'
-      });
-    }
+    const session = await GameSession.findOne({ sessionId: req.params.sessionId });
+    if (!session) return res.status(404).json({ success: false, message: 'Game session not found' });
 
     res.json({
       success: true,
@@ -263,63 +171,36 @@ router.get('/:sessionId/progress', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get session progress error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch session progress'
-    });
+    logger.error('Get session progress error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch session progress' });
   }
 });
 
-// GET /api/v1/game-sessions/user/:userId/stats - Get user game statistics
-router.get('/user/:userId/stats', async (req, res) => {
+// GET /api/v1/game-sessions/user/:userId/stats (requires auth)
+router.get('/user/:userId/stats', protect, async (req, res) => {
   try {
-    const { userId } = req.params;
-
-    const stats = await GameSession.getUserStats(userId);
-
+    const stats = await GameSession.getUserStats(req.user.id);
     res.json({
       success: true,
-      data: stats[0] || {
-        totalGames: 0,
-        completedGames: 0,
-        averageScore: 0,
-        totalXP: 0,
-        totalTimeSpent: 0
-      }
+      data: stats[0] || { totalGames: 0, completedGames: 0, averageScore: 0, totalXP: 0, totalTimeSpent: 0 }
     });
   } catch (error) {
-    console.error('Get user stats error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch user statistics'
-    });
+    logger.error('Get user stats error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch user statistics' });
   }
 });
 
-// GET /api/v1/game-sessions/analytics/:gameId - Get game analytics
-router.get('/analytics/:gameId', async (req, res) => {
+// GET /api/v1/game-sessions/analytics/:gameId (requires auth)
+router.get('/analytics/:gameId', protect, async (req, res) => {
   try {
-    const { gameId } = req.params;
-
-    const analytics = await GameSession.getGameAnalytics(gameId);
-
+    const analytics = await GameSession.getGameAnalytics(req.params.gameId);
     res.json({
       success: true,
-      data: analytics[0] || {
-        totalSessions: 0,
-        completedSessions: 0,
-        averageScore: 0,
-        averageTime: 0,
-        averageAccuracy: 0
-      }
+      data: analytics[0] || { totalSessions: 0, completedSessions: 0, averageScore: 0, averageTime: 0, averageAccuracy: 0 }
     });
   } catch (error) {
-    console.error('Get game analytics error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch game analytics'
-    });
+    logger.error('Get game analytics error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch game analytics' });
   }
 });
 

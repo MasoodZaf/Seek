@@ -115,7 +115,7 @@ describe('Navigation Integration Tests', () => {
       renderLayout();
       
       // Desktop sidebar should be visible
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       expect(screen.getByText('Learning Platform')).toBeInTheDocument();
       
       // Desktop header should be visible
@@ -154,7 +154,7 @@ describe('Navigation Integration Tests', () => {
       renderLayout();
       
       // Should render appropriate navigation for tablet
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
 
     it('handles window resize events', async () => {
@@ -177,7 +177,7 @@ describe('Navigation Integration Tests', () => {
       fireEvent(window, new Event('resize'));
       
       // Navigation should adapt
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
   });
 
@@ -237,7 +237,7 @@ describe('Navigation Integration Tests', () => {
       await user.click(tutorialsLink);
       
       // Navigation should remain consistent
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
   });
 
@@ -268,7 +268,7 @@ describe('Navigation Integration Tests', () => {
       await user.keyboard('{Alt>}{1}'); // Alt+1 for first nav item
       
       // Should handle shortcuts gracefully
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
 
     it('maintains focus management during navigation transitions', async () => {
@@ -433,7 +433,7 @@ describe('Navigation Integration Tests', () => {
       renderLayout();
       
       // Component should render with high contrast support
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
 
     it('respects reduced motion preferences', () => {
@@ -455,7 +455,7 @@ describe('Navigation Integration Tests', () => {
       renderLayout();
       
       // Animations should be reduced or disabled
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
   });
 
@@ -467,7 +467,7 @@ describe('Navigation Integration Tests', () => {
       renderLayout({ user: null });
       
       // Should render without throwing
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       
       consoleSpy.mockRestore();
     });
@@ -507,7 +507,7 @@ describe('Navigation Integration Tests', () => {
       await user.click(tutorialsLink);
       
       // Should recover gracefully
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       
       mockError.mockRestore();
     });
@@ -553,7 +553,7 @@ describe('Navigation Integration Tests', () => {
       await user.click(playgroundLink);
       
       // Navigation should remain consistent
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       expect(screen.getByText('Code Playground')).toBeInTheDocument();
     });
   });

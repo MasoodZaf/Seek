@@ -197,7 +197,7 @@ app.get('/test-tutorials', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Seek Learning Platform API 🎯',
+    message: 'CodeArc API 🎯',
     version: '1.0.0',
     status: 'running',
     documentation: '/api-docs',

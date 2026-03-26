@@ -2,6 +2,9 @@
 // Read code from stdin
 $code = file_get_contents('php://stdin');
 
+// Strip any Docker attach metadata prefix (JSON object prepended by Dockerode)
+$code = preg_replace('/^\{[^}]*\}\s*/s', '', $code);
+
 // Write code to temporary file
 $tmpFile = '/tmp/user_code.php';
 file_put_contents($tmpFile, $code);

@@ -162,6 +162,15 @@ const validateObjectId = (paramName = 'id') => [
   handleValidationErrors
 ];
 
+// For SQLite integer primary keys (tutorials, lessons, etc.)
+const validateIntId = (paramName = 'id') => [
+  param(paramName)
+    .isInt({ min: 1 })
+    .withMessage(`Invalid ${paramName}: must be a positive integer`),
+
+  handleValidationErrors
+];
+
 const validatePagination = [
   query('page')
     .optional()
@@ -237,6 +246,7 @@ module.exports = {
   validateTutorialCreation,
   validateLessonCreation,
   validateObjectId,
+  validateIntId,
   validatePagination,
   validateUserUpdate,
   validatePasswordChange,

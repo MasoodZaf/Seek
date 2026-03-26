@@ -42,7 +42,7 @@ describe('Requirements Validation Tests', () => {
       render(
         <TestWrapper>
           <div className="brand-showcase">
-            <div className="logo text-primary-600 font-bold text-2xl">Seek</div>
+            <div className="logo text-primary-600 font-bold text-2xl">CodeArc</div>
             <div className="color-palette">
               <div className="bg-primary-500 w-8 h-8 rounded"></div>
               <div className="bg-success-500 w-8 h-8 rounded"></div>
@@ -57,7 +57,7 @@ describe('Requirements Validation Tests', () => {
         </TestWrapper>
       );
 
-      const logo = screen.getByText('Seek');
+      const logo = screen.getByText('CodeArc');
       const heading1 = screen.getByText('Heading 1');
       const heading2 = screen.getByText('Heading 2');
       const bodyText = screen.getByText('Body text');

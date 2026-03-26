@@ -17,20 +17,20 @@ const createRateLimit = (windowMs, max, message, skipSuccessfulRequests = false)
 
 const generalRateLimit = createRateLimit(
   parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
-  parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100, // 100 requests
+  parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 300, // 300 requests
   'Too many requests from this IP, please try again later'
 );
 
 const authRateLimit = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  50, // 50 attempts (increased for testing)
+  10, // 10 attempts per 15 minutes
   'Too many authentication attempts, please try again later',
   true // Skip successful requests
 );
 
 const codeExecutionRateLimit = createRateLimit(
   60 * 1000, // 1 minute
-  10, // 10 executions per minute
+  30, // 30 executions per minute
   'Too many code executions, please wait before trying again'
 );
 

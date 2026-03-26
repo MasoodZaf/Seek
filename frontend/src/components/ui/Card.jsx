@@ -5,6 +5,7 @@ import clsx from 'clsx';
 const Card = ({
   children,
   className,
+  innerClassName,
   variant = 'default',
   elevation = 'flat',
   hover = false,
@@ -25,17 +26,17 @@ const Card = ({
   };
 
   const elevations = {
-    flat: 'shadow-none border border-secondary-200',
-    elevated: 'shadow-elevation-1 border border-secondary-100/50',
-    floating: 'shadow-elevation-2 border border-secondary-100/30',
-    high: 'shadow-elevation-3 border border-secondary-100/20',
+    flat: 'shadow-none border border-white/10',
+    elevated: 'shadow-elevation-1 border border-white/10',
+    floating: 'shadow-elevation-2 border border-white/8',
+    high: 'shadow-elevation-3 border border-white/5',
   };
 
   const variants = {
-    default: 'bg-white rounded-xl transition-all duration-300',
+    default: 'bg-codearc-900 rounded-xl transition-all duration-300',
     glass: 'card-glass',
     gradient: 'card-gradient',
-    outline: 'bg-transparent border-2 border-secondary-200 rounded-xl hover:border-secondary-300 transition-all duration-300',
+    outline: 'bg-transparent border-2 border-white/15 rounded-xl hover:border-white/25 transition-all duration-300',
     dark: 'card-dark',
     premium: 'card-premium',
   };
@@ -122,18 +123,18 @@ const Card = ({
       >
         <GradientOverlay />
         <ShimmerEffect />
-        <div className="relative z-10">
+        <div className={clsx('relative z-10', innerClassName)}>
           {children}
         </div>
       </motion.div>
     );
   }
-  
+
   return (
     <div className={classes} {...props}>
       <GradientOverlay />
       <ShimmerEffect />
-      <div className="relative z-10">
+      <div className={clsx('relative z-10', innerClassName)}>
         {children}
       </div>
     </div>
@@ -145,7 +146,7 @@ const CardHeader = ({ children, className, divider = false, ...props }) => (
     className={clsx(
       'mb-4', 
       {
-        'pb-4 border-b border-secondary-200': divider
+        'pb-4 border-b border-white/10': divider
       },
       className
     )} 
@@ -167,7 +168,7 @@ const CardTitle = ({ children, className, size = 'lg', gradient = false, ...prop
     <h3 
       className={clsx(
         sizes[size],
-        gradient ? 'text-gradient' : 'text-secondary-900',
+        gradient ? 'text-gradient' : 'text-codearc-50',
         'leading-tight',
         className
       )} 
@@ -182,7 +183,7 @@ const CardDescription = ({ children, className, muted = false, ...props }) => (
   <p 
     className={clsx(
       'text-sm mt-1 leading-relaxed',
-      muted ? 'text-secondary-500' : 'text-secondary-600',
+      muted ? 'text-codearc-500' : 'text-codearc-300',
       className
     )} 
     {...props}

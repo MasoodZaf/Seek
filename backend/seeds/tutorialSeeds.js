@@ -342,7 +342,7 @@ Strings are immutable — methods like toUpperCase() return a NEW string; the or
       }
     ],
     author: {
-      name: 'Seek Learning Platform',
+      name: 'CodeArc',
       bio: 'Professional programming education platform'
     },
     rating: { average: 4.8, count: 156 },
@@ -1476,15 +1476,28 @@ const seedTutorials = async () => {
   try {
     logger.info('🌱 Seeding tutorials database...');
 
-    // Check if we already have tutorials
-    const existingCount = await MongoTutorial.countDocuments();
-    if (existingCount > 0) {
-      logger.info(`📚 Found ${existingCount} existing tutorials, skipping seed`);
-      return;
-    }
+    // Load any additional seed files
+    let allTutorials = [...tutorialData];
+    try {
+      const tutorialData2 = require('./tutorialSeeds2');
+      allTutorials = allTutorials.concat(tutorialData2);
+    } catch (e) { /* tutorialSeeds2 not yet present */ }
 
-    // Insert tutorial data
-    const createdTutorials = await MongoTutorial.insertMany(tutorialData);
+    // Upsert each tutorial by slug so new seeds get added without clearing existing data
+    let inserted = 0;
+    let skipped = 0;
+    for (const t of allTutorials) {
+      const exists = await MongoTutorial.findOne({ slug: t.slug });
+      if (!exists) {
+        await MongoTutorial.create(t);
+        inserted++;
+      } else {
+        skipped++;
+      }
+    }
+    logger.info(`✅ Seed complete: ${inserted} inserted, ${skipped} already existed`);
+
+    const createdTutorials = await MongoTutorial.find({});
 
     logger.info(`✅ Successfully created ${createdTutorials.length} tutorials`);
 

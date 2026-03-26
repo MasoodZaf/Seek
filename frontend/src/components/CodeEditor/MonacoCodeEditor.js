@@ -13,7 +13,7 @@ const MonacoCodeEditor = ({
   value, 
   onChange, 
   language, 
-  theme = 'seek-dark-professional',
+  theme = 'codearc-dark-professional',
   height = '400px',
   options = {},
   onMount,

@@ -115,7 +115,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.7, count: 156 },
@@ -187,7 +187,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.6, count: 134 }
@@ -257,7 +257,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.5, count: 189 }
@@ -328,7 +328,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.4, count: 203 }
@@ -395,7 +395,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.6, count: 167 }
@@ -465,7 +465,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.5, count: 145 }
@@ -531,7 +531,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.3, count: 198 }
@@ -601,7 +601,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.7, count: 142 }
@@ -673,7 +673,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.6, count: 178 }
@@ -743,7 +743,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.4, count: 165 }
@@ -810,7 +810,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.5, count: 134 }
@@ -877,7 +877,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.3, count: 98 }
@@ -947,7 +947,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.4, count: 156 }
@@ -1019,7 +1019,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.6, count: 187 }
@@ -1087,7 +1087,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.7, count: 145 }
@@ -1154,7 +1154,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.8, count: 134 }
@@ -1226,7 +1226,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.6, count: 198 }
@@ -1293,7 +1293,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.5, count: 167 }
@@ -1360,7 +1360,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.7, count: 123 }
@@ -1427,7 +1427,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.4, count: 187 }
@@ -1494,7 +1494,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.8, count: 156 }
@@ -1561,7 +1561,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.6, count: 142 }
@@ -1631,7 +1631,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.5, count: 98 }
@@ -1703,7 +1703,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.4, count: 134 }
@@ -1773,7 +1773,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.7, count: 156 }
@@ -1840,7 +1840,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.8, count: 89 }
@@ -1911,7 +1911,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.9, count: 67 }
@@ -1978,7 +1978,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.8, count: 45 }
@@ -2045,7 +2045,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.7, count: 52 }
@@ -2112,7 +2112,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.9, count: 38 }
@@ -2185,7 +2185,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.8, count: 41 }
@@ -2252,7 +2252,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.9, count: 23 }
@@ -2322,7 +2322,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.8, count: 34 }
@@ -2389,7 +2389,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.9, count: 18 }
@@ -2456,7 +2456,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.7, count: 28 }
@@ -2523,7 +2523,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.9, count: 15 }
@@ -2590,7 +2590,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.8, count: 12 }
@@ -2663,7 +2663,7 @@ const learningGames = [
       leaderboard: true
     },
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Passionate educators creating engaging learning experiences'
     },
     rating: { average: 4.9, count: 8 }

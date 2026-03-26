@@ -109,7 +109,7 @@ jest.mock('../EditorSettingsPanel', () => {
         <button onClick={() => onSettingsChange({ ...settings, fontSize: 16 })}>
           Change Font Size
         </button>
-        <button onClick={() => onSettingsChange({ ...settings, theme: 'seek-dark-professional' })}>
+        <button onClick={() => onSettingsChange({ ...settings, theme: 'codearc-dark-professional' })}>
           Change Theme
         </button>
       </div>
@@ -492,7 +492,7 @@ describe('Code Playground Integration Tests', () => {
       await waitFor(() => {
         const savedSettings = localStorage.getItem('playground_editor_settings');
         const parsed = JSON.parse(savedSettings);
-        expect(parsed.theme).toBe('seek-dark-professional');
+        expect(parsed.theme).toBe('codearc-dark-professional');
       });
       
       // 5. Close settings

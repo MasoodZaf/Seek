@@ -18,6 +18,7 @@ import {
 } from '../components/ui';
 import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
+import offlineService from '../services/offlineService';
 
 const Tutorials = () => {
   const [tutorials, setTutorials] = useState([]);
@@ -79,14 +80,24 @@ const Tutorials = () => {
       });
 
       if (response.data.success) {
-        // Including all tutorials (both programming and database)
-        setTutorials(response.data.data?.tutorials || []);
+        const fetched = response.data.data?.tutorials || [];
+        setTutorials(fetched);
+        // Cache each tutorial in IndexedDB for offline access
+        fetched.forEach(t => offlineService.storeTutorial({ ...t, id: t._id || t.id }));
       } else {
         console.error('❌ API Response not OK:', response.status);
       }
     } catch (error) {
-      console.error('Error fetching tutorials:', error);
-      setTutorials([]);
+      console.error('Error fetching tutorials, trying offline cache:', error);
+      // Serve from IndexedDB when offline
+      const cached = await offlineService.getAllTutorials(
+        Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
+      );
+      if (cached.length > 0) {
+        setTutorials(cached);
+      } else {
+        setTutorials([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -133,9 +144,7 @@ const Tutorials = () => {
         transition={{ duration: 0.2 }}
         className="h-full"
       >
-        <Card hover className={`p-6 h-full transition-colors duration-300 flex flex-col ${
-          isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:border-gray-300'
-        }`}>
+        <Card hover className="p-6 h-full transition-colors duration-300 flex flex-col bg-codearc-900 border-white/10">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
@@ -150,15 +159,11 @@ const Tutorials = () => {
                 )}
               </div>
               
-              <h3 className={`text-lg font-semibold mb-2 line-clamp-1 ${
-                isDarkMode ? 'text-gray-100' : 'text-secondary-900'
-              }`}>
+              <h3 className="text-lg font-semibold mb-2 line-clamp-1 text-codearc-50">
                 {tutorial.title}
               </h3>
-              
-              <p className={`text-sm mb-4 line-clamp-2 ${
-                isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-              }`}>
+
+              <p className="text-sm mb-4 line-clamp-2 text-codearc-300">
                 {tutorial.description}
               </p>
             </div>
@@ -178,9 +183,7 @@ const Tutorials = () => {
               </div>
             )}
             
-            <div className={`flex items-center justify-between text-sm mb-4 ${
-              isDarkMode ? 'text-gray-500' : 'text-secondary-500'
-            }`}>
+            <div className="flex items-center justify-between text-sm mb-4 text-codearc-500">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center">
                   <ClockIcon className="h-4 w-4 mr-1" />
@@ -201,23 +204,19 @@ const Tutorials = () => {
               </div>
             </div>
             
-            <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-4 mt-2">
+            <div className="flex items-center justify-between border-t border-white/10 pt-4 mt-2">
               <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center">
                   <span className="text-xs font-semibold text-white">
                     {tutorial.author?.name?.split(' ').map(n => n[0]).join('') || 'ST'}
                   </span>
                 </div>
-                <span className={`text-sm font-medium ${
-                  isDarkMode ? 'text-gray-400' : 'text-secondary-600'
-                }`}>
-                  {tutorial.author?.name || 'Seek Team'}
+                <span className="text-sm font-medium text-codearc-300">
+                  {tutorial.author?.name || 'CodeArc Team'}
                 </span>
               </div>
-              
-              <span className={`text-xs font-semibold px-2 py-1 rounded-md ${
-                isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-secondary-600'
-              }`}>
+
+              <span className="text-xs font-semibold px-2 py-1 rounded-md bg-white/8 text-codearc-300">
                 {tutorial.stepCount || (Array.isArray(tutorial.lessons) ? tutorial.lessons.length : (tutorial.lessonsCount || 3))} steps
               </span>
             </div>
@@ -230,7 +229,7 @@ const Tutorials = () => {
   if (loading) {
     return (
       <div className="space-y-8">
-        <div className="h-32 bg-secondary-100 rounded-2xl animate-pulse" />
+        <div className="h-32 bg-codearc-800 rounded-2xl animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-6">
           {[...Array(6)].map((_, i) => (
             <LoadingCard key={i} />
@@ -245,46 +244,104 @@ const Tutorials = () => {
       {/* Header and Search */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
         <div>
-          <h1 className={`text-2xl font-bold ${
-            isDarkMode ? 'text-gray-100' : 'text-secondary-900'
-          }`}>
+          <h1 className="text-2xl font-bold text-codearc-50">
             Explore Tutorials
           </h1>
-          <p className={`text-sm mt-1 ${
-            isDarkMode ? 'text-gray-400' : 'text-secondary-500'
-          }`}>
+          <p className="text-sm mt-1 text-codearc-300">
             From beginner to expert — find your next lesson.
           </p>
         </div>
         <div className="w-full md:w-72 relative">
-          <MagnifyingGlassIcon className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${
-            isDarkMode ? 'text-gray-500' : 'text-secondary-400'
-          }`} />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-codearc-500" />
           <input
             type="text"
             placeholder="Search tutorials..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className={`w-full pl-10 pr-4 py-2.5 rounded-lg text-sm transition-colors ${
-              isDarkMode
-                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-primary-500'
-                : 'bg-white border-secondary-200 text-secondary-900 placeholder-secondary-400 focus:border-primary-500'
-            } border focus:outline-none focus:ring-1 focus:ring-primary-500/30`}
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm transition-colors bg-codearc-800 border border-white/10 text-codearc-50 placeholder-codearc-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/30"
           />
+        </div>
+      </div>
+
+      {/* Learning Paths */}
+      <div className="mb-2">
+        <h2 className="text-sm font-semibold text-codearc-300 uppercase tracking-wider mb-3">Learning Paths</h2>
+        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+          {[
+            {
+              title: 'JavaScript Track',
+              desc: 'Variables → Functions → Control Flow → Arrays',
+              color: 'from-yellow-500/20 to-yellow-600/10',
+              border: 'border-yellow-500/30',
+              dot: 'bg-yellow-500',
+              slugs: ['javascript-basics-variables-data-types', 'javascript-functions-complete-guide', 'javascript-control-flow', 'arrays-lists-data-storage-fundamentals'],
+              lang: 'javascript',
+            },
+            {
+              title: 'Python Track',
+              desc: 'Fundamentals → Functions → Data Structures',
+              color: 'from-blue-500/20 to-blue-600/10',
+              border: 'border-blue-500/30',
+              dot: 'bg-blue-500',
+              slugs: ['python-fundamentals-getting-started', 'python-functions-control-flow', 'python-lists-dicts-tuples'],
+              lang: 'python',
+            },
+            {
+              title: 'Web Dev Track',
+              desc: 'HTML & CSS → JavaScript → TypeScript',
+              color: 'from-pink-500/20 to-pink-600/10',
+              border: 'border-pink-500/30',
+              dot: 'bg-pink-500',
+              slugs: ['html-css-first-webpage', 'javascript-basics-variables-data-types', 'typescript-getting-started'],
+              lang: 'javascript',
+            },
+            {
+              title: 'Algorithms Track',
+              desc: 'Sorting → Binary Search → (more coming)',
+              color: 'from-purple-500/20 to-purple-600/10',
+              border: 'border-purple-500/30',
+              dot: 'bg-purple-500',
+              slugs: ['sorting-algorithms-bubble-quick-sort', 'algorithms-binary-search'],
+              lang: 'javascript',
+            },
+          ].map((path) => {
+            const pathTutorials = path.slugs.map(s => tutorials.find(t => t.slug === s)).filter(Boolean);
+            const completed = pathTutorials.filter(t => t?.enrolled && t?.progress === 100).length;
+            const pct = pathTutorials.length ? Math.round((completed / path.slugs.length) * 100) : 0;
+            return (
+              <button
+                key={path.title}
+                onClick={() => handleTabChange(path.lang === 'python' ? 'python' : path.lang === 'javascript' ? 'javascript' : 'all')}
+                className={`flex-shrink-0 w-56 p-4 rounded-xl border bg-gradient-to-br ${path.color} ${path.border} text-left hover:scale-[1.02] transition-transform duration-200`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-2.5 h-2.5 rounded-full ${path.dot}`} />
+                  <span className="text-sm font-semibold text-codearc-50">{path.title}</span>
+                </div>
+                <p className="text-xs text-codearc-400 mb-3 leading-relaxed">{path.desc}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 h-1.5 rounded-full bg-white/10 mr-2">
+                    <div className={`h-1.5 rounded-full ${path.dot}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="text-xs text-codearc-500 flex-shrink-0">{pct}%</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Udemy-style Tabs */}
       <div className="mb-6">
-        <div className="flex space-x-1 border-b border-secondary-200 dark:border-gray-800 overflow-x-auto no-scrollbar pb-[1px]">
+        <div className="flex space-x-1 border-b border-white/10 overflow-x-auto no-scrollbar pb-[1px]">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
               className={`whitespace-nowrap pb-3 px-2 border-b-2 font-medium text-sm transition-colors duration-200 mr-6 ${
                 activeTab === tab.id
-                  ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400'
-                  : 'border-transparent text-secondary-500 hover:text-secondary-800 hover:border-secondary-300 dark:text-gray-400 dark:hover:text-gray-200'
+                  ? 'border-primary-400 text-primary-400'
+                  : 'border-transparent text-codearc-500 hover:text-codearc-50 hover:border-white/20'
               }`}
             >
               {tab.name}
@@ -296,13 +353,11 @@ const Tutorials = () => {
       {/* Results */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-secondary-600'}`}>
+          <p className="text-sm font-medium text-codearc-300">
             Showing {filteredTutorials.length} tutorial{filteredTutorials.length !== 1 ? 's' : ''}
           </p>
 
-          <select className={`text-sm font-medium border-0 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500/30 cursor-pointer ${
-            isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-secondary-700 hover:bg-gray-200'
-          }`}>
+          <select className="text-sm font-medium border-0 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500/30 cursor-pointer bg-codearc-800 text-codearc-300">
             <option>Most Popular</option>
             <option>Newest</option>
             <option>Highest Rated</option>
@@ -312,13 +367,13 @@ const Tutorials = () => {
         
         {filteredTutorials.length === 0 ? (
           <Card className="p-12 text-center border-dashed">
-            <div className="text-secondary-300 dark:text-gray-600 mb-4">
+            <div className="text-codearc-500 mb-4">
               <MagnifyingGlassIcon className="h-12 w-12 mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-secondary-900 dark:text-gray-200 mb-2">
+            <h3 className="text-lg font-medium text-codearc-50 mb-2">
               No tutorials found
             </h3>
-            <p className="text-secondary-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
+            <p className="text-codearc-300 mb-6 max-w-sm mx-auto">
               We couldn't find any tutorials matching your current tab or search criteria.
             </p>
             <Button

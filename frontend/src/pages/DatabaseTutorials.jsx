@@ -20,6 +20,7 @@ import {
 } from '../components/ui';
 import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
+import offlineService from '../services/offlineService';
 
 // Updated with comprehensive dropdown styling - v2.0
 const DatabaseTutorials = () => {
@@ -105,12 +106,14 @@ const DatabaseTutorials = () => {
         }
 
         setTutorials(dbTutorials);
-      } else {
-        console.error('❌ API Response not OK:', response.status);
+        // Cache for offline access — use a db- prefix to distinguish from programming tutorials
+        dbTutorials.forEach(t => offlineService.storeTutorial({ ...t, id: `db-${t._id || t.id}` }));
       }
     } catch (error) {
-      console.error('Error fetching database tutorials:', error);
-      setTutorials([]);
+      console.error('Error fetching database tutorials, trying offline cache:', error);
+      const cached = await offlineService.getAllTutorials();
+      const dbCached = cached.filter(t => String(t.id).startsWith('db-'));
+      setTutorials(dbCached);
     } finally {
       setLoading(false);
     }
@@ -219,7 +222,7 @@ const DatabaseTutorials = () => {
               </div>
               <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-secondary-600'
                 }`}>
-                {tutorial.author?.name || 'Seek Team'}
+                {tutorial.author?.name || 'CodeArc Team'}
               </span>
             </div>
 
@@ -234,10 +237,6 @@ const DatabaseTutorials = () => {
   };
 
   const FilterSection = () => {
-    console.log('DatabaseTutorials - Databases:', databases);
-    console.log('DatabaseTutorials - Difficulties:', difficulties);
-    console.log('DatabaseTutorials - Languages:', languages);
-
     return (
       <Card className={`p-6 mb-8 transition-colors duration-300 relative ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         }`}>

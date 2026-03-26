@@ -1,118 +1,47 @@
 #!/usr/bin/env python3
+"""Python execution wrapper — reads user code from stdin, runs it, returns JSON.
+Docker provides the isolation so no sandbox restrictions are needed."""
 import sys
 import json
-import signal
-import resource
-import io
-from contextlib import redirect_stdout, redirect_stderr
-
-def set_limits():
-    # Set CPU time limit (5 seconds)
-    resource.setrlimit(resource.RLIMIT_CPU, (5, 5))
-    # Set memory limit (64MB)
-    resource.setrlimit(resource.RLIMIT_AS, (64 * 1024 * 1024, 64 * 1024 * 1024))
-
-def timeout_handler(signum, frame):
-    raise TimeoutError("Code execution timed out")
+import subprocess
+import tempfile
+import os
 
 def main():
+    code = sys.stdin.read()
+
+    with tempfile.NamedTemporaryFile(suffix='.py', delete=False, mode='w', dir='/tmp') as f:
+        f.write(code)
+        src = f.name
+
     try:
-        # Set resource limits
-        set_limits()
-        
-        # Set timeout alarm
-        signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(5)
-        
-        # Read code from stdin
-        code = sys.stdin.read()
-        
-        # Capture stdout and stderr
-        stdout_capture = io.StringIO()
-        stderr_capture = io.StringIO()
-        
-        result = {
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "exit_code": 0
-        }
-        
-        try:
-            # Compile the code to check for syntax errors
-            compiled_code = compile(code, '<user_code>', 'exec')
-            
-            # Execute with captured output
-            with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
-                exec(compiled_code, {"__builtins__": {
-                    "print": print,
-                    "len": len,
-                    "range": range,
-                    "str": str,
-                    "int": int,
-                    "float": float,
-                    "list": list,
-                    "dict": dict,
-                    "tuple": tuple,
-                    "set": set,
-                    "abs": abs,
-                    "max": max,
-                    "min": min,
-                    "sum": sum,
-                    "sorted": sorted,
-                    "reversed": reversed,
-                    "enumerate": enumerate,
-                    "zip": zip,
-                    "map": map,
-                    "filter": filter,
-                    "type": type,
-                    "isinstance": isinstance,
-                    "hasattr": hasattr,
-                    "getattr": getattr,
-                    "setattr": setattr,
-                    "round": round,
-                    "pow": pow,
-                    "divmod": divmod,
-                    "chr": chr,
-                    "ord": ord,
-                    "bool": bool,
-                    "Exception": Exception,
-                    "ValueError": ValueError,
-                    "TypeError": TypeError,
-                    "IndexError": IndexError,
-                    "KeyError": KeyError,
-                    "AttributeError": AttributeError
-                }})
-                
-        except Exception as e:
-            result["success"] = False
-            result["stderr"] = str(e)
-            result["exit_code"] = 1
-        
-        # Cancel the alarm
-        signal.alarm(0)
-        
-        # Get captured output
-        result["stdout"] = stdout_capture.getvalue()
-        result["stderr"] += stderr_capture.getvalue()
-        
-        # Print result as JSON
-        print(json.dumps(result))
-        
-    except TimeoutError:
+        proc = subprocess.run(
+            ['python3', src],
+            capture_output=True, text=True, timeout=10
+        )
         print(json.dumps({
-            "success": False,
-            "stdout": "",
-            "stderr": "Code execution timed out (5 seconds limit)",
-            "exit_code": 124
+            'success': proc.returncode == 0,
+            'stdout': proc.stdout,
+            'stderr': proc.stderr,
+            'exit_code': proc.returncode
+        }))
+
+    except subprocess.TimeoutExpired:
+        print(json.dumps({
+            'success': False, 'stdout': '',
+            'stderr': 'Execution timed out (10 seconds limit)',
+            'exit_code': 124
         }))
     except Exception as e:
         print(json.dumps({
-            "success": False,
-            "stdout": "",
-            "stderr": f"Execution error: {str(e)}",
-            "exit_code": 1
+            'success': False, 'stdout': '',
+            'stderr': str(e),
+            'exit_code': 1
         }))
+    finally:
+        try:
+            os.unlink(src)
+        except Exception:
+            pass
 
-if __name__ == "__main__":
-    main()
+main()

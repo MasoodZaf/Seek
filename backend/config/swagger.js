@@ -5,11 +5,11 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Seek Learning Platform API',
+      title: 'CodeArc API',
       version: '1.0.0',
-      description: 'A comprehensive API for the Seek coding learning platform with AI tutoring capabilities',
+      description: 'A comprehensive API for the CodeArc coding learning platform with AI tutoring capabilities',
       contact: {
-        name: 'Seek Development Team',
+        name: 'CodeArc Team',
         email: 'api@seek.com'
       },
       license: {
@@ -228,7 +228,7 @@ const swaggerOptions = {
     .swagger-ui .info { margin: 20px 0 }
     .swagger-ui .info .title { color: #2c5aa0 }
   `,
-  customSiteTitle: 'Seek API Documentation',
+  customSiteTitle: 'CodeArc API Documentation',
   customfavIcon: '/favicon.ico',
   swaggerOptions: {
     persistAuthorization: true,

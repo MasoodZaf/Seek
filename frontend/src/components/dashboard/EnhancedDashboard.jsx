@@ -41,37 +41,52 @@ const EnhancedDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch recent tutorials from API
-        const tutorialsResponse = await fetch('/api/v1/tutorials?limit=3', {
-          credentials: 'include',
-        });
+        const token = localStorage.getItem('accessToken');
+        const headers = { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) };
 
-        if (tutorialsResponse.ok) {
-          const tutorialsData = await tutorialsResponse.json();
-          const tutorials = tutorialsData.data.tutorials.map(tutorial => ({
+        // Fetch progress stats from real API
+        const [tutorialsRes, progressRes] = await Promise.allSettled([
+          fetch('/api/v1/tutorials?limit=3', { credentials: 'include', headers }),
+          fetch('/api/v1/progress/stats', { credentials: 'include', headers }),
+        ]);
+
+        if (tutorialsRes.status === 'fulfilled' && tutorialsRes.value.ok) {
+          const tutorialsData = await tutorialsRes.value.json();
+          const tutorials = (tutorialsData.data?.tutorials || []).map(tutorial => ({
             id: tutorial.id,
             title: String(tutorial.title || 'Untitled Tutorial'),
-            progress: Math.floor(Math.random() * 100),
+            progress: tutorial.completionPercentage ?? Math.floor(Math.random() * 80),
             language: String(tutorial.language || 'javascript'),
             difficulty: String(tutorial.difficulty || 'beginner'),
-            lastAccessed: `${Math.floor(Math.random() * 5) + 1} days ago`,
+            lastAccessed: tutorial.lastAccessed ? new Date(tutorial.lastAccessed).toLocaleDateString() : 'Recently',
             estimatedDuration: Number(tutorial.estimatedDuration) || 0
           }));
           setRecentTutorials(tutorials);
         }
 
-        // Set enhanced stats
+        let apiStats = null;
+        if (progressRes.status === 'fulfilled' && progressRes.value.ok) {
+          const progressData = await progressRes.value.json();
+          apiStats = progressData.data || progressData;
+        }
+
+        // Merge real data with fallback defaults
+        const totalLessons = apiStats?.totalLessonsCompleted ?? 0;
+        const xp = apiStats?.totalPoints ?? totalLessons * 50;
+        const level = Math.floor(xp / 1000) + 1;
+        const nextLevelXp = level * 1000;
+
         setStats({
-          totalTutorials: 15,
-          completedTutorials: 8,
-          totalHours: 42,
-          currentStreak: 12,
-          level: 4,
-          xp: 3240,
-          nextLevelXp: 4000,
-          weeklyGoal: 10,
-          weeklyProgress: 7,
-          averageScore: 87,
+          totalTutorials: apiStats?.totalTutorials ?? 15,
+          completedTutorials: apiStats?.completedTutorials ?? 0,
+          totalHours: apiStats?.totalHoursLearned ?? Math.floor(totalLessons * 0.5),
+          currentStreak: apiStats?.currentStreak ?? 0,
+          level,
+          xp: xp % 1000,
+          nextLevelXp: 1000,
+          weeklyGoal: 5,
+          weeklyProgress: apiStats?.weeklyLessonsCompleted ?? 0,
+          averageScore: apiStats?.averageScore ?? 0,
         });
 
         // Set achievements
@@ -276,6 +291,39 @@ const EnhancedDashboard = () => {
           color="primary"
           variant="default"
         />
+      </motion.div>
+
+      {/* XP / Level Progress Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.6 }}
+      >
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-600/20 border border-primary-500/30">
+                <span className="text-lg font-bold text-primary-400">{stats?.level ?? 1}</span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100">Level {stats?.level ?? 1}</p>
+                <p className="text-xs text-secondary-500">{stats?.xp ?? 0} / {stats?.nextLevelXp ?? 1000} XP to next level</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <FireIcon className="h-5 w-5 text-orange-400" />
+              <span className="text-sm font-semibold text-orange-400">{stats?.currentStreak ?? 0} day streak</span>
+            </div>
+          </div>
+          <div className="w-full bg-secondary-200 dark:bg-secondary-700 rounded-full h-3 overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-primary-500 to-purple-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(((stats?.xp ?? 0) / (stats?.nextLevelXp ?? 1000)) * 100, 100)}%` }}
+              transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
+            />
+          </div>
+        </Card>
       </motion.div>
 
       {/* Weekly Goal Progress */}

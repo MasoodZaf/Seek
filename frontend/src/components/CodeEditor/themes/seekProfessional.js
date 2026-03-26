@@ -1,8 +1,8 @@
-// Professional Monaco Editor Themes for Seek Platform
+// Professional Monaco Editor Themes for CodeArc Platform
 
 export const SEEK_PROFESSIONAL_THEMES = {
-  'seek-dark-professional': {
-    name: 'Seek Dark Professional',
+  'codearc-dark-professional': {
+    name: 'CodeArc Dark Professional',
     base: 'vs-dark',
     inherit: true,
     rules: [
@@ -155,8 +155,8 @@ export const SEEK_PROFESSIONAL_THEMES = {
     }
   },
   
-  'seek-light-professional': {
-    name: 'Seek Light Professional',
+  'codearc-light-professional': {
+    name: 'CodeArc Light Professional',
     base: 'vs',
     inherit: true,
     rules: [
@@ -309,8 +309,8 @@ export const SEEK_PROFESSIONAL_THEMES = {
     }
   },
   
-  'seek-high-contrast': {
-    name: 'Seek High Contrast',
+  'codearc-high-contrast': {
+    name: 'CodeArc High Contrast',
     base: 'hc-black',
     inherit: true,
     rules: [
@@ -339,7 +339,7 @@ export const SEEK_PROFESSIONAL_THEMES = {
 
 // Theme utility functions
 export const getThemeByName = (themeName) => {
-  return SEEK_PROFESSIONAL_THEMES[themeName] || SEEK_PROFESSIONAL_THEMES['seek-dark-professional'];
+  return SEEK_PROFESSIONAL_THEMES[themeName] || SEEK_PROFESSIONAL_THEMES['codearc-dark-professional'];
 };
 
 export const getAllThemeNames = () => {

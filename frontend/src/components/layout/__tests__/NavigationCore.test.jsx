@@ -30,7 +30,7 @@ const SimpleNavigation = ({ isMobile = false, isOpen = false, onClose = jest.fn(
       <div className="mobile-navigation">
         {/* Mobile Header */}
         <div className="mobile-header">
-          <h1>Seek</h1>
+          <h1>CodeArc</h1>
           <button onClick={() => {}} aria-label="notifications">
             Notifications
           </button>
@@ -90,7 +90,7 @@ const SimpleNavigation = ({ isMobile = false, isOpen = false, onClose = jest.fn(
       {/* Desktop Sidebar */}
       <aside className="sidebar" role="navigation" aria-label="Main navigation">
         <div className="logo">
-          <h1>Seek</h1>
+          <h1>CodeArc</h1>
           <span>Learning Platform</span>
         </div>
         
@@ -159,7 +159,7 @@ describe('Navigation Core Functionality', () => {
       renderNavigation();
       
       // Check logo and branding
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       expect(screen.getByText('Learning Platform')).toBeInTheDocument();
       
       // Check navigation items
@@ -208,7 +208,7 @@ describe('Navigation Core Functionality', () => {
       renderNavigation({ isMobile: true });
       
       // Check mobile header
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       expect(screen.getByLabelText('notifications')).toBeInTheDocument();
       expect(screen.getByLabelText('menu')).toBeInTheDocument();
       
@@ -391,7 +391,7 @@ describe('Navigation Core Functionality', () => {
       renderNavigation();
       
       // Check for proper heading structure
-      const heading = screen.getByRole('heading', { name: 'Seek' });
+      const heading = screen.getByRole('heading', { name: 'CodeArc' });
       expect(heading).toBeInTheDocument();
       
       // Check for navigation labels
@@ -418,7 +418,7 @@ describe('Navigation Core Functionality', () => {
       renderNavigation();
       
       // Component should render without animation issues
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
   });
 
@@ -445,7 +445,7 @@ describe('Navigation Core Functionality', () => {
       });
       
       renderNavigation({ isMobile: true });
-      expect(screen.getAllByText('Seek')).toHaveLength(1);
+      expect(screen.getAllByText('CodeArc')).toHaveLength(1);
     });
 
     it('handles window resize events', () => {
@@ -455,7 +455,7 @@ describe('Navigation Core Functionality', () => {
       fireEvent(window, new Event('resize'));
       
       // Component should handle resize gracefully
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
   });
 
@@ -502,7 +502,7 @@ describe('Navigation Core Functionality', () => {
       );
       
       // Should still render basic structure
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
 
     it('handles navigation errors gracefully', () => {
@@ -511,7 +511,7 @@ describe('Navigation Core Functionality', () => {
       renderNavigation();
       
       // Component should render without throwing
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       
       consoleSpy.mockRestore();
     });
@@ -543,7 +543,7 @@ describe('Navigation Core Functionality', () => {
       );
       
       // Should render without issues
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
 
     it('handles large numbers of navigation items', () => {

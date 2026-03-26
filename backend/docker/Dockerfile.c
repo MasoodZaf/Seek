@@ -3,10 +3,8 @@ FROM gcc:latest
 # Security: Create non-root user
 RUN groupadd -r coderunner && useradd -r -g coderunner coderunner
 
-# Install minimal dependencies
-RUN apt-get update && apt-get install -y \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+# Install python3 (used by the execution wrapper script)
+RUN apt-get update && apt-get install -y --no-install-recommends python3 && rm -rf /var/lib/apt/lists/*
 
 # Set up working directory
 WORKDIR /app
@@ -15,7 +13,7 @@ RUN chown coderunner:coderunner /app
 # Switch to non-root user
 USER coderunner
 
-# Copy execution script
+# Copy execution wrapper
 COPY --chown=coderunner:coderunner execute.c /app/
 
-CMD ["gcc", "-o", "main", "execute.c", "&&", "./main"]
+CMD ["python3", "/app/execute.c"]

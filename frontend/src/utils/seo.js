@@ -6,37 +6,45 @@
 
 // Base site configuration
 export const SITE_CONFIG = {
-  name: 'Seek',
-  fullName: 'Seek - Master Programming & Database Skills',
-  description: 'Learn programming, database management, and coding through interactive tutorials, challenges, and real-time practice. Master JavaScript, Python, Java, SQL, MongoDB, Redis, and more.',
-  url: process.env.REACT_APP_SITE_URL || 'https://seek-platform.com',
+  name: 'CodeArc',
+  fullName: 'CodeArc — Learn to Code with Interactive Tutorials, Challenges & Playground',
+  description: 'CodeArc is the definitive coding learning platform. Master JavaScript, Python, TypeScript, Java, C++, SQL, MongoDB, Redis and more through interactive step-by-step tutorials, real coding challenges, a multi-language playground, and streak-based progression. Free to start.',
+  url: process.env.REACT_APP_SITE_URL || 'https://codearc.dev',
   logo: '/logo512.png',
-  author: 'Seek Learning Platform',
+  author: 'CodeArc',
   keywords: [
+    'learn to code',
+    'coding platform',
     'programming tutorials',
     'coding challenges',
     'database tutorials',
     'learn javascript',
     'learn python',
+    'learn typescript',
     'learn java',
+    'learn c++',
     'sql tutorials',
     'mongodb tutorials',
     'redis tutorials',
     'interactive coding',
     'code playground',
+    'online IDE',
+    'run code online',
     'programming exercises',
     'developer education',
-    'coding bootcamp',
+    'coding bootcamp alternative',
     'web development',
-    'software engineering'
+    'software engineering',
+    'algorithm practice',
+    'coding for beginners'
   ],
   social: {
-    twitter: '@SeekPlatform',
-    facebook: 'SeekPlatform',
-    github: 'seek-platform'
+    twitter: '@CodeArcDev',
+    facebook: 'CodeArcDev',
+    github: 'codearc-dev'
   },
   contact: {
-    email: 'support@seek-platform.com'
+    email: 'support@codearc.dev'
   }
 };
 

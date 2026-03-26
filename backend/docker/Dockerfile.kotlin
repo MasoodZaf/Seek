@@ -16,19 +16,19 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Security: Create non-root user
-RUN groupadd -r coderunner && useradd -r -g coderunner coderunner
+RUN groupadd -r coderunner && useradd -r -g coderunner -m coderunner
 
 # Set up working directory
 WORKDIR /app
 RUN chown coderunner:coderunner /app
 
+# Copy and pre-compile the execute.kt runner into a JAR (as root)
+COPY execute.kt /build/execute.kt
+RUN kotlinc -J-Xmx512m /build/execute.kt -include-runtime -d /app/runner.jar && \
+    chown coderunner:coderunner /app/runner.jar
+
 # Switch to non-root user
 USER coderunner
 
-# Copy execution script
-COPY --chown=coderunner:coderunner execute.kt /app/
-
-# Set Java environment variables
-ENV JAVA_OPTS="-Xmx128m -Xms64m"
-
-CMD ["kotlinc", "-script", "/app/execute.kt"]
+# Runner itself only needs small heap — it manages child JVM heap separately
+CMD ["java", "-Xmx64m", "-Xms32m", "-jar", "/app/runner.jar"]

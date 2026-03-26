@@ -113,10 +113,7 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className={`relative z-50 border-b transition-all duration-300 ${isDarkMode
-      ? 'bg-gray-900/80 border-gray-700/50 backdrop-blur-xl'
-      : 'bg-white/80 border-secondary-200/50 backdrop-blur-xl'
-      } shadow-lg shadow-black/5`}>
+    <header className="relative z-50 border-b transition-all duration-300 border-white/10 backdrop-blur-xl shadow-lg shadow-black/20" style={{ background: 'rgba(17,17,16,0.85)' }}>
       {/* Glass morphism overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/5 to-transparent pointer-events-none" />
 
@@ -157,7 +154,8 @@ const Header = ({ onMenuClick }) => {
                       onFocus={() => setIsSearchFocused(true)}
                       onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                       leftIcon={MagnifyingGlassIcon}
-                      className="w-96 backdrop-blur-sm bg-white/90 border-white/20 focus:bg-white/95 transition-all duration-300"
+                      className="w-96 backdrop-blur-sm border-white/15 transition-all duration-300 text-codearc-50 placeholder-codearc-500"
+                      style={{ background: 'rgba(30,30,36,0.9)' }}
                     />
                     {searchQuery && (
                       <motion.button
@@ -181,7 +179,7 @@ const Header = ({ onMenuClick }) => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 py-2 z-[9999] max-h-64 overflow-y-auto"
+                      className="absolute top-full left-0 right-0 mt-2 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 py-2 z-[9999] max-h-64 overflow-y-auto" style={{ background: 'rgba(23,23,26,0.97)' }}
                     >
                       {searchSuggestions.map((suggestion, index) => (
                         <motion.button
@@ -190,17 +188,17 @@ const Header = ({ onMenuClick }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.05 }}
                           onClick={() => handleSuggestionClick(suggestion)}
-                          className="w-full px-4 py-3 text-left hover:bg-primary-50/50 transition-colors flex items-center space-x-3"
+                          className="w-full px-4 py-3 text-left hover:bg-white/8 transition-colors flex items-center space-x-3"
                         >
                           <div className={clsx(
                             'w-2 h-2 rounded-full',
                             suggestion.type === 'tutorial' ? 'bg-blue-400' : 'bg-green-400'
                           )} />
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-secondary-900">
+                            <p className="text-sm font-medium text-codearc-50">
                               {suggestion.title}
                             </p>
-                            <p className="text-xs text-secondary-500">
+                            <p className="text-xs text-codearc-300">
                               {suggestion.category}
                             </p>
                           </div>
@@ -226,7 +224,19 @@ const Header = ({ onMenuClick }) => {
               </Button>
             </motion.div>
 
-            {/* Theme toggle removed temporarily */}
+            {/* Streak indicator */}
+            {user && (user.progress?.currentStreak || 0) > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                whileHover={{ scale: 1.05 }}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg backdrop-blur-sm bg-white/10 border border-white/20"
+                title={`${user.progress.currentStreak}-day streak!`}
+              >
+                <span className="text-base leading-none">🔥</span>
+                <span className="text-sm font-semibold text-amber-400">{user.progress.currentStreak}</span>
+              </motion.div>
+            )}
 
             {/* Enhanced Notifications */}
             <Menu as="div" className="relative">
@@ -253,10 +263,10 @@ const Header = ({ onMenuClick }) => {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="absolute right-0 mt-2 w-80 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 py-2 z-[9999]">
-                  <div className="px-4 py-3 border-b border-white/20">
+                <Menu.Items className="absolute right-0 mt-2 w-80 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 py-2 z-[9999]" style={{ background: 'rgba(23,23,26,0.97)' }}>
+                  <div className="px-4 py-3 border-b border-white/10">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-secondary-900">
+                      <h3 className="text-sm font-semibold text-codearc-50">
                         Notifications
                       </h3>
                       {unreadCount > 0 && (
@@ -277,8 +287,8 @@ const Header = ({ onMenuClick }) => {
                             transition={{ delay: index * 0.05 }}
                             className={clsx(
                               'px-4 py-3 transition-all duration-200 cursor-pointer relative',
-                              active && 'bg-primary-50/50',
-                              notification.unread && 'bg-gradient-to-r from-primary-50/30 to-transparent border-l-2 border-primary-400'
+                              active && 'bg-white/8',
+                              notification.unread && 'bg-gradient-to-r from-primary-500/10 to-transparent border-l-2 border-primary-400'
                             )}
                           >
                             <div className="flex items-start space-x-3">
@@ -286,10 +296,10 @@ const Header = ({ onMenuClick }) => {
                                 <div className="w-2 h-2 bg-primary-500 rounded-full mt-2 animate-pulse" />
                               )}
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-secondary-900">
+                                <p className="text-sm font-medium text-codearc-50">
                                   {notification.title}
                                 </p>
-                                <p className="text-xs text-secondary-500 mt-1">
+                                <p className="text-xs text-codearc-300 mt-1">
                                   {notification.time}
                                 </p>
                               </div>
@@ -300,8 +310,8 @@ const Header = ({ onMenuClick }) => {
                     ))}
                   </div>
 
-                  <div className="px-4 py-2 border-t border-white/20">
-                    <Button variant="ghost" size="sm" className="w-full text-left hover:bg-primary-50/50">
+                  <div className="px-4 py-2 border-t border-white/10">
+                    <Button variant="ghost" size="sm" className="w-full text-left hover:bg-white/8">
                       View all notifications
                     </Button>
                   </div>
@@ -336,11 +346,11 @@ const Header = ({ onMenuClick }) => {
                         </span>
                       </motion.div>
                       <div className="hidden sm:block text-left">
-                        <p className="text-sm font-medium text-secondary-900">
+                        <p className="text-sm font-medium text-codearc-50">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-secondary-500">
-                          {user?.role || 'Student'}
+                        <p className="text-xs text-codearc-300">
+                          Lv {user?.progress?.level || 1} · {user?.progress?.totalPoints || 0} pts
                         </p>
                       </div>
                     </Menu.Button>
@@ -362,12 +372,13 @@ const Header = ({ onMenuClick }) => {
                           position: 'fixed',
                           top: `${userMenuPosition.top}px`,
                           right: `${userMenuPosition.right}px`,
-                          zIndex: 99999
+                          zIndex: 99999,
+                          background: 'rgba(23,23,26,0.97)'
                         }}
-                        className="w-56 bg-white backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200 py-2"
+                        className="w-56 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 py-2"
                       >
                         {/* User Info Header */}
-                        <div className="px-4 py-3 border-b border-white/20">
+                        <div className="px-4 py-3 border-b border-white/10">
                           <div className="flex items-center space-x-3">
                             <div className="h-10 w-10 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center">
                               <span className="text-sm font-semibold text-white">
@@ -375,10 +386,10 @@ const Header = ({ onMenuClick }) => {
                               </span>
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-secondary-900">
+                              <p className="text-sm font-semibold text-codearc-50">
                                 {user?.firstName} {user?.lastName}
                               </p>
-                              <p className="text-xs text-secondary-500">
+                              <p className="text-xs text-codearc-300">
                                 Level {user?.progress?.level || 1} • {user?.progress?.xp || 0} XP
                               </p>
                             </div>
@@ -391,8 +402,8 @@ const Header = ({ onMenuClick }) => {
                               <Link
                                 to="/profile"
                                 className={clsx(
-                                  'flex items-center px-4 py-2 text-sm text-secondary-700 transition-all duration-200',
-                                  active && 'bg-primary-50/50 text-primary-700'
+                                  'flex items-center px-4 py-2 text-sm text-codearc-300 transition-all duration-200',
+                                  active && 'bg-white/8 text-codearc-50'
                                 )}
                               >
                                 <UserIcon className="h-4 w-4 mr-3" />
@@ -406,8 +417,8 @@ const Header = ({ onMenuClick }) => {
                               <Link
                                 to="/settings"
                                 className={clsx(
-                                  'flex items-center px-4 py-2 text-sm text-secondary-700 transition-all duration-200',
-                                  active && 'bg-primary-50/50 text-primary-700'
+                                  'flex items-center px-4 py-2 text-sm text-codearc-300 transition-all duration-200',
+                                  active && 'bg-white/8 text-codearc-50'
                                 )}
                               >
                                 <CogIcon className="h-4 w-4 mr-3" />
@@ -417,15 +428,15 @@ const Header = ({ onMenuClick }) => {
                           </Menu.Item>
                         </div>
 
-                        <div className="border-t border-white/20 my-1" />
+                        <div className="border-t border-white/10 my-1" />
 
                         <Menu.Item>
                           {({ active }) => (
                             <button
                               onClick={logout}
                               className={clsx(
-                                'flex items-center w-full px-4 py-2 text-sm text-red-600 transition-all duration-200',
-                                active && 'bg-red-50/50'
+                                'flex items-center w-full px-4 py-2 text-sm text-red-400 transition-all duration-200',
+                                active && 'bg-red-500/10'
                               )}
                             >
                               <ArrowRightOnRectangleIcon className="h-4 w-4 mr-3" />

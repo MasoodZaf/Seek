@@ -17,7 +17,7 @@ function makeTutorial(t) {
     isFeatured: !!t.featured, isPublished: true,
     steps: t.steps,
     resources: t.resources || [],
-    author: { name: t.author || 'Seek Learning Platform', bio: 'Professional programming education' },
+    author: { name: t.author || 'CodeArc', bio: 'Professional programming education' },
     rating: { average: +(3.8 + Math.random() * 1.1).toFixed(1), count: 50 + Math.floor(Math.random() * 200) },
     stats: {
       views: 300 + Math.floor(Math.random() * 3000),

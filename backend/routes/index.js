@@ -15,6 +15,7 @@ const challengesRoutes = require('./challenges');
 const feedbackRoutes = require('./feedback');
 const bugReportsRoutes = require('./bugReports');
 const databaseTranslationRoutes = require('./databaseTranslation');
+const snippetsRoutes = require('./snippets');
 // Temporarily comment out AI Tutor routes to start server
 // const aiTutorRoutes = require('./aiTutor');
 
@@ -31,13 +32,14 @@ router.use('/challenges', challengesRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/bug-reports', bugReportsRoutes);
 router.use('/database-translation', databaseTranslationRoutes);
+router.use('/snippets', snippetsRoutes);
 // Temporarily disabled
 // router.use('/ai-tutor', aiTutorRoutes);
 
 router.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Seek Learning Platform API',
+    message: 'CodeArc API',
     version: '1.0.0',
     status: 'running',
     timestamp: new Date().toISOString(),

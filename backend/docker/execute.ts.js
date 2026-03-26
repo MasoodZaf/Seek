@@ -17,10 +17,10 @@ process.stdin.on('end', () => {
     fs.writeFileSync(tempFile, code);
 
     // Execute TypeScript using ts-node with transpile-only and compatible compiler options
-    const compilerOptions = JSON.stringify({ module: "commonjs", moduleResolution: "node", target: "es2020" });
+    const compilerOptions = JSON.stringify({ module: "commonjs", target: "es2020", strict: false, skipLibCheck: true, ignoreDeprecations: "6.0" });
     const env = { ...process.env, TS_NODE_COMPILER_OPTIONS: compilerOptions };
 
-    exec(`ts-node --transpile-only "${tempFile}"`, { timeout: 5000, env }, (execError, execStdout, execStderr) => {
+    exec(`ts-node --transpile-only --skip-project "${tempFile}"`, { timeout: 10000, env }, (execError, execStdout, execStderr) => {
       const result = {
         success: !execError,
         stdout: execStdout,

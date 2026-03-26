@@ -132,7 +132,7 @@ nav a:hover {
       }
     ],
     author: {
-      name: 'Seek Learning Team',
+      name: 'CodeArc Team',
       bio: 'Experienced web developers passionate about teaching'
     },
     isFeatured: true,

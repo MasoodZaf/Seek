@@ -1,6 +1,25 @@
 /* Professional Design System - CSS Custom Properties */
 
 :root {
+  /* ── CodeArc dark-studio theme (matches landing page) ── */
+  --codearc-bg:         #111110;
+  --codearc-bg-2:       #17171a;
+  --codearc-bg-3:       #1e1e24;
+  --codearc-bg-4:       #282830;
+  --codearc-border:     rgba(255,255,255,0.08);
+  --codearc-border-2:   rgba(255,255,255,0.14);
+  --codearc-text:       #f5f0e8;
+  --codearc-text-2:     #a09898;
+  --codearc-text-3:     #6b6565;
+  --codearc-green:      #6ee7b7;
+  --codearc-green-dim:  rgba(110,231,183,0.12);
+  --codearc-green-glow: rgba(110,231,183,0.25);
+  --codearc-amber:      #fbbf24;
+  --codearc-amber-dim:  rgba(251,191,36,0.10);
+  --codearc-blue:       #93c5fd;
+  --codearc-purple:     #c4b5fd;
+  --codearc-red:        #fca5a5;
+
   /* Aurmak Brand Color System */
   --color-primary-50: #f0f1f8;
   --color-primary-100: #d9dcef;

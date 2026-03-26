@@ -10,15 +10,14 @@ RUN apt-get update && apt-get install -y \
 
 # Set up working directory
 WORKDIR /app
-RUN chown coderunner:coderunner /app
+
+# Copy and compile the execution runner (as root so javac can write .class)
+COPY Execute.java /app/
+RUN cd /app && javac Execute.java && chown -R coderunner:coderunner /app
 
 # Switch to non-root user
 USER coderunner
 
-# Copy execution script
-COPY --chown=coderunner:coderunner Execute.java /app/
-
-# Set Java security policy
 ENV JAVA_OPTS="-Xmx128m -Xms64m -XX:+UseSerialGC"
 
-CMD ["java", "Execute"]
+CMD ["java", "-cp", "/app", "Execute"]

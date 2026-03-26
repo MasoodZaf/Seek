@@ -1,9 +1,10 @@
 const express = require('express');
-
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const LearningGame = require('../models/LearningGame');
 const GameSession = require('../models/GameSession');
+const { protect } = require('../middleware/auth');
+const logger = require('../config/logger');
 
 // GET /api/v1/games - Get all games with filtering
 router.get('/', async (req, res) => {
@@ -77,11 +78,8 @@ router.get('/', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get games error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch games'
-    });
+    logger.error('Get games error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch games' });
   }
 });
 
@@ -94,11 +92,8 @@ router.get('/featured', async (req, res) => {
       data: games
     });
   } catch (error) {
-    console.error('Get featured games error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch featured games'
-    });
+    logger.error('Get featured games error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch featured games' });
   }
 });
 
@@ -112,10 +107,10 @@ router.get('/popular', async (req, res) => {
       data: games
     });
   } catch (error) {
-    console.error('Get popular games error:', error);
+    logger.error('Get popular games error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch popular games'
+      message: 'Failed to fetch popular games'
     });
   }
 });
@@ -130,10 +125,10 @@ router.get('/difficulty/:level', async (req, res) => {
       data: games
     });
   } catch (error) {
-    console.error('Get games by difficulty error:', error);
+    logger.error('Get games by difficulty error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch games by difficulty'
+      message: 'Failed to fetch games by difficulty'
     });
   }
 });
@@ -148,10 +143,10 @@ router.get('/language/:lang', async (req, res) => {
       data: games
     });
   } catch (error) {
-    console.error('Get games by language error:', error);
+    logger.error('Get games by language error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch games by language'
+      message: 'Failed to fetch games by language'
     });
   }
 });
@@ -170,10 +165,10 @@ router.get('/category/:cat', async (req, res) => {
       data: games
     });
   } catch (error) {
-    console.error('Get games by category error:', error);
+    logger.error('Get games by category error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch games by category'
+      message: 'Failed to fetch games by category'
     });
   }
 });
@@ -187,7 +182,7 @@ router.get('/:slug', async (req, res) => {
     if (!game) {
       return res.status(404).json({
         success: false,
-        error: 'Game not found'
+        message: 'Game not found'
       });
     }
 
@@ -199,25 +194,25 @@ router.get('/:slug', async (req, res) => {
       data: game
     });
   } catch (error) {
-    console.error('Get game details error:', error);
+    logger.error('Get game details error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch game details'
+      message: 'Failed to fetch game details'
     });
   }
 });
 
-// POST /api/v1/games/:slug/start - Start a new game session
-router.post('/:slug/start', async (req, res) => {
+// POST /api/v1/games/:slug/start - Start a new game session (requires auth)
+router.post('/:slug/start', protect, async (req, res) => {
   try {
     const { slug } = req.params;
-    const userId = req.user?.id || req.body.userId; // Support both authenticated and guest users
+    const userId = req.user.id;
 
     const game = await LearningGame.findOne({ slug, isActive: true });
     if (!game) {
       return res.status(404).json({
         success: false,
-        error: 'Game not found'
+        message: 'Game not found'
       });
     }
 
@@ -273,10 +268,10 @@ router.post('/:slug/start', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Start game session error:', error);
+    logger.error('Start game session error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to start game session'
+      message: 'Failed to start game session'
     });
   }
 });
@@ -291,7 +286,7 @@ router.get('/:slug/leaderboard', async (req, res) => {
     if (!game) {
       return res.status(404).json({
         success: false,
-        error: 'Game not found'
+        message: 'Game not found'
       });
     }
 
@@ -302,10 +297,10 @@ router.get('/:slug/leaderboard', async (req, res) => {
       data: leaderboard
     });
   } catch (error) {
-    console.error('Get leaderboard error:', error);
+    logger.error('Get leaderboard error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch leaderboard'
+      message: 'Failed to fetch leaderboard'
     });
   }
 });
@@ -337,10 +332,10 @@ router.get('/stats/summary', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get games stats error:', error);
+    logger.error('Get games stats error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch games statistics'
+      message: 'Failed to fetch games statistics'
     });
   }
 });

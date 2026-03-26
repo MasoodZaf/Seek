@@ -187,7 +187,7 @@ const AchievementSystem = ({ userAchievements = [], className, ...props }) => {
 
   const handleShare = (achievement) => {
     // Mock share functionality
-    const shareText = `I just unlocked the "${achievement.title}" achievement on Seek! 🎉`;
+    const shareText = `I just unlocked the "${achievement.title}" achievement on CodeArc! 🎉`;
     if (navigator.share) {
       navigator.share({
         title: 'Achievement Unlocked!',

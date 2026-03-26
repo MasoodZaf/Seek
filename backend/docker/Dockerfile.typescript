@@ -1,10 +1,23 @@
-FROM node:18-slim
+FROM node:20-slim
 
 # Security: Create non-root user
 RUN groupadd -r coderunner && useradd -r -g coderunner coderunner
 
-# Install TypeScript globally
-RUN npm install -g typescript ts-node
+# Install TypeScript toolchain and popular packages globally
+RUN npm install -g --silent \
+    typescript \
+    ts-node \
+    @types/node \
+    lodash \
+    @types/lodash \
+    axios \
+    moment \
+    dayjs \
+    uuid \
+    zod \
+    date-fns \
+    mathjs \
+    rxjs
 
 # Set up working directory
 WORKDIR /app
@@ -16,7 +29,7 @@ USER coderunner
 # Copy execution script
 COPY --chown=coderunner:coderunner execute.ts.js /app/execute.js
 
-# Set resource limits
 ENV NODE_ENV=sandbox
+ENV NODE_PATH="/usr/local/lib/node_modules"
 
 CMD ["node", "/app/execute.js"]

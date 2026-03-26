@@ -225,7 +225,7 @@ const TutorialSchema = new mongoose.Schema({
     name: {
       type: String,
       required: true,
-      default: 'Seek Learning Platform'
+      default: 'CodeArc'
     },
     email: {
       type: String,

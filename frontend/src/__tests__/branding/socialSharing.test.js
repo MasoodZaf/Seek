@@ -43,7 +43,7 @@ describe('SocialShare Component', () => {
     title: 'Test Share Title',
     description: 'Test share description',
     hashtags: ['test', 'coding'],
-    via: 'SeekLearning'
+    via: 'CodeArcDev'
   };
 
   describe('Basic Functionality', () => {
@@ -99,7 +99,7 @@ describe('SocialShare Component', () => {
       expect(calledUrl).toContain(encodeURIComponent(defaultProps.url));
       expect(calledUrl).toContain(encodeURIComponent(defaultProps.title));
       expect(calledUrl).toContain('hashtags=test%2Ccoding');
-      expect(calledUrl).toContain('via=SeekLearning');
+      expect(calledUrl).toContain('via=CodeArcDev');
     });
 
     test('opens Facebook share URL with correct parameters', async () => {
@@ -333,7 +333,7 @@ describe('Predefined Share Components', () => {
       await user.click(twitterButton);
       
       const calledUrl = mockWindowOpen.mock.calls[0][0];
-      expect(calledUrl).toContain('hashtags=achievement%2Ccoding%2Clearning%2CSeekLearning');
+      expect(calledUrl).toContain('hashtags=achievement%2Ccoding%2Clearning%2CCodeArcDev');
     });
   });
 
@@ -359,7 +359,7 @@ describe('Predefined Share Components', () => {
       await user.click(twitterButton);
       
       const calledUrl = mockWindowOpen.mock.calls[0][0];
-      expect(calledUrl).toContain('hashtags=tutorial%2CJavaScript%2Clearning%2CSeekLearning');
+      expect(calledUrl).toContain('hashtags=tutorial%2CJavaScript%2Clearning%2CCodeArcDev');
     });
   });
 
@@ -392,7 +392,7 @@ describe('Predefined Share Components', () => {
       await user.click(twitterButton);
       
       const calledUrl = mockWindowOpen.mock.calls[0][0];
-      expect(calledUrl).toContain('hashtags=project%2CPython%2Ccoding%2CSeekLearning');
+      expect(calledUrl).toContain('hashtags=project%2CPython%2Ccoding%2CCodeArcDev');
     });
   });
 
@@ -456,7 +456,7 @@ describe('Professional Messaging Integration', () => {
     const achievementShare = render(<AchievementShare achievement={{ name: 'Test', description: 'Test' }} />);
     expect(achievementShare.container).toBeInTheDocument();
     
-    // All share components should include "Seek" branding
+    // All share components should include "CodeArc" branding
     // This is verified through the URL generation and title formatting
   });
 
@@ -470,7 +470,7 @@ describe('Professional Messaging Integration', () => {
     await user.click(twitterButton);
     
     let calledUrl = mockWindowOpen.mock.calls[0][0];
-    expect(calledUrl).toContain('SeekLearning');
+    expect(calledUrl).toContain('CodeArcDev');
     
     mockWindowOpen.mockClear();
     
@@ -480,6 +480,6 @@ describe('Professional Messaging Integration', () => {
     await user.click(twitterButton);
     
     calledUrl = mockWindowOpen.mock.calls[0][0];
-    expect(calledUrl).toContain('SeekLearning');
+    expect(calledUrl).toContain('CodeArcDev');
   });
 });

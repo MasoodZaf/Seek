@@ -48,7 +48,7 @@ const ComponentsDemo = () => {
             Enhanced UI Components
           </h1>
           <p className="text-gray-600 dark:text-gray-300 text-lg">
-            Modern, animated, and sophisticated components for the Seek platform
+            Modern, animated, and sophisticated components for the CodeArc platform
           </p>
           <div className="flex justify-center space-x-4">
             <DarkModeToggle variant="toggle" />

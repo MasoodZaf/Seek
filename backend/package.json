@@ -1,7 +1,7 @@
 {
   "name": "seek-backend",
   "version": "1.0.0",
-  "description": "Professional backend API for Seek coding learning platform",
+  "description": "Professional backend API for CodeArc coding learning platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

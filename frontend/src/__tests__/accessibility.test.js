@@ -171,7 +171,7 @@ describe('Accessibility Tests', () => {
     test('Simple header should be accessible', async () => {
       const SimpleHeader = () => (
         <header role="banner">
-          <h1>Seek Learning Platform</h1>
+          <h1>CodeArc</h1>
           <div>
             <input 
               type="search" 

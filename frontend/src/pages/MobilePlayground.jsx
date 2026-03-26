@@ -18,7 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const MOBILE_TEMPLATES = {
-  javascript: `// Welcome to Seek Mobile Coding!
+  javascript: `// Welcome to CodeArc Mobile Coding!
 // Swipe and pinch to navigate
 
 function fibonacci(n) {
@@ -120,10 +120,12 @@ const MobilePlayground = () => {
     setOutput('');
 
     try {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/v1/code/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -137,13 +139,15 @@ const MobilePlayground = () => {
 
       if (result.success) {
         const executionOutput = result.data?.output || result.output;
-        let formattedOutput = executionOutput?.stdout || 'Code executed successfully!';
-        formattedOutput = formattedOutput.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
-        
+        const rawOutput = typeof executionOutput === 'string' ? executionOutput : (executionOutput?.stdout ?? '');
+        const rawError  = typeof executionOutput === 'object' ? (executionOutput?.stderr ?? '') : '';
+        let formattedOutput = rawOutput.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+        if (!formattedOutput.trim()) formattedOutput = 'Code executed successfully!';
+
         setOutput(formattedOutput);
-        
-        if (executionOutput?.stderr) {
-          setError(executionOutput.stderr);
+
+        if (rawError) {
+          setError(rawError);
         }
 
         // Add to execution history

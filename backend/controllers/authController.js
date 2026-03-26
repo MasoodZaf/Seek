@@ -134,7 +134,27 @@ const login = async (req, res) => {
 
     await user.addRefreshToken(refreshToken);
 
-    user.lastLoginAt = new Date();
+    // Update streak
+    const now = new Date();
+    const lastLogin = user.lastLoginAt ? new Date(user.lastLoginAt) : null;
+    const progress = user.progress || {};
+    if (lastLogin) {
+      const daysSinceLast = Math.floor((now - lastLogin) / (1000 * 60 * 60 * 24));
+      if (daysSinceLast === 0) {
+        // Same day — streak unchanged
+      } else if (daysSinceLast === 1) {
+        // Consecutive day — increment streak
+        progress.currentStreak = (progress.currentStreak || 0) + 1;
+        progress.longestStreak = Math.max(progress.currentStreak, progress.longestStreak || 0);
+      } else {
+        // Gap of 2+ days — reset streak
+        progress.currentStreak = 1;
+      }
+    } else {
+      progress.currentStreak = 1;
+    }
+    user.progress = progress;
+    user.lastLoginAt = now;
     await user.save();
 
     const cookieOptions = {
@@ -284,6 +304,11 @@ const updateProfile = async (req, res) => {
         success: false,
         message: 'User not found'
       });
+    }
+
+    // Deep-merge preferences so callers can patch individual keys without wiping others
+    if (updates.preferences) {
+      updates.preferences = { ...(user.preferences || {}), ...updates.preferences };
     }
 
     await user.update(updates);

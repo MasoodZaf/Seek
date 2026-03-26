@@ -139,7 +139,7 @@ describe('MobileNavigation Component', () => {
     it('renders header with logo and user info', () => {
       renderMobileNavigation();
       
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       expect(screen.getByText('Welcome, John')).toBeInTheDocument();
       expect(screen.getByText('7')).toBeInTheDocument(); // Streak count
     });
@@ -480,7 +480,7 @@ describe('MobileNavigation Component', () => {
       
       // Check for descriptive text
       expect(screen.getByText('Welcome, John')).toBeInTheDocument();
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
 
     it('handles reduced motion preferences', () => {
@@ -502,7 +502,7 @@ describe('MobileNavigation Component', () => {
       renderMobileNavigation();
       
       // Component should render without animation issues
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
 
     it('provides sufficient color contrast', () => {
@@ -533,7 +533,7 @@ describe('MobileNavigation Component', () => {
       
       renderMobileNavigation();
       
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       
       // Test large mobile
       Object.defineProperty(window, 'innerWidth', {
@@ -544,7 +544,7 @@ describe('MobileNavigation Component', () => {
       
       renderMobileNavigation();
       
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
 
     it('handles orientation changes', () => {
@@ -557,7 +557,7 @@ describe('MobileNavigation Component', () => {
       renderMobileNavigation();
       
       // Component should adapt to landscape
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
     });
   });
 
@@ -616,7 +616,7 @@ describe('MobileNavigation Component', () => {
       );
       
       // Should still render navigation
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       expect(screen.getByText('Home')).toBeInTheDocument();
     });
 
@@ -645,7 +645,7 @@ describe('MobileNavigation Component', () => {
       renderMobileNavigation();
       
       // Component should render without throwing
-      expect(screen.getByText('Seek')).toBeInTheDocument();
+      expect(screen.getByText('CodeArc')).toBeInTheDocument();
       
       consoleSpy.mockRestore();
     });

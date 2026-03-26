@@ -124,51 +124,35 @@ class CodeExecutionService {
   async executeJavaScript(code, input = '') {
     const startTime = Date.now();
     try {
-      // Use native execution for JavaScript (Docker has stdin issues)
-      const result = await nativeExecutionService.executeCode(code, 'javascript', input);
+      const result = await dockerExecutionService.executeCode(code, 'javascript', input);
       return {
-        output: result.output || { stdout: '', stderr: '', exitCode: 0 },
-        executionTime: Date.now() - startTime,
-        memoryUsage: process.memoryUsage().heapUsed
+        output: result.output,
+        executionTime: result.executionTime || (Date.now() - startTime),
+        memoryUsage: result.memoryUsage || 0
       };
     } catch (error) {
+      logger.error('JavaScript execution error:', error);
       return {
-        output: {
-          stdout: '',
-          stderr: error.message || 'Execution error',
-          exitCode: 1
-        },
+        output: { stdout: '', stderr: error.message || 'Execution error', exitCode: 1 },
         executionTime: Date.now() - startTime,
-        memoryUsage: process.memoryUsage().heapUsed
+        memoryUsage: 0
       };
     }
   }
 
   async executePython(code, input = '') {
     const startTime = Date.now();
-
     try {
-      // Try native execution first
-      const result = await nativeExecutionService.executeCode(code, 'python', input);
-
-      // Extract stdout from the nested output object
-      const output = result.output.stdout || result.output;
-
+      const result = await dockerExecutionService.executeCode(code, 'python', input);
       return {
-        output: output,
-        executionTime: result.executionTime,
+        output: result.output,
+        executionTime: result.executionTime || (Date.now() - startTime),
         memoryUsage: result.memoryUsage || 1024
       };
     } catch (error) {
       logger.error('Python execution error:', error);
-
-      // Fallback response when native execution fails
       return {
-        output: {
-          stdout: `❌ Python Execution Error:\n${error.message}\n\n📋 Your Code:\n${code}\n\n💡 Make sure Python 3 is installed on your system.`,
-          stderr: error.message,
-          exitCode: 1
-        },
+        output: { stdout: '', stderr: error.message || 'Execution error', exitCode: 1 },
         executionTime: Date.now() - startTime,
         memoryUsage: 1024
       };
@@ -194,9 +178,8 @@ class CodeExecutionService {
 
     try {
       const result = await dockerExecutionService.executeCode(code, 'java', input);
-      const output = result.output.stdout || result.output;
       return {
-        output: output,
+        output: result.output,
         executionTime: result.executionTime,
         memoryUsage: result.memoryUsage || 1024
       };
@@ -220,11 +203,8 @@ class CodeExecutionService {
     try {
       const result = await dockerExecutionService.executeCode(code, 'cpp', input);
 
-      // Extract stdout from the nested output object
-      const output = result.output.stdout || result.output;
-
       return {
-        output: output,
+        output: result.output,
         executionTime: result.executionTime,
         memoryUsage: result.memoryUsage || 1024
       };
@@ -261,11 +241,8 @@ class CodeExecutionService {
     try {
       const result = await dockerExecutionService.executeCode(code, 'c', input);
 
-      // Extract stdout from the nested output object
-      const output = result.output.stdout || result.output;
-
       return {
-        output: output,
+        output: result.output,
         executionTime: result.executionTime,
         memoryUsage: result.memoryUsage || 1024
       };

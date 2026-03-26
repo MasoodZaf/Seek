@@ -540,7 +540,7 @@ describe('EnhancedPlayground', () => {
     test('loads editor settings from localStorage on mount', () => {
       const settings = {
         fontSize: 18,
-        theme: 'seek-dark-professional',
+        theme: 'codearc-dark-professional',
         fontFamily: 'JetBrains Mono'
       };
       

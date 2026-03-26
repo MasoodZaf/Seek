@@ -192,8 +192,7 @@ class PerformanceMonitor {
   }
 
   sendToAnalytics(metricName, value, rating) {
-    // Implement based on your analytics provider
-    // Example for Google Analytics 4:
+    // Google Analytics 4 (when configured)
     if (window.gtag) {
       window.gtag('event', 'web_vitals', {
         metric_name: metricName,
@@ -202,20 +201,7 @@ class PerformanceMonitor {
         custom_parameter: window.location.pathname
       });
     }
-
-    // Example for custom analytics endpoint:
-    if (this.isEnabled && navigator.sendBeacon) {
-      const data = JSON.stringify({
-        metric: metricName,
-        value: Math.round(value),
-        rating,
-        url: window.location.href,
-        userAgent: navigator.userAgent,
-        timestamp: Date.now()
-      });
-      
-      navigator.sendBeacon('/api/analytics/performance', data);
-    }
+    // Beacon endpoint disabled — it spams the rate limiter on every route change
   }
 
   getMetrics() {
