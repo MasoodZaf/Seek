@@ -1465,17 +1465,56 @@ const newChallenges = [
   }
 ];
 
+// Category aliases not in the schema enum
+const CATEGORY_MAP = {
+  'Trie':      'Tree',
+  'Intervals': 'Array',
+};
+
+// Convert a raw challenge object into the shape the schema expects
+function normalise(challenge, number) {
+  // slug: lowercase, spaces → hyphens, strip non-alphanumeric-hyphen
+  const slug = challenge.title
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
+  // starterCode: object {lang: code} → array [{language, code}]
+  let starterCode = [];
+  if (Array.isArray(challenge.starterCode)) {
+    starterCode = challenge.starterCode; // already correct format
+  } else if (challenge.starterCode && typeof challenge.starterCode === 'object') {
+    starterCode = Object.entries(challenge.starterCode).map(([language, code]) => ({ language, code }));
+  }
+
+  // category: map invalid values to valid enum entries
+  const category = CATEGORY_MAP[challenge.category] || challenge.category;
+
+  return { ...challenge, number, slug, starterCode, category };
+}
+
 async function seedDoubledChallenges() {
   try {
     await mongoose.connect(mongoURI);
     console.log('✅ Connected to MongoDB');
 
-    // Get current count
+    // Get current max number so new ones don't collide
+    const maxDoc = await CodingChallenge.findOne({}, { number: 1 }).sort({ number: -1 });
+    const startNumber = maxDoc ? maxDoc.number + 1 : 101;
+
     const currentCount = await CodingChallenge.countDocuments();
     console.log(`📊 Current challenges: ${currentCount}`);
 
-    // Insert new challenges
-    const result = await CodingChallenge.insertMany(newChallenges);
+    // Normalise all challenges and skip any whose slug already exists
+    const existingSlugs = new Set(
+      (await CodingChallenge.find({}, { slug: 1 })).map(c => c.slug)
+    );
+    const prepared = newChallenges
+      .map((c, i) => normalise(c, startNumber + i))
+      .filter(c => !existingSlugs.has(c.slug));
+
+    console.log(`➕ Inserting ${prepared.length} new challenges (skipping duplicates)...`);
+    const result = await CodingChallenge.insertMany(prepared, { ordered: false });
     console.log(`\n✅ Successfully added ${result.length} new challenges`);
 
     const newCount = await CodingChallenge.countDocuments();
