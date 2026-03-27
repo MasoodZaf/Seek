@@ -8,8 +8,8 @@ const AuthContext = createContext(null);
 const initialState = {
   user: null,
   isAuthenticated: false,
-  // Only show loading if a token exists — otherwise land on the landing page immediately
-  loading: localStorage.getItem('accessToken') !== null,
+  // Always start loading — we can't detect a cookie from JS, so we always check on mount
+  loading: true,
   error: null,
 };
 
@@ -32,39 +32,32 @@ const authReducer = (state, action) => {
   }
 };
 
-// Token management — keeps the shared api instance header in sync
-const getStoredToken = () => localStorage.getItem('accessToken');
-
-const setStoredToken = (token) => {
-  if (token) {
-    localStorage.setItem('accessToken', token);
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    delete api.defaults.headers.common['Authorization'];
-  }
-};
-
-const setStoredRefreshToken = (token) => {
-  if (token) {
-    localStorage.setItem('refreshToken', token);
-  } else {
-    localStorage.removeItem('refreshToken');
-  }
-};
-
-// Restore token on app initialization
-const existingToken = getStoredToken();
-if (existingToken) {
-  api.defaults.headers.common['Authorization'] = `Bearer ${existingToken}`;
-}
-
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
-    checkAuthStatus();
+    const controller = new AbortController();
+
+    const initialCheck = async () => {
+      try {
+        dispatch({ type: 'AUTH_START' });
+        const response = await api.get('/auth/profile', { signal: controller.signal, _skipRefresh: true });
+        const user = response.data.data.user;
+        syncPreferencesFromDB(user);
+        dispatch({ type: 'AUTH_SUCCESS', payload: { user } });
+      } catch (error) {
+        // Ignore aborted requests (component unmounted before response)
+        if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') return;
+        if (error.response?.data?.code === 'SESSION_EXPIRED') {
+          dispatch({ type: 'AUTH_LOGOUT' });
+        } else {
+          dispatch({ type: 'AUTH_ERROR', payload: null });
+        }
+      }
+    };
+
+    initialCheck();
+    return () => controller.abort();
   }, []);
 
   const syncPreferencesFromDB = (user) => {
@@ -75,14 +68,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const checkAuthStatus = async () => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      // No token stored — skip the API call, just mark as not authenticated
-      dispatch({ type: 'AUTH_ERROR', payload: null });
-      return;
-    }
     try {
       dispatch({ type: 'AUTH_START' });
+      // Cookie is sent automatically via withCredentials — no localStorage check needed
       const response = await api.get('/auth/profile');
       const user = response.data.data.user;
       syncPreferencesFromDB(user);
@@ -100,11 +88,8 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: 'AUTH_START' });
       const response = await api.post('/auth/login', { email, password });
-      const { user, tokens } = response.data.data;
-
-      setStoredToken(tokens.accessToken);
-      setStoredRefreshToken(tokens.refreshToken);
-
+      const { user } = response.data.data;
+      // Tokens are set as httpOnly cookies by the server — we never touch them here
       syncPreferencesFromDB(user);
       dispatch({ type: 'AUTH_SUCCESS', payload: { user } });
       toast.success(`Welcome back, ${user.firstName}!`);
@@ -121,11 +106,8 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: 'AUTH_START' });
       const response = await api.post('/auth/register', userData);
-      const { user, tokens } = response.data.data;
-
-      setStoredToken(tokens.accessToken);
-      setStoredRefreshToken(tokens.refreshToken);
-
+      const { user } = response.data.data;
+      // Tokens are set as httpOnly cookies by the server — we never touch them here
       dispatch({ type: 'AUTH_SUCCESS', payload: { user } });
       toast.success(`Welcome to CodeArc, ${user.firstName}!`);
       return { success: true, user };
@@ -149,8 +131,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       // Continue with logout even if server call fails
     } finally {
-      setStoredToken(null);
-      setStoredRefreshToken(null);
+      // Clear non-sensitive preference keys from localStorage (not tokens)
+      localStorage.removeItem('seek_skill_level');
+      localStorage.removeItem('seek_preferred_language');
+      localStorage.removeItem('seek_onboarding_done');
       dispatch({ type: 'AUTH_LOGOUT' });
       toast.success('Logged out successfully');
       window.location.href = '/';

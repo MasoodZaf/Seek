@@ -2,12 +2,26 @@ const express = require('express');
 const router = express.Router();
 const Feedback = require('../models/Feedback');
 const { protect, authorize } = require('../middleware/auth');
+const { generalRateLimit } = require('../middleware/security');
 const { sequelize } = require('../config/sqlite');
+
+// Strict rate limit for feedback submissions: 5 per hour per IP
+const rateLimit = require('express-rate-limit');
+const feedbackRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: { success: false, message: 'Too many feedback submissions. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Basic email format check (no external deps needed)
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 // @route   POST /api/v1/feedback
 // @desc    Submit feedback
 // @access  Public
-router.post('/', async (req, res) => {
+router.post('/', feedbackRateLimit, async (req, res) => {
   try {
     const {
       name,
@@ -20,12 +34,28 @@ router.post('/', async (req, res) => {
       page
     } = req.body;
 
-    // Validation
+    // Required field presence
     if (!name || !email || !subject || !message) {
       return res.status(400).json({
         success: false,
         message: 'Please provide name, email, subject, and message'
       });
+    }
+
+    // Field length limits
+    if (name.length > 100) {
+      return res.status(400).json({ success: false, message: 'Name must be 100 characters or fewer' });
+    }
+    if (subject.length > 200) {
+      return res.status(400).json({ success: false, message: 'Subject must be 200 characters or fewer' });
+    }
+    if (message.length > 5000) {
+      return res.status(400).json({ success: false, message: 'Message must be 5000 characters or fewer' });
+    }
+
+    // Email format validation
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Invalid email address' });
     }
 
     // Get user info from token if authenticated

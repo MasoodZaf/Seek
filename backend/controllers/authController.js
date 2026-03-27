@@ -194,7 +194,8 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
+    // Accept refresh token from body (API clients) or httpOnly cookie (browser)
+    const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
     const { user } = req;
 
     if (refreshToken && user) {

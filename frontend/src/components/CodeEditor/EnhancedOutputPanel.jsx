@@ -106,11 +106,25 @@ const EnhancedOutputPanel = ({
     return { sections, hasErrors, hasWarnings };
   };
 
+  // Escape HTML special characters so output content cannot inject markup.
+  // This is intentionally NOT using dangerouslySetInnerHTML with raw output.
+  const escapeHtml = (text) =>
+    String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+  // Escape regex metacharacters in the search term to prevent ReDoS / injection.
+  const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   const highlightSearchTerm = (text) => {
-    if (!searchTerm) return text;
-    
-    const regex = new RegExp(`(${searchTerm})`, 'gi');
-    return text.replace(regex, '<mark class="bg-yellow-300 text-black">$1</mark>');
+    const safe = escapeHtml(text); // always escape first
+    if (!searchTerm) return safe;
+    const safeTerm = escapeRegex(searchTerm);
+    const regex = new RegExp(`(${safeTerm})`, 'gi');
+    // The only HTML we inject is a controlled <mark> tag — safe
+    return safe.replace(regex, '<mark class="bg-yellow-300 text-black">$1</mark>');
   };
 
   const formatOutput = (rawOutput) => {

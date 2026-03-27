@@ -2,6 +2,31 @@
 const MongoTutorial = require('../models/MongoTutorial');
 const logger = require('../config/logger');
 
+// ── Lightweight in-memory TTL cache ─────────────────────────────────────────
+// Avoids hitting MongoDB on every request for stable list/aggregate data.
+// Each entry: { value, expiresAt }. No external dependency needed.
+const _cache = new Map();
+const TTL_SHORT  = 5  * 60 * 1000; // 5 min  — lists & stats (view counts drift slowly)
+const TTL_LONG   = 10 * 60 * 1000; // 10 min — categories/languages (change rarely)
+
+function cacheGet(key) {
+  const entry = _cache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) { _cache.delete(key); return null; }
+  return entry.value;
+}
+
+function cacheSet(key, value, ttl = TTL_SHORT) {
+  _cache.set(key, { value, expiresAt: Date.now() + ttl });
+}
+
+// Call this from write operations (complete, rate) so stale data isn't served
+function cachePurge(prefix = '') {
+  for (const key of _cache.keys()) {
+    if (!prefix || key.startsWith(prefix)) _cache.delete(key);
+  }
+}
+
 // Get all tutorials with filtering and pagination
 const getTutorials = async (req, res) => {
   try {
@@ -15,6 +40,16 @@ const getTutorials = async (req, res) => {
       search,
       sort = '-createdAt'
     } = req.query;
+
+    // Cache key covers every query dimension — search queries bypass cache (too dynamic)
+    const cacheKey = search
+      ? null
+      : `tutorials:list:${page}:${limit}:${category}:${language}:${difficulty}:${featured}:${sort}`;
+
+    if (cacheKey) {
+      const cached = cacheGet(cacheKey);
+      if (cached) return res.status(200).json(cached);
+    }
 
     // Build filter object
     const filter = { isPublished: true };
@@ -51,7 +86,7 @@ const getTutorials = async (req, res) => {
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
-    res.status(200).json({
+    const payload = {
       success: true,
       message: 'Tutorials retrieved successfully',
       data: {
@@ -64,15 +99,12 @@ const getTutorials = async (req, res) => {
           hasNextPage,
           hasPrevPage
         },
-        filters: {
-          category,
-          language,
-          difficulty,
-          featured,
-          search
-        }
+        filters: { category, language, difficulty, featured, search }
       }
-    });
+    };
+
+    if (cacheKey) cacheSet(cacheKey, payload, TTL_SHORT);
+    res.status(200).json(payload);
   } catch (error) {
     logger.error('Get tutorials error:', error);
     res.status(500).json({
@@ -133,6 +165,9 @@ const getTutorial = async (req, res) => {
 // Get tutorial categories with counts
 const getCategories = async (req, res) => {
   try {
+    const cached = cacheGet('tutorials:categories');
+    if (cached) return res.status(200).json(cached);
+
     const categories = await MongoTutorial.aggregate([
       { $match: { isPublished: true } },
       { $group: { _id: '$category', count: { $sum: 1 } } },
@@ -140,11 +175,13 @@ const getCategories = async (req, res) => {
       { $project: { category: '$_id', count: 1, _id: 0 } }
     ]);
 
-    res.status(200).json({
+    const payload = {
       success: true,
       message: 'Categories retrieved successfully',
       data: { categories }
-    });
+    };
+    cacheSet('tutorials:categories', payload, TTL_LONG);
+    res.status(200).json(payload);
   } catch (error) {
     logger.error('Get categories error:', error);
     res.status(500).json({
@@ -158,6 +195,9 @@ const getCategories = async (req, res) => {
 // Get programming languages with counts
 const getLanguages = async (req, res) => {
   try {
+    const cached = cacheGet('tutorials:languages');
+    if (cached) return res.status(200).json(cached);
+
     const languages = await MongoTutorial.aggregate([
       { $match: { isPublished: true } },
       { $group: { _id: '$language', count: { $sum: 1 } } },
@@ -165,11 +205,13 @@ const getLanguages = async (req, res) => {
       { $project: { language: '$_id', count: 1, _id: 0 } }
     ]);
 
-    res.status(200).json({
+    const payload = {
       success: true,
       message: 'Languages retrieved successfully',
       data: { languages }
-    });
+    };
+    cacheSet('tutorials:languages', payload, TTL_LONG);
+    res.status(200).json(payload);
   } catch (error) {
     logger.error('Get languages error:', error);
     res.status(500).json({
@@ -183,6 +225,9 @@ const getLanguages = async (req, res) => {
 // Get featured tutorials
 const getFeaturedTutorials = async (req, res) => {
   try {
+    const cached = cacheGet('tutorials:featured');
+    if (cached) return res.status(200).json(cached);
+
     const featured = await MongoTutorial.find({
       isFeatured: true,
       isPublished: true
@@ -191,11 +236,13 @@ const getFeaturedTutorials = async (req, res) => {
       .limit(6)
       .select('-steps -quiz');
 
-    res.status(200).json({
+    const payload = {
       success: true,
       message: 'Featured tutorials retrieved successfully',
       data: { tutorials: featured }
-    });
+    };
+    cacheSet('tutorials:featured', payload, TTL_SHORT);
+    res.status(200).json(payload);
   } catch (error) {
     logger.error('Get featured tutorials error:', error);
     res.status(500).json({
@@ -209,16 +256,21 @@ const getFeaturedTutorials = async (req, res) => {
 // Get popular tutorials (most viewed)
 const getPopularTutorials = async (req, res) => {
   try {
+    const cached = cacheGet('tutorials:popular');
+    if (cached) return res.status(200).json(cached);
+
     const popular = await MongoTutorial.find({ isPublished: true })
       .sort({ 'stats.views': -1 })
       .limit(10)
       .select('-steps -quiz');
 
-    res.status(200).json({
+    const payload = {
       success: true,
       message: 'Popular tutorials retrieved successfully',
       data: { tutorials: popular }
-    });
+    };
+    cacheSet('tutorials:popular', payload, TTL_SHORT);
+    res.status(200).json(payload);
   } catch (error) {
     logger.error('Get popular tutorials error:', error);
     res.status(500).json({
@@ -333,6 +385,7 @@ const completeTutorial = async (req, res) => {
 
     // Increment completion count
     await tutorial.incrementCompletions();
+    cachePurge('tutorials:'); // invalidate cached lists — stats changed
 
     // Here you would typically also update user progress in SQLite
     // This is just updating the tutorial stats in MongoDB
@@ -378,6 +431,7 @@ const rateTutorial = async (req, res) => {
 
     // Update rating
     await tutorial.updateRating(rating);
+    cachePurge('tutorials:'); // invalidate cached lists — ratings changed
 
     res.status(200).json({
       success: true,

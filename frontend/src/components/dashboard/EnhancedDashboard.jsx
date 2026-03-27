@@ -41,8 +41,7 @@ const EnhancedDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const headers = { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) };
+        const headers = { 'Content-Type': 'application/json' };
 
         // Fetch progress stats from real API
         const [tutorialsRes, progressRes] = await Promise.allSettled([

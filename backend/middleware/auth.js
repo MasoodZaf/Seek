@@ -101,7 +101,8 @@ const optionalAuth = async (req, res, next) => {
 
 const refreshTokenMiddleware = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
+    // Accept refresh token from body (API clients) or httpOnly cookie (browser)
+    const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
 
     if (!refreshToken) {
       return res.status(401).json({

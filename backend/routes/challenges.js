@@ -451,18 +451,29 @@ router.post('/:slug/submit', protect, async (req, res) => {
       failedTestCase
     });
 
+    // Save submission first — this is the critical write. User must always get their result.
     await submission.save();
 
-    challenge.totalSubmissions += 1;
-    if (status === 'Accepted') {
-      challenge.totalAccepted += 1;
-      challenge.acceptanceRate = (challenge.totalAccepted / challenge.totalSubmissions) * 100;
+    // Update challenge aggregate stats — non-critical, decouple from submission response
+    try {
+      challenge.totalSubmissions += 1;
+      if (status === 'Accepted') {
+        challenge.totalAccepted += 1;
+        challenge.acceptanceRate = (challenge.totalAccepted / challenge.totalSubmissions) * 100;
+      }
+      await challenge.save();
+    } catch (statsErr) {
+      logger.error('Challenge stats update failed (submission already saved):', statsErr);
     }
-    await challenge.save();
 
-    await recommendationService.updateSkillProfile(req.user.id, challenge._id, status === 'Accepted');
+    // Update recommendation model — non-critical
+    try {
+      await recommendationService.updateSkillProfile(req.user.id, challenge._id, status === 'Accepted');
+    } catch (recErr) {
+      logger.error('Recommendation profile update failed:', recErr);
+    }
 
-    // Award XP when accepted
+    // Award XP when accepted — non-critical, already has inner try-catch
     let xpEarned = 0;
     let newTotalPoints = 0;
     let newLevel = 1;

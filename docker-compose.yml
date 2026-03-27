@@ -8,8 +8,12 @@ services:
     restart: always
     volumes:
       - mongo_data:/data/db
-    ports:
-      - "27017:27017" # Exposed to host for backup/tools if needed
+    # Port NOT exposed to host — only reachable within the Docker network
+    # To connect for backups: docker exec -it seek-mongo mongosh
+    expose:
+      - "27017"
+    mem_limit: 512m
+    cpus: '0.5'
     networks:
       - seek-network
 
@@ -28,10 +32,11 @@ services:
       # Override the local connection string to use Docker networking
       - MONGODB_URI=mongodb://mongo:27017/seek
     volumes:
-      # CRITICAL: Allows the backend to spawn child containers for the Code Playground
-      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker socket removed — all code execution goes through Piston, not direct Docker
       # Persist SQLite database across rebuilds so users/data are never lost
       - ./backend/database.sqlite:/app/database.sqlite
+    mem_limit: 512m
+    cpus: '1.5'
     depends_on:
       - mongo
     networks:
@@ -42,7 +47,7 @@ services:
     image: ghcr.io/engineer-man/piston
     container_name: seek-piston
     restart: always
-    privileged: true
+    privileged: true  # Required by Piston — isolate (setuid) needs root to create per-job cgroups/namespaces
     expose:
       - "2000"
     networks:

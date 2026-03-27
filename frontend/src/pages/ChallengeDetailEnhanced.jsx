@@ -56,7 +56,9 @@ const ChallengeDetailEnhanced = () => {
   const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
-    fetchChallenge();
+    const controller = new AbortController();
+    fetchChallenge(controller.signal);
+    return () => controller.abort();
   }, [slug]);
 
   useEffect(() => {
@@ -92,11 +94,12 @@ const ChallengeDetailEnhanced = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const fetchChallenge = async () => {
+  const fetchChallenge = async (signal) => {
     try {
       setLoading(true);
       const response = await api.get(`/challenges/${slug}`, {
-        params: { userId: user?.id || 'guest' }
+        params: { userId: user?.id || 'guest' },
+        signal
       });
 
       if (response.data.success) {
@@ -107,6 +110,8 @@ const ChallengeDetailEnhanced = () => {
         setIsTimerRunning(true);
       }
     } catch (error) {
+      // Ignore aborted requests (navigated away before response arrived)
+      if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') return;
       console.error('Failed to fetch challenge:', error);
       toast.error('Failed to load challenge');
     } finally {

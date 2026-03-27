@@ -161,7 +161,20 @@ class CodeExecutionService {
 
   async executeTypeScript(code, input = '') {
     try {
-      const result = await pistonExecutionService.executeCode(code, 'typescript', input);
+      // Piston's tsc defaults to ES5 lib, which lacks Map, Set, Array.from, Promise, etc.
+      // Prepend triple-slash lib directives to give the compiler access to ES2015–ES2020 types.
+      const libPreamble = [
+        '/// <reference lib="es2015" />',
+        '/// <reference lib="es2016" />',
+        '/// <reference lib="es2017" />',
+        '/// <reference lib="es2018" />',
+        '/// <reference lib="es2019" />',
+        '/// <reference lib="es2020" />',
+        '/// <reference lib="dom" />',
+        ''
+      ].join('\n');
+      const patchedCode = libPreamble + code;
+      const result = await pistonExecutionService.executeCode(patchedCode, 'typescript', input);
       return result;
     } catch (error) {
       logger.error('TypeScript execution error:', error);
@@ -641,24 +654,29 @@ class CodeExecutionService {
       errors.push(`Code exceeds maximum length of ${this.maxCodeLength} characters`);
     }
 
-    const dangerousPatterns = [
-      /require\s*\(\s*['"][^'"]*fs['"]/, // File system access
-      /require\s*\(\s*['"][^'"]*child_process['"]/, // Process execution
-      /require\s*\(\s*['"][^'"]*net['"]/, // Network access
-      /require\s*\(\s*['"][^'"]*http['"]/, // HTTP requests
-      /eval\s*\(/, // Code evaluation
-      /Function\s*\(\s*['"]/, // Dynamic function creation
-      /import\s*\(/, // Dynamic imports
-      /process\./, // Process access
-      /global\./, // Global object access
-      /Buffer\./ // Buffer access
-    ];
+    // These Node.js/browser-specific patterns only apply to JS/TS.
+    // All other languages run inside Piston's isolated sandbox — no host access possible.
+    const jsLanguages = new Set(['javascript', 'typescript']);
+    if (jsLanguages.has((language || '').toLowerCase())) {
+      const dangerousPatterns = [
+        /require\s*\(\s*['"][^'"]*fs['"]/, // File system access
+        /require\s*\(\s*['"][^'"]*child_process['"]/, // Process execution
+        /require\s*\(\s*['"][^'"]*net['"]/, // Network access
+        /require\s*\(\s*['"][^'"]*http['"]/, // HTTP requests
+        /eval\s*\(/, // Code evaluation
+        /Function\s*\(\s*['"]/, // Dynamic function creation
+        /import\s*\(/, // JS dynamic imports (not Go's import() syntax)
+        /process\./, // Process access
+        /global\./, // Global object access
+        /Buffer\./ // Buffer access
+      ];
 
-    dangerousPatterns.forEach((pattern) => {
-      if (pattern.test(code)) {
-        errors.push('Code contains potentially dangerous operations');
-      }
-    });
+      dangerousPatterns.forEach((pattern) => {
+        if (pattern.test(code)) {
+          errors.push('Code contains potentially dangerous operations');
+        }
+      });
+    }
 
     return errors;
   }

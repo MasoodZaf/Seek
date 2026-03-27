@@ -5,26 +5,35 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || '/api/v1';
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true, // Send httpOnly cookies automatically — do NOT store tokens in localStorage
 });
 
-// Request interceptor — attach stored access token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('accessToken');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Read a non-httpOnly cookie by name (CSRF token is intentionally JS-readable)
+function getCsrfToken() {
+  const match = document.cookie.match(/(?:^|;\s*)csrf-token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+// Request interceptor — attach CSRF token to all state-changing requests
+api.interceptors.request.use((config) => {
+  const method = (config.method || '').toLowerCase();
+  if (!['get', 'head', 'options'].includes(method)) {
+    const token = getCsrfToken();
+    if (token) {
+      config.headers['x-csrf-token'] = token;
+    }
+  }
+  return config;
+});
 
 // Track whether a token refresh is in flight to avoid cascading retries
 let isRefreshing = false;
 let failedQueue = [];
 
-const processQueue = (error, token = null) => {
+const processQueue = (error) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error);
-    else prom.resolve(token);
+    else prom.resolve();
   });
   failedQueue = [];
 };
@@ -35,29 +44,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      const refreshToken = localStorage.getItem('refreshToken');
-
-      if (!refreshToken) {
-        // No refresh token — clear storage but don't redirect if already on login/register
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        const onAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register';
-        if (!onAuthPage) {
-          window.location.href = '/login';
-        }
-        return Promise.reject(error);
-      }
-
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest._skipRefresh) {
       if (isRefreshing) {
         // Queue requests that arrive while refresh is in flight
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
+          .then(() => api(originalRequest))
           .catch((err) => Promise.reject(err));
       }
 
@@ -65,20 +58,16 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
-        const { accessToken } = response.data.data.tokens;
-
-        localStorage.setItem('accessToken', accessToken);
-        api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-        processQueue(null, accessToken);
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        // Refresh token is sent automatically via httpOnly cookie
+        await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+        processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        processQueue(refreshError);
+        const onAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register';
+        if (!onAuthPage) {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

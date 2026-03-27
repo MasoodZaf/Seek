@@ -1053,6 +1053,8 @@ const Playground = () => {
 
   const { user } = useAuth();
   const editorRef = useRef(null);
+  // Suppress Monaco's onValidate during language switches — it fires stale errors briefly
+  const suppressValidationRef = useRef(false);
 
   // Load shared code from URL param on mount
   useEffect(() => {
@@ -1117,6 +1119,9 @@ const Playground = () => {
   }, [editorLanguage, error, output]);
 
   const handleLanguageChange = useCallback((newLanguage) => {
+    // Suppress Monaco validation errors for 1.5s while the new language model loads
+    suppressValidationRef.current = true;
+    setTimeout(() => { suppressValidationRef.current = false; }, 1500);
     setEditorLanguage(newLanguage);
     setSelectedExample(0);
     setError('');
@@ -1162,12 +1167,13 @@ const Playground = () => {
 
     try {
       // Call backend API for code execution
-      const token = localStorage.getItem('accessToken');
+      const csrfMatch = document.cookie.match(/(?:^|;\s*)csrf-token=([^;]+)/);
+      const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : null;
       const response = await fetch('/api/v1/code/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` }),
+          ...(csrfToken ? { 'x-csrf-token': csrfToken } : {})
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -1314,6 +1320,8 @@ const Playground = () => {
   }, [t]);
 
   const handleEditorValidation = useCallback((errors) => {
+    // Ignore Monaco's stale validation events during language switches
+    if (suppressValidationRef.current) return;
     if (errors.length > 0) {
       const errorMessages = errors
         .map(err => `Line ${err.startLineNumber}: ${err.message}`)

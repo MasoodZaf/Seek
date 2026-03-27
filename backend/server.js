@@ -46,7 +46,8 @@ const {
   securityHeaders,
   requestLogging,
   validateContentType,
-  sanitizeInput
+  sanitizeInput,
+  csrfProtection
 } = require('./middleware/security');
 
 const app = express();
@@ -114,6 +115,10 @@ app.use(cookieParser());
 // Input validation and sanitization
 app.use(validateContentType);
 app.use(sanitizeInput);
+
+// CSRF double-submit cookie protection
+// Issues a csrf-token cookie on GET; requires X-CSRF-Token header on state-changing requests
+app.use(csrfProtection);
 
 // API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));

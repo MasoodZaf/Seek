@@ -431,26 +431,18 @@ class OfflineService {
   async processSyncItem(item) {
     switch (item.action) {
       case 'PROGRESS_UPDATE': {
-        const token = localStorage.getItem('accessToken');
         await fetch('/api/v1/progress', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` }),
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify(item.data)
         });
         break;
       }
       case 'CODE_EXECUTION': {
-        const token = localStorage.getItem('accessToken');
         await fetch('/api/v1/code/execute', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` }),
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify(item.data)
         });

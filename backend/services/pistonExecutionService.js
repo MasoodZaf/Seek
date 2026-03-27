@@ -9,7 +9,47 @@ const https = require('https');
 const logger = require('../config/logger');
 
 const PISTON_BASE_URL = process.env.PISTON_BASE_URL || 'http://seek-piston:2000';
-const REQUEST_TIMEOUT_MS = 45000;
+const REQUEST_TIMEOUT_MS = 20000; // General HTTP timeout (health, packages, install)
+const EXECUTION_TIMEOUT_MS = 20000; // Hard server-side cap on code execution calls
+
+// ── Simple in-process circuit breaker ────────────────────────────────────────
+// Prevents cascading failures when Piston is down or overloaded.
+// States: closed (normal) → open (rejecting) → half-open (probe one request)
+const CIRCUIT = {
+  state: 'closed',   // 'closed' | 'open' | 'half-open'
+  failures: 0,
+  lastFailureAt: 0
+};
+const CB_THRESHOLD  = 5;           // consecutive failures before opening
+const CB_RESET_MS   = 30 * 1000;   // 30 s cooldown before probing again
+
+function cbAllow() {
+  if (CIRCUIT.state === 'closed') return true;
+  if (CIRCUIT.state === 'open') {
+    if (Date.now() - CIRCUIT.lastFailureAt >= CB_RESET_MS) {
+      CIRCUIT.state = 'half-open'; // allow one probe
+      return true;
+    }
+    return false; // still cooling down — reject immediately
+  }
+  return true; // half-open: let one request through
+}
+
+function cbSuccess() {
+  CIRCUIT.failures = 0;
+  CIRCUIT.state = 'closed';
+}
+
+function cbFailure() {
+  CIRCUIT.failures += 1;
+  CIRCUIT.lastFailureAt = Date.now();
+  if (CIRCUIT.failures >= CB_THRESHOLD) {
+    if (CIRCUIT.state !== 'open') {
+      logger.warn(`[Piston] Circuit breaker OPEN after ${CIRCUIT.failures} consecutive failures`);
+    }
+    CIRCUIT.state = 'open';
+  }
+}
 
 // Maps internal language names → Piston runtime names as returned by /api/v2/runtimes
 // Package 'node' installs as runtime 'javascript'; 'gcc' installs as 'c'/'c++'; 'mono' as 'csharp'
@@ -37,6 +77,22 @@ class PistonExecutionService {
    */
   async executeCode(code, language, stdin = '') {
     const startTime = Date.now();
+
+    // Circuit breaker — fail fast when Piston is known-down
+    if (!cbAllow()) {
+      logger.warn(`[Piston] Circuit is OPEN — rejecting execution request for ${language}`);
+      return {
+        success: false,
+        output: {
+          stdout: '',
+          stderr: 'Code execution service is temporarily unavailable. Please try again in a moment.',
+          exitCode: 1
+        },
+        executionTime: 0,
+        memoryUsage: 0
+      };
+    }
+
     const lang = LANGUAGE_MAP[language.toLowerCase()];
 
     if (!lang) {
@@ -58,7 +114,14 @@ class PistonExecutionService {
     });
 
     try {
-      const response = await this._post('/api/v2/execute', payload);
+      // Server-side hard timeout — prevents 10 slow Piston calls from blocking all workers
+      const executionTimeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('execution_timeout')), EXECUTION_TIMEOUT_MS)
+      );
+      const response = await Promise.race([
+        this._post('/api/v2/execute', payload),
+        executionTimeout
+      ]);
       const executionTime = Date.now() - startTime;
 
       const run = response.run || {};
@@ -71,6 +134,7 @@ class PistonExecutionService {
 
       const exitCode = run.code !== undefined ? run.code : (compile?.code ?? 0);
 
+      cbSuccess(); // execution succeeded — close/reset circuit
       return {
         success: exitCode === 0 && !stderr,
         output: {
@@ -82,13 +146,18 @@ class PistonExecutionService {
         memoryUsage: 0
       };
     } catch (error) {
-      logger.error(`Piston execution error for ${language}:`, error.message);
+      const isTimeout = error.message === 'execution_timeout' || error.message.includes('timed out');
+      // Only count infrastructure failures toward circuit breaker, not timeouts from user code
+      if (!isTimeout) cbFailure();
+      logger.error(`Piston execution error for ${language} [${isTimeout ? 'TIMEOUT' : 'ERROR'}]:`, error.message);
       return {
         success: false,
         output: {
           stdout: '',
-          stderr: `Code execution unavailable: ${error.message}`,
-          exitCode: 1
+          stderr: isTimeout
+            ? 'Time Limit Exceeded: execution took too long'
+            : `Code execution unavailable: ${error.message}`,
+          exitCode: isTimeout ? 124 : 1 // 124 = standard timeout exit code
         },
         executionTime: Date.now() - startTime,
         memoryUsage: 0
