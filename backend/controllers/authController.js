@@ -45,8 +45,8 @@ const register = async (req, res) => {
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: process.env.COOKIE_SECURE === 'true',
+      sameSite: process.env.COOKIE_SAMESITE || 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     };
 
@@ -159,8 +159,8 @@ const login = async (req, res) => {
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: process.env.COOKIE_SECURE === 'true',
+      sameSite: process.env.COOKIE_SAMESITE || 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     };
 
@@ -233,8 +233,8 @@ const refreshToken = async (req, res) => {
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.COOKIE_SECURE === 'true',
+      sameSite: process.env.COOKIE_SAMESITE || 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     };
 
