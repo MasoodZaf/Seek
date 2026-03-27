@@ -1514,7 +1514,15 @@ async function seedDoubledChallenges() {
       .filter(c => !existingSlugs.has(c.slug));
 
     console.log(`➕ Inserting ${prepared.length} new challenges (skipping duplicates)...`);
-    const result = await CodingChallenge.insertMany(prepared, { ordered: false });
+    let result;
+    try {
+      result = await CodingChallenge.insertMany(prepared, { ordered: false });
+    } catch (bulkErr) {
+      // E11000 duplicate key — partial inserts still succeed with ordered:false
+      result = bulkErr.result || { insertedCount: bulkErr.insertedDocs?.length || 0 };
+      const dupes = (bulkErr.writeErrors || []).length;
+      if (dupes) console.log(`⚠️  Skipped ${dupes} duplicate slug(s)`);
+    }
     console.log(`\n✅ Successfully added ${result.length} new challenges`);
 
     const newCount = await CodingChallenge.countDocuments();

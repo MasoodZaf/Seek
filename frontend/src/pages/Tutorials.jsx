@@ -37,11 +37,11 @@ const Tutorials = () => {
 
   const TABS = [
     { id: 'all', name: 'All Tutorials', filters: {} },
-    { id: 'web-development', name: 'Web Development', filters: { category: 'web-development' } },
+    { id: 'web-development', name: 'Web Development', filters: { category: 'Web Development' } },
     { id: 'javascript', name: 'JavaScript', filters: { language: 'javascript' } },
     { id: 'python', name: 'Python', filters: { language: 'python' } },
     { id: 'database', name: 'Databases', filters: { category: 'Database' } },
-    { id: 'algorithms', name: 'Algorithms', filters: { category: 'algorithms' } },
+    { id: 'algorithms', name: 'Algorithms', filters: { category: 'Algorithms' } },
   ];
   
   const languages = [
