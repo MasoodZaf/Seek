@@ -1,70 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
 const SKILL_LEVELS = [
-  {
-    id: 'beginner',
-    label: 'Beginner',
-    icon: '🌱',
-    desc: "I'm just starting out. New to programming.",
-  },
-  {
-    id: 'intermediate',
-    label: 'Intermediate',
-    icon: '🔥',
-    desc: "I know the basics and want to level up.",
-  },
-  {
-    id: 'advanced',
-    label: 'Advanced',
-    icon: '⚡',
-    desc: "I'm experienced and want challenges.",
-  },
+  { id: 'beginner',     label: 'Beginner',     emoji: '🌱', desc: "New to programming" },
+  { id: 'intermediate', label: 'Intermediate',  emoji: '🔥', desc: "Know the basics" },
+  { id: 'advanced',     label: 'Advanced',      emoji: '⚡', desc: "Ready for challenges" },
 ];
 
 const LANGUAGES = [
-  { id: 'javascript', label: 'JavaScript', icon: '🟨', tutorial: 'javascript-basics' },
-  { id: 'python',     label: 'Python',     icon: '🐍', tutorial: 'python-basics' },
-  { id: 'java',       label: 'Java',       icon: '☕', tutorial: 'java-basics' },
-  { id: 'cpp',        label: 'C++',        icon: '⚙️', tutorial: 'cpp-basics' },
-  { id: 'typescript', label: 'TypeScript', icon: '🔷', tutorial: 'typescript-basics' },
-  { id: 'go',         label: 'Go',         icon: '🐹', tutorial: 'go-basics' },
+  { id: 'javascript', label: 'JavaScript', icon: 'JS',  color: '#f7df1e', bg: '#1a1800' },
+  { id: 'python',     label: 'Python',     icon: 'Py',  color: '#3776ab', bg: '#001020' },
+  { id: 'java',       label: 'Java',       icon: 'Jv',  color: '#ed8b00', bg: '#1a0e00' },
+  { id: 'cpp',        label: 'C++',        icon: 'C++', color: '#659ad2', bg: '#00101a' },
+  { id: 'typescript', label: 'TypeScript', icon: 'TS',  color: '#3178c6', bg: '#00102a' },
+  { id: 'go',         label: 'Go',         icon: 'Go',  color: '#00add8', bg: '#001a20' },
 ];
 
 const THEMES = [
-  {
-    id: 'midnight',
-    label: 'Midnight',
-    desc: 'Deep black with indigo accents. Classic dark coding environment.',
-    preview: ['#0e0e16', '#17171a', '#6366f1'],
-  },
-  {
-    id: 'ocean',
-    label: 'Ocean',
-    desc: 'Deep navy with cyan highlights. Professional and brand-aligned.',
-    preview: ['#0d1b2a', '#141b28', '#2CB5E3'],
-  },
-  {
-    id: 'daylight',
-    label: 'Daylight',
-    desc: 'Clean white with navy accents. Great for bright environments.',
-    preview: ['#f4f6f8', '#ffffff', '#1B2A6B'],
-  },
+  { id: 'midnight', label: 'Midnight', desc: 'Deep black · Indigo accents',  swatches: ['#0e0e16', '#17171a', '#6366f1'] },
+  { id: 'ocean',    label: 'Ocean',    desc: 'Deep navy · Cyan highlights',   swatches: ['#0d1b2a', '#141b28', '#2CB5E3'] },
+  { id: 'daylight', label: 'Daylight', desc: 'Clean white · Navy accents',    swatches: ['#f4f6f8', '#ffffff', '#1B2A6B'] },
 ];
 
-const STEPS = ['Skill Level', 'Language', 'Theme', "Let's Go!"];
-
 export default function OnboardingModal({ onComplete }) {
-  const [step, setStep] = useState(0);
   const [skillLevel, setSkillLevel] = useState(null);
   const [language, setLanguage] = useState(null);
   const [theme, setThemeChoice] = useState('midnight');
+
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { setTheme } = useTheme();
+
+  const canFinish = !!skillLevel && !!language;
 
   const handleFinish = async () => {
     setTheme(theme);
@@ -75,20 +46,14 @@ export default function OnboardingModal({ onComplete }) {
 
     try {
       await api.put('/auth/profile', {
-        preferences: {
-          skillLevel,
-          preferredLanguage: language,
-          language,
-          theme,
-          onboardingDone: true
-        }
+        preferences: { skillLevel, preferredLanguage: language, language, theme, onboardingDone: true }
       });
-    } catch (e) {
-      // Non-fatal — localStorage copy is the fallback
+    } catch {
+      // Non-fatal — localStorage is the fallback
     }
 
     onComplete();
-    navigate(`/tutorials`);
+    navigate('/tutorials');
   };
 
   const handleExit = async () => {
@@ -96,196 +61,248 @@ export default function OnboardingModal({ onComplete }) {
     window.location.href = '/';
   };
 
-  const canNext = step === 0 ? !!skillLevel : step === 1 ? !!language : true;
+  const selectedSkill = SKILL_LEVELS.find(s => s.id === skillLevel);
+  const selectedLang  = LANGUAGES.find(l => l.id === language);
+  const selectedTheme = THEMES.find(t => t.id === theme);
 
   return (
-    <div style={fullPage}>
-      <button style={exitBtn} onClick={handleExit}>
-        ← Back to Home
-      </button>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:wght@400;500;600;700&display=swap');
+        *, *::before, *::after { box-sizing: border-box; }
+        .ob-card { transition: border-color 0.18s, background 0.18s, box-shadow 0.18s; }
+        .ob-card:hover { border-color: rgba(255,255,255,0.18) !important; }
+      `}</style>
 
-      <div style={container}>
-        {/* Progress steps */}
-        <div style={dotsRow}>
-          {STEPS.map((label, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                <div style={{
-                  ...dot,
-                  background: i <= step ? '#6366f1' : '#2d2d44',
-                  transform: i === step ? 'scale(1.25)' : 'scale(1)',
-                }} />
-                <span style={{
-                  fontSize: 11,
-                  color: i <= step ? '#a5b4fc' : '#4b5563',
-                  fontWeight: i === step ? 600 : 400,
-                  whiteSpace: 'nowrap',
-                }}>{label}</span>
-              </div>
-              {i < STEPS.length - 1 && <div style={{ ...line, marginBottom: 16 }} />}
-            </div>
-          ))}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'linear-gradient(160deg, #0c0c10 0%, #0e0e16 100%)', overflow: 'auto', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+
+        {/* Top bar */}
+        <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(12,12,16,0.85)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 24px' }}>
+          <button onClick={handleExit}
+            style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#6b7280', padding: '7px 16px', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#d1d5db'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Home
+          </button>
+
+          <div style={{ fontSize: 13, color: '#4b5563', fontWeight: 500 }}>
+            CodeArc · Setup
+          </div>
+
+          {/* Mini summary chips */}
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {selectedSkill && (
+              <span style={{ fontSize: 11, background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', padding: '3px 8px', borderRadius: 20, fontWeight: 600, border: '1px solid rgba(99,102,241,0.25)' }}>
+                {selectedSkill.emoji} {selectedSkill.label}
+              </span>
+            )}
+            {selectedLang && (
+              <span style={{ fontSize: 11, background: `rgba(${selectedLang.color.slice(1).match(/../g).map(h => parseInt(h,16)).join(',')},0.15)`, color: selectedLang.color, padding: '3px 8px', borderRadius: 20, fontWeight: 600, border: `1px solid rgba(${selectedLang.color.slice(1).match(/../g).map(h => parseInt(h,16)).join(',')},0.3)` }}>
+                {selectedLang.label}
+              </span>
+            )}
+          </div>
         </div>
 
-        <p style={stepLabel}>{`Step ${step + 1} of ${STEPS.length}`}</p>
+        {/* Main content */}
+        <div style={{ maxWidth: 780, margin: '0 auto', padding: '48px 24px 100px' }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
 
-        {/* Step 0: Skill level */}
-        {step === 0 && (
-          <div style={stepContent}>
-            <h2 style={heading}>What's your experience level?</h2>
-            <p style={subtext}>We'll tailor tutorials and challenges to match your skills.</p>
-            <div style={{ ...grid, gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: 640, margin: '0 auto' }}>
-              {SKILL_LEVELS.map(s => (
-                <button
-                  key={s.id}
-                  style={{ ...card, ...(skillLevel === s.id ? cardActive : {}) }}
-                  onClick={() => setSkillLevel(s.id)}
-                >
-                  <span style={{ fontSize: 42 }}>{s.icon}</span>
-                  <strong style={{ color: '#f1f1f5', marginTop: 10, fontSize: 16 }}>{s.label}</strong>
-                  <span style={{ color: '#9999b3', fontSize: 13, textAlign: 'center', lineHeight: 1.4 }}>{s.desc}</span>
-                </button>
-              ))}
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 36, fontWeight: 700, color: '#f1f1f5', margin: '0 0 10px', letterSpacing: '-0.025em' }}>
+                Personalize your experience
+              </h1>
+              <p style={{ fontSize: 15, color: '#6b7280', margin: 0 }}>
+                Quick setup — takes under a minute. You can change everything later.
+              </p>
             </div>
-          </div>
-        )}
 
-        {/* Step 1: Language */}
-        {step === 1 && (
-          <div style={stepContent}>
-            <h2 style={heading}>Pick your first language</h2>
-            <p style={subtext}>You can explore all languages later — this just sets your starting point.</p>
-            <div style={{ ...grid, gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: 560, margin: '0 auto' }}>
-              {LANGUAGES.map(l => (
-                <button
-                  key={l.id}
-                  style={{ ...card, ...(language === l.id ? cardActive : {}) }}
-                  onClick={() => setLanguage(l.id)}
-                >
-                  <span style={{ fontSize: 36 }}>{l.icon}</span>
-                  <strong style={{ color: '#f1f1f5', marginTop: 8, fontSize: 15 }}>{l.label}</strong>
-                </button>
-              ))}
+            {/* ── Section 1: Skill Level ──────────────────────────── */}
+            <Section number="01" title="What's your experience level?" subtitle="We'll tailor content and challenges to match your skills.">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+                {SKILL_LEVELS.map(s => (
+                  <OptionCard
+                    key={s.id}
+                    selected={skillLevel === s.id}
+                    onClick={() => setSkillLevel(s.id)}
+                    accentColor="#6366f1"
+                  >
+                    <span style={{ fontSize: 36, lineHeight: 1 }}>{s.emoji}</span>
+                    <strong style={{ color: '#f1f1f5', fontSize: 15, fontWeight: 600, marginTop: 6 }}>{s.label}</strong>
+                    <span style={{ color: '#6b7280', fontSize: 12.5, textAlign: 'center', lineHeight: 1.4 }}>{s.desc}</span>
+                  </OptionCard>
+                ))}
+              </div>
+            </Section>
+
+            <SectionDivider />
+
+            {/* ── Section 2: Language ─────────────────────────────── */}
+            <Section number="02" title="Pick your starting language" subtitle="You'll have access to all languages — this just sets your default.">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {LANGUAGES.map(l => (
+                  <LanguageCard
+                    key={l.id}
+                    lang={l}
+                    selected={language === l.id}
+                    onClick={() => setLanguage(l.id)}
+                  />
+                ))}
+              </div>
+            </Section>
+
+            <SectionDivider />
+
+            {/* ── Section 3: Theme ────────────────────────────────── */}
+            <Section number="03" title="Choose your theme" subtitle="Sets the editor and UI colour scheme. Swap anytime in settings.">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+                {THEMES.map(t => (
+                  <ThemeCard
+                    key={t.id}
+                    thm={t}
+                    selected={theme === t.id}
+                    onClick={() => setThemeChoice(t.id)}
+                  />
+                ))}
+              </div>
+            </Section>
+
+            {/* ── CTA ─────────────────────────────────────────────── */}
+            <div style={{ marginTop: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+              {!canFinish && (
+                <p style={{ fontSize: 12.5, color: '#4b5563', margin: 0 }}>
+                  Select a skill level and language to continue
+                </p>
+              )}
+
+              {/* Summary pill */}
+              <AnimatePresence>
+                {canFinish && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 18px', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 28, fontSize: 13, color: '#a5b4fc', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <span>{selectedSkill?.emoji} {selectedSkill?.label}</span>
+                    <span style={{ color: '#374151' }}>·</span>
+                    <span>{selectedLang?.label}</span>
+                    <span style={{ color: '#374151' }}>·</span>
+                    <span>{selectedTheme?.label} theme</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <motion.button
+                onClick={handleFinish}
+                disabled={!canFinish}
+                style={{
+                  background: canFinish ? 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)' : '#1e1e2a',
+                  color: canFinish ? '#fff' : '#374151',
+                  border: 'none', borderRadius: 10,
+                  padding: '14px 44px', fontSize: 15.5, fontWeight: 700,
+                  cursor: canFinish ? 'pointer' : 'not-allowed',
+                  fontFamily: 'inherit',
+                  boxShadow: canFinish ? '0 8px 32px rgba(99,102,241,0.35)' : 'none',
+                  transition: 'all 0.2s',
+                  letterSpacing: '0.01em',
+                  minWidth: 220,
+                }}
+                whileHover={canFinish ? { boxShadow: '0 12px 40px rgba(99,102,241,0.5)', y: -2 } : {}}
+                whileTap={canFinish ? { scale: 0.98 } : {}}>
+                Start Learning →
+              </motion.button>
             </div>
-          </div>
-        )}
 
-        {/* Step 2: Theme */}
-        {step === 2 && (
-          <div style={stepContent}>
-            <h2 style={heading}>Choose your theme</h2>
-            <p style={subtext}>Pick the look that feels right. You can always change it later in settings.</p>
-            <div style={{ ...grid, gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: 700, margin: '0 auto' }}>
-              {THEMES.map(t => (
-                <button
-                  key={t.id}
-                  style={{ ...card, ...(theme === t.id ? cardActive : {}), padding: '20px 16px', gap: 12 }}
-                  onClick={() => setThemeChoice(t.id)}
-                >
-                  {/* Color swatch preview */}
-                  <div style={{
-                    display: 'flex', borderRadius: 10, overflow: 'hidden',
-                    width: 80, height: 48, border: '1px solid rgba(255,255,255,0.1)',
-                    flexShrink: 0,
-                  }}>
-                    {t.preview.map((color, idx) => (
-                      <div key={idx} style={{ flex: 1, background: color }} />
-                    ))}
-                  </div>
-                  <strong style={{ color: '#f1f1f5', fontSize: 15 }}>{t.label}</strong>
-                  <span style={{ color: '#9999b3', fontSize: 12, textAlign: 'center', lineHeight: 1.4 }}>{t.desc}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Confirm */}
-        {step === 3 && (
-          <div style={{ ...stepContent, alignItems: 'center', textAlign: 'center' }}>
-            <span style={{ fontSize: 72 }}>🚀</span>
-            <h2 style={{ ...heading, marginTop: 16, fontSize: 32 }}>You're all set!</h2>
-            <p style={{ ...subtext, fontSize: 16, maxWidth: 480 }}>
-              Level: <strong style={{ color: '#a5b4fc' }}>{SKILL_LEVELS.find(s => s.id === skillLevel)?.label}</strong>
-              {' · '}
-              Language: <strong style={{ color: '#a5b4fc' }}>{LANGUAGES.find(l => l.id === language)?.label}</strong>
-              {' · '}
-              Theme: <strong style={{ color: '#a5b4fc' }}>{THEMES.find(t => t.id === theme)?.label}</strong>
-            </p>
-            <p style={{ ...subtext, fontSize: 15, marginTop: 8, maxWidth: 440 }}>
-              We'll open the Tutorials page — find your first lesson and start coding!
-            </p>
-          </div>
-        )}
-
-        {/* Navigation */}
-        <div style={navRow}>
-          {step > 0 ? (
-            <button style={backBtn} onClick={() => setStep(s => s - 1)}>← Back</button>
-          ) : (
-            <div />
-          )}
-          {step < STEPS.length - 1 ? (
-            <button
-              style={{ ...nextBtn, opacity: canNext ? 1 : 0.4, cursor: canNext ? 'pointer' : 'not-allowed' }}
-              disabled={!canNext}
-              onClick={() => setStep(s => s + 1)}
-            >
-              Next →
-            </button>
-          ) : (
-            <button style={nextBtn} onClick={handleFinish}>
-              Start Learning →
-            </button>
-          )}
+          </motion.div>
         </div>
       </div>
+    </>
+  );
+}
+
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+function Section({ number, title, subtitle, children }) {
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#374151', letterSpacing: '0.08em', fontVariantNumeric: 'tabular-nums' }}>{number}</span>
+        <h2 style={{ fontSize: 19, fontWeight: 700, color: '#f1f1f5', margin: 0, letterSpacing: '-0.015em' }}>{title}</h2>
+      </div>
+      <p style={{ fontSize: 13.5, color: '#6b7280', margin: '0 0 20px' }}>{subtitle}</p>
+      {children}
     </div>
   );
 }
 
-// ── Styles ──────────────────────────────────────────────────────────────────
-const fullPage = {
-  position: 'fixed', inset: 0, zIndex: 9999,
-  background: '#0e0e16',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  overflow: 'auto',
-};
-const exitBtn = {
-  position: 'absolute', top: 24, left: 28,
-  background: 'transparent', border: '1px solid #2d2d44',
-  color: '#9999b3', padding: '8px 18px', borderRadius: 8,
-  cursor: 'pointer', fontSize: 14, fontWeight: 500,
-  transition: 'all 0.15s',
-};
-const container = {
-  width: '100%', maxWidth: 760, padding: '48px 40px',
-  display: 'flex', flexDirection: 'column', gap: 0, alignItems: 'center',
-};
-const dotsRow = { display: 'flex', alignItems: 'flex-start', justifyContent: 'center', marginBottom: 8, gap: 0 };
-const dot = { width: 12, height: 12, borderRadius: '50%', transition: 'all 0.2s' };
-const line = { width: 60, height: 2, background: '#2d2d44', borderRadius: 1, marginTop: -8 };
-const stepLabel = { textAlign: 'center', color: '#6b7280', fontSize: 13, marginBottom: 32, marginTop: 4 };
-const stepContent = { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', width: '100%' };
-const heading = { color: '#f1f1f5', fontSize: 28, fontWeight: 700, margin: 0, textAlign: 'center' };
-const subtext = { color: '#9999b3', fontSize: 15, margin: '6px 0 24px', textAlign: 'center' };
-const grid = { display: 'grid', gap: 16, width: '100%' };
-const card = {
-  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-  padding: '24px 20px', borderRadius: 14, border: '1px solid #2d2d44',
-  background: '#1e1e2a', cursor: 'pointer', transition: 'all 0.15s',
-};
-const cardActive = {
-  border: '2px solid #6366f1', background: 'rgba(99,102,241,0.12)',
-  boxShadow: '0 0 0 4px rgba(99,102,241,0.08)',
-};
-const navRow = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 40, width: '100%', maxWidth: 560 };
-const backBtn = {
-  background: 'transparent', border: '1px solid #2d2d44',
-  color: '#9999b3', padding: '10px 24px', borderRadius: 8, cursor: 'pointer', fontSize: 14,
-};
-const nextBtn = {
-  background: '#6366f1', color: '#fff', border: 'none',
-  padding: '12px 36px', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 600,
-  transition: 'opacity 0.15s',
-};
+function SectionDivider() {
+  return <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.07) 30%, rgba(255,255,255,0.07) 70%, transparent)', margin: '40px 0' }} />;
+}
+
+function OptionCard({ selected, onClick, accentColor, children }) {
+  return (
+    <motion.button className="ob-card" onClick={onClick} whileTap={{ scale: 0.98 }}
+      style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+        padding: '22px 16px', borderRadius: 12, cursor: 'pointer',
+        background: selected ? `rgba(${hexToRgb(accentColor)},0.12)` : 'rgba(255,255,255,0.03)',
+        border: selected ? `2px solid ${accentColor}` : '1.5px solid rgba(255,255,255,0.08)',
+        boxShadow: selected ? `0 0 0 4px rgba(${hexToRgb(accentColor)},0.1)` : 'none',
+        fontFamily: 'inherit', transition: 'all 0.18s',
+      }}>
+      {children}
+    </motion.button>
+  );
+}
+
+function LanguageCard({ lang, selected, onClick }) {
+  const rgb = hexToRgb(lang.color);
+  return (
+    <motion.button className="ob-card" onClick={onClick} whileTap={{ scale: 0.97 }}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '14px 16px', borderRadius: 10, cursor: 'pointer',
+        background: selected ? `rgba(${rgb},0.14)` : 'rgba(255,255,255,0.03)',
+        border: selected ? `2px solid ${lang.color}` : '1.5px solid rgba(255,255,255,0.08)',
+        boxShadow: selected ? `0 0 0 4px rgba(${rgb},0.1)` : 'none',
+        fontFamily: 'inherit', textAlign: 'left',
+      }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+        background: `rgba(${rgb},0.15)`,
+        border: `1px solid rgba(${rgb},0.3)`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 10, fontWeight: 800, color: lang.color, letterSpacing: '-0.03em',
+      }}>
+        {lang.icon}
+      </div>
+      <strong style={{ color: '#f1f1f5', fontSize: 14, fontWeight: 600 }}>{lang.label}</strong>
+    </motion.button>
+  );
+}
+
+function ThemeCard({ thm, selected, onClick }) {
+  return (
+    <motion.button className="ob-card" onClick={onClick} whileTap={{ scale: 0.98 }}
+      style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+        padding: '20px 16px', borderRadius: 12, cursor: 'pointer',
+        background: selected ? 'rgba(99,102,241,0.1)' : 'rgba(255,255,255,0.03)',
+        border: selected ? '2px solid #6366f1' : '1.5px solid rgba(255,255,255,0.08)',
+        boxShadow: selected ? '0 0 0 4px rgba(99,102,241,0.1)' : 'none',
+        fontFamily: 'inherit',
+      }}>
+      {/* Swatch */}
+      <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', width: 72, height: 40, border: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
+        {thm.swatches.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
+      </div>
+      <strong style={{ color: '#f1f1f5', fontSize: 14, fontWeight: 600 }}>{thm.label}</strong>
+      <span style={{ color: '#6b7280', fontSize: 11.5, textAlign: 'center', lineHeight: 1.4 }}>{thm.desc}</span>
+    </motion.button>
+  );
+}
+
+function hexToRgb(hex) {
+  const m = hex.replace('#', '').match(/../g);
+  if (!m) return '255,255,255';
+  return m.map(h => parseInt(h, 16)).join(',');
+}
