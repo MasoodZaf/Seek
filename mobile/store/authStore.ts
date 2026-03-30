@@ -6,7 +6,8 @@ import type { User, LoginPayload, RegisterPayload } from '../types/auth';
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
+  isInitializing: boolean;  // true only during restoreSession (app startup)
+  isLoading: boolean;       // true during login / register operations
   error: string | null;
 
   login: (payload: LoginPayload) => Promise<void>;
@@ -19,7 +20,8 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: true,
+  isInitializing: true,
+  isLoading: false,
   error: null,
 
   login: async ({ email, password }) => {
@@ -63,18 +65,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   restoreSession: async () => {
-    set({ isLoading: true });
+    set({ isInitializing: true });
     try {
       const token = await storage.getAccessToken();
       if (!token) {
-        set({ isAuthenticated: false, isLoading: false });
+        set({ isAuthenticated: false, isInitializing: false });
         return;
       }
       const { data } = await api.get('/auth/profile');
-      set({ user: data.data.user, isAuthenticated: true, isLoading: false });
+      set({ user: data.data.user, isAuthenticated: true, isInitializing: false });
     } catch {
       await storage.clearTokens();
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      set({ user: null, isAuthenticated: false, isInitializing: false });
     }
   },
 

@@ -13,13 +13,13 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  const { restoreSession, isLoading } = useAuthStore();
+  const { restoreSession, isInitializing } = useAuthStore();
 
   useEffect(() => {
     restoreSession().finally(() => SplashScreen.hideAsync());
   }, []);
 
-  if (isLoading) return null;
+  if (isInitializing) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
