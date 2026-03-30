@@ -95,7 +95,12 @@ const resources = {
         editorPreferences: 'Editor Preferences',
         interfaceLanguage: 'Interface Language',
         defaultLanguage: 'Default Language',
-        
+        fontSize: 'Font Size',
+        tabSize: 'Tab Size',
+        autoSave: 'Auto-save code changes',
+        wordWrap: 'Enable word wrap',
+        minimap: 'Show minimap',
+
         // Appearance
         theme: 'Theme',
         light: 'Light',
@@ -288,7 +293,13 @@ const resources = {
         // General Settings
         editorPreferences: 'Preferencias del Editor',
         interfaceLanguage: 'Idioma de la Interfaz',
-        
+        defaultLanguage: 'Lenguaje Predeterminado',
+        fontSize: 'Tamaño de Fuente',
+        tabSize: 'Tamaño de Tabulación',
+        autoSave: 'Guardar cambios automáticamente',
+        wordWrap: 'Habilitar ajuste de texto',
+        minimap: 'Mostrar minimapa',
+
         // Appearance
         theme: 'Tema',
         light: 'Claro',
@@ -395,7 +406,26 @@ const resources = {
         title: 'Paramètres',
         subtitle: 'Personnalisez votre expérience de codage',
         language: 'Langue',
-        interfaceLanguage: 'Langue de l\'interface'
+        interfaceLanguage: 'Langue de l\'interface',
+        editorPreferences: 'Préférences de l\'éditeur',
+        defaultLanguage: 'Langage par défaut',
+        fontSize: 'Taille de police',
+        tabSize: 'Taille de tabulation',
+        autoSave: 'Sauvegarder automatiquement',
+        wordWrap: 'Activer le retour à la ligne',
+        minimap: 'Afficher la minimap',
+        general: 'Général',
+        appearance: 'Apparence',
+        notifications: 'Notifications',
+        security: 'Sécurité',
+        account: 'Compte',
+        saveChanges: 'Enregistrer',
+        settingsSaved: 'Paramètres sauvegardés !',
+        errorSaving: 'Erreur lors de la sauvegarde',
+        theme: 'Thème',
+        light: 'Clair',
+        dark: 'Sombre',
+        system: 'Système'
       },
       
       // Languages
