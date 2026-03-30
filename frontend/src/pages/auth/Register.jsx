@@ -100,6 +100,11 @@ const Register = () => {
     const result = await register(registrationData);
     
     if (result.success) {
+      // Clear any stale onboarding flags so ProtectedRoute always shows onboarding for new accounts
+      localStorage.removeItem('seek_onboarding_done');
+      localStorage.removeItem('seek_skill_level');
+      localStorage.removeItem('seek_preferred_language');
+      localStorage.removeItem('seek_theme');
       navigate('/playground');
     }
     
