@@ -37,7 +37,7 @@ export default function LoginScreen() {
         {/* Logo */}
         <View style={styles.logoRow}>
           <Image
-            source={require('../../../assets/icon.png')}
+            source={require('../../assets/icon.png')}
             style={styles.logoMark}
             resizeMode="cover"
           />

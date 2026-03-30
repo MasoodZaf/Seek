@@ -46,7 +46,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "http://localhost:5002/api/v1",
+      "apiUrl": "http://88.208.255.166:5001/api/v1",
       "eas": {
         "projectId": "codearc-mobile"
       }
