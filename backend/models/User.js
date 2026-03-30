@@ -15,7 +15,7 @@ const User = sequelize.define('User', {
     unique: true,
     validate: {
       len: [3, 30],
-      isAlphanumeric: true
+      is: /^[a-zA-Z0-9_]+$/
     }
   },
   email: {
@@ -63,7 +63,7 @@ const User = sequelize.define('User', {
     type: DataTypes.JSON,
     defaultValue: {
       language: 'javascript',
-      theme: 'dark',
+      theme: 'midnight',
       notifications: {
         email: true,
         push: true

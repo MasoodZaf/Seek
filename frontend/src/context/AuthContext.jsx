@@ -65,6 +65,7 @@ export const AuthProvider = ({ children }) => {
     if (prefs.skillLevel) localStorage.setItem('seek_skill_level', prefs.skillLevel);
     if (prefs.preferredLanguage) localStorage.setItem('seek_preferred_language', prefs.preferredLanguage);
     if (prefs.onboardingDone) localStorage.setItem('seek_onboarding_done', '1');
+    if (prefs.theme) localStorage.setItem('seek_theme', prefs.theme);
   };
 
   const checkAuthStatus = async () => {
@@ -135,6 +136,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('seek_skill_level');
       localStorage.removeItem('seek_preferred_language');
       localStorage.removeItem('seek_onboarding_done');
+      localStorage.removeItem('seek_theme');
       dispatch({ type: 'AUTH_LOGOUT' });
       toast.success('Logged out successfully');
       window.location.href = '/';

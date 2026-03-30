@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const SKILL_LEVELS = [
   {
@@ -33,28 +34,52 @@ const LANGUAGES = [
   { id: 'go',         label: 'Go',         icon: '🐹', tutorial: 'go-basics' },
 ];
 
-const STEPS = ['Skill Level', 'Language', "Let's Go!"];
+const THEMES = [
+  {
+    id: 'midnight',
+    label: 'Midnight',
+    desc: 'Deep black with indigo accents. Classic dark coding environment.',
+    preview: ['#0e0e16', '#17171a', '#6366f1'],
+  },
+  {
+    id: 'ocean',
+    label: 'Ocean',
+    desc: 'Deep navy with cyan highlights. Professional and brand-aligned.',
+    preview: ['#0d1b2a', '#141b28', '#2CB5E3'],
+  },
+  {
+    id: 'daylight',
+    label: 'Daylight',
+    desc: 'Clean white with navy accents. Great for bright environments.',
+    preview: ['#f4f6f8', '#ffffff', '#1B2A6B'],
+  },
+];
+
+const STEPS = ['Skill Level', 'Language', 'Theme', "Let's Go!"];
 
 export default function OnboardingModal({ onComplete }) {
   const [step, setStep] = useState(0);
   const [skillLevel, setSkillLevel] = useState(null);
   const [language, setLanguage] = useState(null);
+  const [theme, setThemeChoice] = useState('midnight');
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { setTheme } = useTheme();
 
   const handleFinish = async () => {
-    // Save to localStorage as fast local cache
+    setTheme(theme);
     localStorage.setItem('seek_onboarding_done', '1');
     localStorage.setItem('seek_skill_level', skillLevel);
     localStorage.setItem('seek_preferred_language', language);
+    localStorage.setItem('seek_theme', theme);
 
-    // Persist to DB so it survives device/browser switches
     try {
       await api.put('/auth/profile', {
         preferences: {
           skillLevel,
           preferredLanguage: language,
-          language, // also sets the editor default language
+          language,
+          theme,
           onboardingDone: true
         }
       });
@@ -67,10 +92,7 @@ export default function OnboardingModal({ onComplete }) {
   };
 
   const handleExit = async () => {
-    // Must log out first — otherwise HomeRoute redirects authenticated users
-    // back to /playground → ProtectedRoute → onboarding loop
     await logout();
-    // logout() already does window.location.href = '/' so this is a safety fallback
     window.location.href = '/';
   };
 
@@ -78,7 +100,6 @@ export default function OnboardingModal({ onComplete }) {
 
   return (
     <div style={fullPage}>
-      {/* Exit link — top left */}
       <button style={exitBtn} onClick={handleExit}>
         ← Back to Home
       </button>
@@ -149,14 +170,47 @@ export default function OnboardingModal({ onComplete }) {
           </div>
         )}
 
-        {/* Step 2: Confirm */}
+        {/* Step 2: Theme */}
         {step === 2 && (
+          <div style={stepContent}>
+            <h2 style={heading}>Choose your theme</h2>
+            <p style={subtext}>Pick the look that feels right. You can always change it later in settings.</p>
+            <div style={{ ...grid, gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: 700, margin: '0 auto' }}>
+              {THEMES.map(t => (
+                <button
+                  key={t.id}
+                  style={{ ...card, ...(theme === t.id ? cardActive : {}), padding: '20px 16px', gap: 12 }}
+                  onClick={() => setThemeChoice(t.id)}
+                >
+                  {/* Color swatch preview */}
+                  <div style={{
+                    display: 'flex', borderRadius: 10, overflow: 'hidden',
+                    width: 80, height: 48, border: '1px solid rgba(255,255,255,0.1)',
+                    flexShrink: 0,
+                  }}>
+                    {t.preview.map((color, idx) => (
+                      <div key={idx} style={{ flex: 1, background: color }} />
+                    ))}
+                  </div>
+                  <strong style={{ color: '#f1f1f5', fontSize: 15 }}>{t.label}</strong>
+                  <span style={{ color: '#9999b3', fontSize: 12, textAlign: 'center', lineHeight: 1.4 }}>{t.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Confirm */}
+        {step === 3 && (
           <div style={{ ...stepContent, alignItems: 'center', textAlign: 'center' }}>
             <span style={{ fontSize: 72 }}>🚀</span>
             <h2 style={{ ...heading, marginTop: 16, fontSize: 32 }}>You're all set!</h2>
             <p style={{ ...subtext, fontSize: 16, maxWidth: 480 }}>
-              We've set your level to <strong style={{ color: '#a5b4fc' }}>{SKILL_LEVELS.find(s => s.id === skillLevel)?.label}</strong> and
-              your starting language to <strong style={{ color: '#a5b4fc' }}>{LANGUAGES.find(l => l.id === language)?.label}</strong>.
+              Level: <strong style={{ color: '#a5b4fc' }}>{SKILL_LEVELS.find(s => s.id === skillLevel)?.label}</strong>
+              {' · '}
+              Language: <strong style={{ color: '#a5b4fc' }}>{LANGUAGES.find(l => l.id === language)?.label}</strong>
+              {' · '}
+              Theme: <strong style={{ color: '#a5b4fc' }}>{THEMES.find(t => t.id === theme)?.label}</strong>
             </p>
             <p style={{ ...subtext, fontSize: 15, marginTop: 8, maxWidth: 440 }}>
               We'll open the Tutorials page — find your first lesson and start coding!
@@ -171,7 +225,7 @@ export default function OnboardingModal({ onComplete }) {
           ) : (
             <div />
           )}
-          {step < 2 ? (
+          {step < STEPS.length - 1 ? (
             <button
               style={{ ...nextBtn, opacity: canNext ? 1 : 0.4, cursor: canNext ? 'pointer' : 'not-allowed' }}
               disabled={!canNext}

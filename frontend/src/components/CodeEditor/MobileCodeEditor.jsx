@@ -41,7 +41,7 @@ const MobileCodeEditor = ({
   onSave,
   readOnly = false
 }) => {
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showKeyboardHelper, setShowKeyboardHelper] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
@@ -635,7 +635,7 @@ const MobileCodeEditor = ({
               <TouchButton
                 variant="ghost"
                 size="sm"
-                onPress={toggleTheme}
+                onPress={toggleDarkMode}
                 haptic="medium"
                 className="w-full justify-between"
               >

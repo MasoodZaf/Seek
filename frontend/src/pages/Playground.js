@@ -6,7 +6,6 @@ import {
   DocumentDuplicateIcon,
   ShareIcon,
   BookmarkIcon,
-  Cog6ToothIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import { Button, Badge, Card } from '../components/ui';
@@ -38,11 +37,11 @@ const discounted = available.map(p => ({
   price: +(p.price * 0.9).toFixed(2),
 }));
 console.log('Discounted prices:');
-discounted.forEach(p => console.log(\` \${p.name}: \$\${p.price}\`));
+discounted.forEach(p => console.log(\` \${p.name}: \${p.price}\`));
 
 // reduce: total cost
 const total = discounted.reduce((sum, p) => sum + p.price, 0);
-console.log('Total: \$' + total.toFixed(2));`,
+console.log('Total: $' + total.toFixed(2));`,
     },
     {
       label: 'Closures & Currying',
@@ -1041,7 +1040,7 @@ const Playground = () => {
   const [error, setError] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [editorLanguage, setEditorLanguage] = useState('javascript');
-  const [settings, setSettings] = useState({
+  const [settings, _setSettings] = useState({ // eslint-disable-line no-unused-vars
     theme: 'vs-dark',
     fontSize: 14,
     wordWrap: true,
@@ -1185,6 +1184,7 @@ const Playground = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
+        // eslint-disable-next-line no-console
         console.error('🚨 Playground API Error:', {
           status: response.status,
           statusText: response.statusText,
@@ -1249,18 +1249,21 @@ const Playground = () => {
       // Fallback to client-side execution for JavaScript
       if (editorLanguage === 'javascript') {
         try {
+          // eslint-disable-next-line no-console
           const originalConsoleLog = console.log;
+          // eslint-disable-next-line no-console
           const originalConsoleError = console.error;
           let output = '';
           
+          // eslint-disable-next-line no-console
           console.log = (...args) => {
-            output += args.map(arg => 
+            output += args.map(arg =>
               typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
             ).join(' ') + '\n';
           };
-          
+          // eslint-disable-next-line no-console
           console.error = (...args) => {
-            output += 'Error: ' + args.map(arg => 
+            output += 'Error: ' + args.map(arg =>
               typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
             ).join(' ') + '\n';
           };
@@ -1270,7 +1273,9 @@ const Playground = () => {
           setOutput(output || String(t('playground.codeExecutedSuccessfully') || 'Code executed successfully'));
           setError('ℹ️ ' + String(t('playground.executedLocally') || 'Executed locally'));
           
+          // eslint-disable-next-line no-console
           console.log = originalConsoleLog;
+          // eslint-disable-next-line no-console
           console.error = originalConsoleError;
         } catch (execError) {
           setError(execError.toString());
@@ -1281,7 +1286,7 @@ const Playground = () => {
     }
     
     setIsExecuting(false);
-  }, [code, editorLanguage, user]);
+  }, [code, editorLanguage, user, t]);
 
   const resetCode = useCallback(() => {
     setCode('');
@@ -1291,7 +1296,7 @@ const Playground = () => {
     setOutput('');
     localStorage.removeItem(`playground-code-${editorLanguage}`);
     toast.success(String(t('playground.codeReset') || 'Code reset'));
-  }, [editorLanguage]);
+  }, [editorLanguage, t]);
 
   const copyCode = useCallback(async () => {
     try {
@@ -1300,7 +1305,7 @@ const Playground = () => {
     } catch (err) {
       toast.error(String(t('playground.failedToCopy') || 'Failed to copy'));
     }
-  }, [code]);
+  }, [code, t]);
 
   const shareCode = useCallback(async () => {
     try {

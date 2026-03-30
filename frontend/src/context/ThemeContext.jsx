@@ -3,13 +3,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
+export const THEMES = ['midnight', 'ocean', 'daylight'];
+
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
     console.error('useTheme called outside of ThemeProvider context');
-    // Return a safe default instead of throwing to prevent app crashes
     return {
-      isDarkMode: false,
+      theme: 'midnight',
+      setTheme: () => {},
+      isDarkMode: true,
       toggleDarkMode: () => {},
       setIsDarkMode: () => {}
     };
@@ -18,29 +21,37 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Initialize from localStorage if available
-    const saved = localStorage.getItem('darkMode');
-    return saved !== null ? JSON.parse(saved) : true;
+  const [theme, setThemeState] = useState(() => {
+    const saved = localStorage.getItem('seek_theme');
+    return THEMES.includes(saved) ? saved : 'midnight';
   });
 
-  useEffect(() => {
-    // Save to localStorage whenever dark mode changes
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
-    
-    // Update document class for global styles
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+  const setTheme = (newTheme) => {
+    if (THEMES.includes(newTheme)) {
+      setThemeState(newTheme);
     }
-  }, [isDarkMode]);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(prev => !prev);
   };
 
+  useEffect(() => {
+    localStorage.setItem('seek_theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+
+    // Keep Tailwind dark class in sync — midnight and ocean are dark
+    if (theme === 'daylight') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+    }
+  }, [theme]);
+
+  // Backward-compat: isDarkMode / toggleDarkMode for existing components
+  const isDarkMode = theme !== 'daylight';
+  const toggleDarkMode = () => setTheme(isDarkMode ? 'daylight' : 'midnight');
+  const setIsDarkMode = (dark) => setTheme(dark ? 'midnight' : 'daylight');
+
   const value = {
+    theme,
+    setTheme,
     isDarkMode,
     toggleDarkMode,
     setIsDarkMode,

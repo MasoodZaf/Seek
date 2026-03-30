@@ -1,20 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  EnvelopeIcon, 
-  LockClosedIcon, 
-  UserIcon,
-  AcademicCapIcon 
-} from '@heroicons/react/24/outline';
-import { Button, Input, Card } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -44,23 +36,15 @@ const Register = () => {
   
   const validateStep1 = () => {
     const newErrors = {};
-    
+
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'First name is required';
     }
-    
+
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Last name is required';
     }
-    
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
-    }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -120,12 +104,6 @@ const Register = () => {
     }
     
     setLoading(false);
-  };
-  
-  const stepVariants = {
-    hidden: { opacity: 0, x: 50 },
-    visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -50 }
   };
   
   const S = {
@@ -252,12 +230,6 @@ const Register = () => {
                       <input name="lastName" type="text" placeholder="Doe" value={formData.lastName} onChange={handleChange} {...inputProps('lastName')} />
                       {errors.lastName && <div style={S.error}>{errors.lastName}</div>}
                     </div>
-                  </div>
-                  <div style={S.fieldGroup}>
-                    <label style={S.label}>Username</label>
-                    <input name="username" type="text" placeholder="janedoe" value={formData.username} onChange={handleChange} {...inputProps('username')} />
-                    {errors.username && <div style={S.error}>{errors.username}</div>}
-                    {!errors.username && <div style={S.helper}>Your unique identifier on CodeArc</div>}
                   </div>
                   <motion.button type="button" style={S.btn(true)} whileHover={{ background: '#a7f3d0' }} onClick={handleNext}>
                     Continue →

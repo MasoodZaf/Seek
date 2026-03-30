@@ -195,13 +195,9 @@ const Profile = () => {
                       className="w-full text-center text-xl font-bold bg-transparent border-b border-secondary-300 focus:border-primary-500 outline-none"
                       placeholder="Last Name"
                     />
-                    <input
-                      type="text"
-                      value={profileData.username}
-                      onChange={(e) => handleInputChange('username', e.target.value)}
-                      className="w-full text-center text-secondary-600 bg-transparent border-b border-secondary-300 focus:border-primary-500 outline-none"
-                      placeholder="@username"
-                    />
+                    <p className="w-full text-center text-secondary-400 text-sm">
+                      @{profileData.username}
+                    </p>
                   </div>
                 ) : (
                   <>

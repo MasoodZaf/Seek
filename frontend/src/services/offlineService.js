@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 class OfflineService {
   constructor() {
     this.dbName = 'CodeArcOfflineDB';

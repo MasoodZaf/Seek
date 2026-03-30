@@ -1,33 +1,39 @@
 // Note: jwt import removed as tokens are generated via User model methods
-const { Sequelize } = require('sequelize');
 const { User } = require('../models');
 const logger = require('../config/logger');
 
-// Note: generateTokens helper removed as it was unused - tokens are generated via User model methods
+const generateUsername = async (firstName) => {
+  const base = firstName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'user';
+  let username;
+  let attempts = 0;
+  do {
+    const suffix = Math.random().toString(36).substring(2, 6);
+    username = `${base}_${suffix}`;
+    // eslint-disable-next-line no-await-in-loop
+    const existing = await User.findOne({ where: { username } });
+    if (!existing) break;
+    attempts += 1;
+  } while (attempts < 5);
+  return username;
+};
 
 const register = async (req, res) => {
   try {
     const {
-      username, email, password, firstName, lastName
+      email, password, firstName, lastName
     } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({
-      where: {
-        [Sequelize.Op.or]: [
-          { email },
-          { username }
-        ]
-      }
-    });
+    // Check if email already exists
+    const existingUser = await User.findOne({ where: { email } });
 
     if (existingUser) {
-      const field = existingUser.email === email ? 'Email' : 'Username';
       return res.status(409).json({
         success: false,
-        message: `${field} already exists`
+        message: 'Email already exists'
       });
     }
+
+    const username = await generateUsername(firstName);
 
     // Create new user
     const user = await User.create({
@@ -104,22 +110,19 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     logger.info(`Login attempt for: ${email}`);
-    logger.info('Request body:', req.body);
 
     // Find user by email
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      logger.warn(`User not found: ${email}`);
+      logger.warn(`Login failed — user not found: ${email}`);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    logger.info(`User found: ${user.email}, checking password`);
     const isPasswordValid = await user.comparePassword(password);
-    logger.info(`Password valid: ${isPasswordValid}`);
 
     if (!isPasswordValid) {
       logger.warn(`Invalid password for user: ${email}`);

@@ -26,7 +26,7 @@ const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [shortcutsHelpOpen, setShortcutsHelpOpen] = useState(false);
   const { loading } = useAuth();
-  const { isDarkMode } = useTheme();
+  useTheme();
   const location = useLocation();
 
   // Breadcrumb mapping

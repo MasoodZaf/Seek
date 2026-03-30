@@ -153,6 +153,48 @@
   --gradient-glass: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
 }
 
+/* Midnight Theme — deep black with indigo accents (default dark) */
+[data-theme="midnight"] {
+  --color-background: #0e0e16;
+  --color-background-secondary: #17171a;
+  --color-background-tertiary: #1e1e24;
+  --color-foreground: #f5f0e8;
+  --color-foreground-secondary: #a09898;
+  --color-foreground-tertiary: #6b6565;
+  --color-border: rgba(255,255,255,0.08);
+  --color-border-light: rgba(255,255,255,0.14);
+  --color-accent: #6366f1;
+  --gradient-glass: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 100%);
+}
+
+/* Ocean Theme — deep navy with cyan highlights */
+[data-theme="ocean"] {
+  --color-background: #0d1b2a;
+  --color-background-secondary: #141b28;
+  --color-background-tertiary: #1f2736;
+  --color-foreground: #e8f4f8;
+  --color-foreground-secondary: #b8d4e0;
+  --color-foreground-tertiary: #7a9db0;
+  --color-border: rgba(44,181,227,0.15);
+  --color-border-light: rgba(44,181,227,0.25);
+  --color-accent: #2CB5E3;
+  --gradient-glass: linear-gradient(135deg, rgba(44,181,227,0.05) 0%, rgba(27,42,107,0.1) 100%);
+}
+
+/* Daylight Theme — clean white with navy accents */
+[data-theme="daylight"] {
+  --color-background: #f4f6f8;
+  --color-background-secondary: #ffffff;
+  --color-background-tertiary: #e8ecf0;
+  --color-foreground: #1B2A6B;
+  --color-foreground-secondary: #344098;
+  --color-foreground-tertiary: #4150af;
+  --color-border: #d1d9e0;
+  --color-border-light: #e8ecf0;
+  --color-accent: #2CB5E3;
+  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(244,246,248,0.9) 100%);
+}
+
 /* High Contrast Theme Variables */
 [data-theme="high-contrast"] {
   /* High contrast colors for accessibility */
