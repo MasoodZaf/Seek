@@ -93,6 +93,36 @@ export default function LoginScreen() {
           <Text style={styles.switchText}>Don't have an account? </Text>
           <Text style={styles.switchLink}>Register</Text>
         </TouchableOpacity>
+
+        {/* ── Quick access (testing only) ── */}
+        <View style={styles.quickSection}>
+          <View style={styles.quickDividerRow}>
+            <View style={styles.quickLine} />
+            <Text style={styles.quickLabel}>Quick Access</Text>
+            <View style={styles.quickLine} />
+          </View>
+          <TouchableOpacity
+            style={[styles.quickBtn, isLoading && styles.disabled]}
+            disabled={isLoading}
+            onPress={async () => {
+              setEmail('admin@codearc.dev');
+              setPassword('admin123456');
+              clearError();
+              try {
+                await login({ email: 'admin@codearc.dev', password: 'admin123456' });
+                router.replace('/(tabs)/');
+              } catch {
+                // error shown via store
+              }
+            }}
+          >
+            <Text style={styles.quickBtnIcon}>🛡️</Text>
+            <View>
+              <Text style={styles.quickBtnName}>Admin User</Text>
+              <Text style={styles.quickBtnEmail}>admin@codearc.dev</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -130,4 +160,18 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: Spacing.xl },
   switchText: { color: Colors.text3, fontSize: FontSize.sm },
   switchLink: { color: Colors.green, fontSize: FontSize.sm, fontWeight: '600' },
+
+  quickSection: { marginTop: Spacing.xl },
+  quickDividerRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  quickLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.07)' },
+  quickLabel: { fontSize: 11, fontWeight: '600', color: Colors.text3, textTransform: 'uppercase', letterSpacing: 0.8 },
+  quickBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: Colors.primaryDim,
+    borderWidth: 1, borderColor: 'rgba(99,102,241,0.3)',
+    borderRadius: Radius.md, paddingVertical: 13, paddingHorizontal: Spacing.md,
+  },
+  quickBtnIcon: { fontSize: 22 },
+  quickBtnName: { fontSize: FontSize.sm, fontWeight: '700', color: Colors.text },
+  quickBtnEmail: { fontSize: 11, color: Colors.text3, marginTop: 1 },
 });
