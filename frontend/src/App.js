@@ -142,26 +142,11 @@ function App() {
       console.log('Browser info:', browserInfo.browser);
     }
 
-    // Register service worker - DISABLED TEMPORARILY TO FIX LOGIN ISSUE
-    // Unregister any existing service worker
+    // One-time service worker cleanup (runs only if a SW was previously registered)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (registrations) {
-        for (let registration of registrations) {
-          registration.unregister().then(function (success) {
-            console.log('Service Worker unregistered:', success);
-          });
-        }
+        registrations.forEach(registration => registration.unregister());
       });
-
-      // Clear all caches
-      if ('caches' in window) {
-        caches.keys().then(function (names) {
-          for (let name of names) {
-            caches.delete(name);
-            console.log('Cache deleted:', name);
-          }
-        });
-      }
     }
 
     // serviceWorkerManager.register({
