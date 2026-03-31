@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,48 +11,49 @@ import {
   TrashIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  ComputerDesktopIcon,
   SunIcon,
   MoonIcon,
-  LanguageIcon
+  GlobeAltIcon
 } from '@heroicons/react/24/outline';
-import { Button, Card, Badge, Loading, Input } from '../components/ui';
+import { Button, Card, Input } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 
 const Settings = () => {
   const { user, updateUser } = useAuth();
+  const { setTheme } = useTheme();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
   
   const [settings, setSettings] = useState({
     // General Settings
-    theme: user?.preferences?.theme || 'dark',
+    theme: user?.preferences?.theme || 'midnight',
     language: user?.preferences?.language || 'javascript',
-    interfaceLanguage: i18n.language || 'en',
-    autoSave: true,
-    wordWrap: true,
-    minimap: true,
-    fontSize: 14,
-    tabSize: 2,
-    
+    interfaceLanguage: user?.preferences?.interfaceLanguage || i18n.language || 'en',
+    autoSave: user?.preferences?.autoSave ?? true,
+    wordWrap: user?.preferences?.wordWrap ?? true,
+    minimap: user?.preferences?.minimap ?? true,
+    fontSize: user?.preferences?.fontSize ?? 14,
+    tabSize: user?.preferences?.tabSize ?? 2,
+
     // Notifications
-    emailNotifications: user?.preferences?.notifications?.email || true,
-    pushNotifications: user?.preferences?.notifications?.push || true,
-    newFeatureUpdates: true,
-    achievementNotifications: true,
-    weeklyProgress: true,
-    
+    emailNotifications: user?.preferences?.notifications?.email ?? true,
+    pushNotifications: user?.preferences?.notifications?.push ?? true,
+    newFeatureUpdates: user?.preferences?.notifications?.newFeatureUpdates ?? true,
+    achievementNotifications: user?.preferences?.notifications?.achievements ?? true,
+    weeklyProgress: user?.preferences?.notifications?.weeklyProgress ?? true,
+
     // Security
     twoFactorEnabled: false,
-    sessionTimeout: 30,
-    
+    sessionTimeout: user?.preferences?.sessionTimeout ?? 30,
+
     // Privacy
-    profileVisibility: 'public',
-    showProgress: true,
-    showAchievements: true
+    profileVisibility: user?.preferences?.profileVisibility || 'public',
+    showProgress: user?.preferences?.showProgress ?? true,
+    showAchievements: user?.preferences?.showAchievements ?? true
   });
 
   const [passwords, setPasswords] = useState({
@@ -73,7 +74,7 @@ const Settings = () => {
       key: KeyIcon,
       sun: SunIcon,
       moon: MoonIcon,
-      computer: ComputerDesktopIcon,
+      globe: GlobeAltIcon,
     };
     return iconMap[iconType] || Cog6ToothIcon;
   };
@@ -87,9 +88,9 @@ const Settings = () => {
   ];
 
   const themes = [
-    { id: 'light', name: t('settings.light'), iconType: 'sun' },
-    { id: 'dark', name: t('settings.dark'), iconType: 'moon' },
-    { id: 'system', name: t('settings.system'), iconType: 'computer' }
+    { id: 'midnight', name: 'Midnight', iconType: 'moon' },
+    { id: 'ocean', name: 'Ocean', iconType: 'globe' },
+    { id: 'daylight', name: 'Daylight', iconType: 'sun' }
   ];
 
   const languages = [
@@ -123,18 +124,45 @@ const Settings = () => {
       i18n.changeLanguage(value);
       toast.success(t('settings.settingsSaved'));
     }
+
+    // Apply theme immediately
+    if (key === 'theme') {
+      setTheme(value);
+    }
   };
 
   const handleSaveSettings = async () => {
     try {
       setLoading(true);
 
-      const response = await api.put('/auth/profile', { preferences: settings });
+      // Build structured preferences that match the User model's expected shape
+      const preferencesToSave = {
+        theme: settings.theme,
+        language: settings.language,
+        interfaceLanguage: settings.interfaceLanguage,
+        autoSave: settings.autoSave,
+        wordWrap: settings.wordWrap,
+        minimap: settings.minimap,
+        fontSize: settings.fontSize,
+        tabSize: settings.tabSize,
+        notifications: {
+          email: settings.emailNotifications,
+          push: settings.pushNotifications,
+          newFeatureUpdates: settings.newFeatureUpdates,
+          achievements: settings.achievementNotifications,
+          weeklyProgress: settings.weeklyProgress,
+        },
+        sessionTimeout: settings.sessionTimeout,
+        profileVisibility: settings.profileVisibility,
+        showProgress: settings.showProgress,
+        showAchievements: settings.showAchievements,
+      };
+
+      const response = await api.put('/auth/profile', { preferences: preferencesToSave });
 
       if (response.data) {
         toast.success(t('settings.settingsSaved'));
-        // Update user context with new preferences
-        updateUser({ ...user, preferences: settings });
+        updateUser({ ...user, preferences: preferencesToSave });
       } else {
         throw new Error('Failed to save settings');
       }
@@ -158,10 +186,15 @@ const Settings = () => {
       return;
     }
 
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(passwords.new)) {
+      toast.error('Password must contain at least one uppercase letter, one lowercase letter, and one number');
+      return;
+    }
+
     try {
       setLoading(true);
 
-      const response = await api.post('/auth/change-password', {
+      const response = await api.put('/auth/password', {
         currentPassword: passwords.current,
         newPassword: passwords.new
       });
@@ -183,12 +216,14 @@ const Settings = () => {
     try {
       setLoading(true);
 
-      const response = await api.delete('/auth/delete-account');
+      const response = await api.delete('/auth/account');
 
       if (response.data) {
         toast.success(t('settings.accountDeleted'));
-        // Logout and redirect
-        localStorage.removeItem('token');
+        localStorage.removeItem('seek_skill_level');
+        localStorage.removeItem('seek_preferred_language');
+        localStorage.removeItem('seek_onboarding_done');
+        localStorage.removeItem('seek_theme');
         window.location.href = '/login';
       } else {
         throw new Error('Failed to delete account');

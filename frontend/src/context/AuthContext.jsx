@@ -173,12 +173,18 @@ export const AuthProvider = ({ children }) => {
 
   const clearError = () => dispatch({ type: 'AUTH_CLEAR_ERROR' });
 
+  // Optimistically update user state in context without making an API call
+  const updateUser = (userData) => {
+    dispatch({ type: 'AUTH_UPDATE_USER', payload: userData });
+  };
+
   const value = {
     ...state,
     login,
     register,
     logout,
     updateProfile,
+    updateUser,
     changePassword,
     clearError,
     checkAuthStatus,
